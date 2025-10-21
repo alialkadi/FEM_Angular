@@ -1,0 +1,180 @@
+/* Layout */
+.category-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin: 2rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+/* Table */
+.category-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.category-table th {
+  background: #f5f7fb;
+  font-weight: 600;
+  color: #333;
+  padding: 0.85rem;
+  text-align: left;
+}
+
+.category-table td {
+  padding: 0.85rem;
+  border-bottom: 1px solid #eee;
+}
+
+.category-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+/* Icon Buttons */
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  margin: 0 0.25rem;
+  font-size: 1.1rem;
+  transition: transform 0.15s ease-in-out;
+}
+
+.icon-btn:hover {
+  transform: scale(1.1);
+}
+
+.icon-btn.edit {
+  color: #1976d2; /* Material blue */
+}
+
+.icon-btn.delete {
+  color: #e53935; /* Material red */
+}
+
+/* Form */
+.form-card h2 {
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.form-group .required {
+  color: #e53935;
+}
+
+input[type="text"] {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+input[type="text"]:focus {
+  border-color: #4e46e5;
+  box-shadow: 0 0 0 2px rgba(78, 70, 229, 0.15);
+  outline: none;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.btn {
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: background 0.2s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.btn.cancel {
+  background: #f5f5f5;
+  color: #444;
+}
+
+.btn.primary {
+  background: #4e46e5;
+  color: #fff;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+.paginator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.page-size label {
+  margin-right: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.page-size select {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-controls button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f5f5f5;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease-in-out;
+}
+
+.page-controls button:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.page-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

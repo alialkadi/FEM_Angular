@@ -1,0 +1,74 @@
+.dialog-content {
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dialog-form {
+  width: 100%;
+}
+
+.dialog-actions {
+  padding-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Confirm dialog */
+.confirm-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.confirm-icon {
+  font-size: 48px;
+  margin-bottom: 0.5rem;
+}
+
+.confirm-text {
+  font-size: 1rem;
+  color: #444;
+  margin: 0;
+}
+
+/* Responsive dialog */
+::ng-deep .mat-dialog-container {
+  border-radius: 12px !important;
+  padding: 1.5rem !important;
+}
+
+@media (max-width: 600px) {
+  ::ng-deep .mat-dialog-container {
+    width: 95vw !important;
+    max-width: none !important;
+    margin: 0 auto;
+  }
+
+  .dialog-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dialog-actions button {
+    width: 100%;
+  }
+}
+
+/* Smooth fade-in animation */
+::ng-deep .cdk-overlay-pane {
+  animation: fadeInUp 0.25s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

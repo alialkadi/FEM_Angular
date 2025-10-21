@@ -1,0 +1,9 @@
+<h2 mat-dialog-title>Confirm Changes</h2>
+<mat-dialog-content class="dialog-content confirm-dialog">
+    <mat-icon color="primary" class="confirm-icon">help_outline</mat-icon>
+    <p class="confirm-text">{{ message }}</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button (click)="onCancel()">Cancel</button>
+    <button mat-flat-button color="primary" (click)="onConfirm()">Yes, Update</button>
+</mat-dialog-actions>

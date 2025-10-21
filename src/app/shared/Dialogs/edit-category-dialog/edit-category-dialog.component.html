@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>Edit Category</h2>
+<mat-dialog-content class="dialog-content">
+    <form [formGroup]="editForm" class="dialog-form">
+        <div class="form-group">
+            <label for="categoryName">Category Name <span class="required">*</span></label>
+            <input id="categoryName" type="text" formControlName="name" placeholder="Enter category name"
+                class="custom-input" />
+            <div class="error" *ngIf="editForm.get('name')?.hasError('required') && editForm.get('name')?.touched">
+                Category name is required </div>
+        </div>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button color="warn" (click)="onCancel()">Cancel</button>
+    <button mat-flat-button color="primary" (click)="onSave()">Save</button>
+</mat-dialog-actions>

@@ -1,0 +1,82 @@
+<div class="category-type-container">
+    <!-- Category Type List -->
+    <section class="card list-card">
+        <h2>Category Type List</h2>
+        <table class="category-table">
+            <thead>
+                <tr>
+                    <th>Type Name</th>
+                    <th>Category Name</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of categoryTypes">
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.categoryName }}</td>
+                    <td>
+                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Type Image" class="type-image" />
+                        <span *ngIf="!item.fileUrl">No Image</span>
+                    </td>
+                    <td>
+                        <button class="icon-btn edit">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="icon-btn delete" (click)="onDelete(item.id!)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- Paginator -->
+        <div class="paginator">
+            <div class="page-size">
+                <label for="pageSize">Rows per page:</label>
+                <select id="pageSize" (change)="onPageSizeChange($event)">
+                    <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
+                    </option>
+                </select>
+            </div>
+            <div class="page-controls">
+                <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1">Prev</button>
+                <span>Page {{ pageIndex }} of {{ totalPages }}</span>
+                <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPages">Next</button>
+            </div>
+        </div>
+    </section>
+    <!-- Add New Category Type -->
+    <section class="card form-card">
+        <h2>Add New Category Type</h2>
+        <form [formGroup]="createType" (ngSubmit)="onSave()">
+            <div class="form-group">
+                <label for="typeName">Type Name <span class="required">*</span></label>
+                <input type="text" formControlName="name" id="typeName" placeholder="e.g., Electronics" required />
+                <p *ngIf="
+            createType.get('name')?.getError('required') &&
+            createType.get('name')?.touched
+          " class="text-danger"> Name is required! </p>
+            </div>
+            <div class="form-group">
+                <label for="parentCategory">Parent Category</label>
+                <select id="parentCategory" formControlName="categoryId">
+                    <option value="" disabled selected>- Select Type -</option>
+                    <option *ngFor="let item of categories" [value]="item.id"> {{ item.name }} </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fileUpload">Upload Image</label>
+                <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
+                <div *ngIf="previewUrl" class="preview">
+                    <p>Preview:</p>
+                    <img [src]="previewUrl" alt="Preview" class="preview-img" />
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn cancel">Cancel</button>
+                <button type="submit" class="btn primary" [disabled]="!createType.valid">Save</button>
+            </div>
+        </form>
+    </section>
+</div>

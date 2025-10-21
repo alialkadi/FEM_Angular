@@ -1,0 +1,26 @@
+<!-- dashborad-nav.component.html -->
+<aside class="sidebar">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <h2 class="logo">⚡ Synergy</h2>
+  </div>
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar-nav">
+    <ul>
+      <li *ngFor="let link of sections">
+        <a [routerLink]="link.route"
+           routerLinkActive="active"
+           class="nav-link">
+          <mat-icon>{{ link.icon }}</mat-icon>
+          <span>{{ link.title }}</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <small>© 2024 Synergy</small>
+  </div>
+</aside>

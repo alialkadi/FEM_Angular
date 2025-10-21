@@ -1,0 +1,147 @@
+.category-type-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin: 2rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Table */
+.category-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.category-table th,
+.category-table td {
+  text-align: left;
+  padding: 0.75rem;
+}
+
+.category-table thead {
+  border-bottom: 2px solid #eee;
+  font-weight: 600;
+  color: #555;
+}
+
+.category-table tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* Icon Buttons */
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  margin: 0 0.25rem;
+  font-size: 1rem;
+}
+
+.icon-btn.edit {
+  color: #1976d2; /* blue */
+}
+
+.icon-btn.delete {
+  color: #e53935; /* red */
+}
+
+.icon-btn:hover {
+  opacity: 0.8;
+}
+
+/* Form */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.form-group .required {
+  color: red;
+}
+
+input[type="text"],
+select {
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn.cancel {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.btn.primary {
+  background: #1976d2;
+  color: #fff;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+/* Paginator */
+.paginator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.page-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.page-controls a {
+  text-decoration: none;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.page-controls a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .category-type-container {
+    grid-template-columns: 1fr;
+  }
+}
