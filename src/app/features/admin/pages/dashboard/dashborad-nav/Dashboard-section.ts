@@ -12,6 +12,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     { title: 'Category Types', icon: 'group', route: '/admin/dashboard/CategoryTypes', roles: ['Admin'] },
     { title: 'Structures', icon: 'group', route: '/admin/dashboard/Structures', roles: ['Admin'] },
     { title: 'Parts', icon: 'group', route: '/admin/dashboard/Parts', roles: ['Admin'] },
+    { title: 'PartOptions', icon: 'group', route: '/admin/dashboard/PartOptions', roles: ['Admin'] },
     { title: 'Work Orders', icon: 'build', route: '/technician/orders', roles: ['Technician','Admin'] },
     { title: 'Profile', icon: 'person', route: '/profile', roles: ['user','Technician','Admin'] },
     { title: 'Support Tickets', icon: 'support', route: '/support/tickets', roles: ['CustomerSupport','Admin'] }]

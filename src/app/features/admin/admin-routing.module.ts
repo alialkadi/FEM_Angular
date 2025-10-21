@@ -7,6 +7,7 @@ import { CategoriesListComponent } from './pages/Categories/categories-list/cate
 import { CategoryTypesComponent } from './pages/Categories/category-types/category-types.component';
 import { StructureListComponent } from './pages/Structure/structure-list/structure-list.component';
 import { PartListComponent } from './pages/Parts/part-list/part-list.component';
+import { PartOptionListComponent } from './pages/part-option-list/part-option-list.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -17,6 +18,7 @@ const routes: Routes = [
       {path: 'CategoryTypes', component: CategoryTypesComponent },
       {path: 'Structures', component: StructureListComponent },
       {path: 'Parts', component: PartListComponent },
+      {path: 'PartOptions', component: PartOptionListComponent },
   ]}
 ];
 
