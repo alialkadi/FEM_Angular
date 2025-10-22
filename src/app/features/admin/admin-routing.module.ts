@@ -8,6 +8,8 @@ import { CategoryTypesComponent } from './pages/Categories/category-types/catego
 import { StructureListComponent } from './pages/Structure/structure-list/structure-list.component';
 import { PartListComponent } from './pages/Parts/part-list/part-list.component';
 import { PartOptionListComponent } from './pages/part-option-list/part-option-list.component';
+import { ServiceListComponent } from './pages/Service/service-list/service-list.component';
+import { CreateServiceComponent } from './pages/Service/create-service/create-service.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -19,6 +21,8 @@ const routes: Routes = [
       {path: 'Structures', component: StructureListComponent },
       {path: 'Parts', component: PartListComponent },
       {path: 'PartOptions', component: PartOptionListComponent },
+      {path: 'Services', component: ServiceListComponent },
+      {path: 'createservice', component: CreateServiceComponent },
   ]}
 ];
 

@@ -1,0 +1,49 @@
+<div class="service-list-container">
+    <div class="header">
+        <h2>Services Management</h2>
+        <div class="actions">
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Search services..." (keyup.enter)="onSearch()">
+            <button class="create-btn" [routerLink]="['/admin/dashboard/Services']">+ Create New Service</button>
+        </div>
+    </div>
+    <table class="service-table" *ngIf="!isLoading; else loading">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Base Cost</th>
+                <th>Warranty</th>
+                <th>Delivery Days</th>
+                <th>Linked To</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let service of services">
+                <td>{{service.name}}</td>
+                <td>{{service.description}}</td>
+                <td>{{service.baseCost | currency}}</td>
+                <td>{{service.warrantyDuration}} {{service.warrantyUnit}}</td>
+                <td>{{service.deliveryDays}}</td>
+                <td>
+                    <span *ngIf="service.structureName">Structure: {{service.structureName}}</span>
+                    <span *ngIf="service.partName">Part: {{service.partName}}</span>
+                    <span *ngIf="service.partOptionName">Option: {{service.partOptionName}}</span>
+                </td>
+                <td class="actions-cell">
+                    <button class="view-btn">View</button>
+                    <button class="edit-btn">Edit</button>
+                    <button class="delete-btn" (click)="onDelete(service.id!)">Delete</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <ng-template #loading>
+        <div class="loading">Loading services...</div>
+    </ng-template>
+    <div class="pagination">
+        <button [disabled]="page === 1" (click)="onPageChange(page - 1)">Prev</button>
+        <span>Page {{page}}</span>
+        <button [disabled]="services.length < pageSize" (click)="onPageChange(page + 1)">Next</button>
+    </div>
+</div>

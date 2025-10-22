@@ -14,9 +14,11 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { StructureListComponent } from './pages/Structure/structure-list/structure-list.component';
 import { PartListComponent } from './pages/Parts/part-list/part-list.component';
 import { PartOptionListComponent } from './pages/part-option-list/part-option-list.component';
+import { ServiceListComponent } from './pages/Service/service-list/service-list.component';
+import { CreateServiceComponent } from './pages/Service/create-service/create-service.component';
 
 @NgModule({
-  declarations: [DashboardComponent, ManageUsersComponent, DashboradNavComponent, CategoryTypesComponent,CategoriesListComponent, StructureListComponent, PartListComponent, PartOptionListComponent],
+  declarations: [DashboardComponent, ManageUsersComponent, DashboradNavComponent, CategoryTypesComponent,CategoriesListComponent, StructureListComponent, PartListComponent, PartOptionListComponent, ServiceListComponent, CreateServiceComponent],
   imports: [SharedModule, AdminRoutingModule, MatIcon,CommonModule ,MatPaginatorModule,FormsModule, ReactiveFormsModule ,CommonModule ]
 })
 export class AdminModule {}

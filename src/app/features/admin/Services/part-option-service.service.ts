@@ -26,7 +26,12 @@ export class PartOptionService{
         `${this.baseurl}/PartOption`, { params }
       );
     }
-  
+  getOptionsByPart(id: number): Observable<ApiResponse<PartOptionList>>  {
+    
+      return this._http.get<ApiResponse<PartOptionList>>(
+        `${this.baseurl}/PartOption/byPart/${id}`
+      );
+  }
     CreatePartOption(data: createUpdatePartOption): Observable<ApiResponse<PartOption>>{
       return this._http.post<ApiResponse<PartOption>>(`${this.baseurl}/PartOption`,data)
     }

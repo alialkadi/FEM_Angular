@@ -25,7 +25,11 @@ export class PartService {
       `${this.baseurl}/Part`, { params }
     );
   }
-
+  getPartsByStructure(id: number): Observable<ApiResponse<PartListResponse>> {
+    return this._http.get<ApiResponse<PartListResponse>>(
+      `${this.baseurl}/Part/byStructure/${id}`,
+    );
+  }
   CreatePart(data: createUpdatePart): Observable<ApiResponse<Part>>{
     return this._http.post<ApiResponse<Part>>(`${this.baseurl}/Part`,data)
   }
