@@ -32,3 +32,28 @@ export interface createUpdateServiceRequest{
     partId?: number,
     partOptionId?: number
 }
+
+export interface ServiceStep{
+    id?: number,
+    serviceId?: number,
+    description?: string,
+    serviceName?: string,
+    stepOrder?:number
+}
+
+export interface CreateServiceStep {
+    serviceId?: number,
+    description?: string
+}
+
+export interface UpdateServiceStep {
+    id?: number,
+    serviceId?: number,
+    description?: string
+}
+
+
+export interface ServiceStepListResponse{
+    totalCount?: number,
+    serviceSteps?: ServiceStep[]
+}

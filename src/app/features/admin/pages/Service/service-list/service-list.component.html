@@ -6,6 +6,7 @@
             <button class="create-btn" [routerLink]="['/admin/dashboard/Services']">+ Create New Service</button>
         </div>
     </div>
+    <!-- ==================== Service Table ==================== -->
     <table class="service-table" *ngIf="!isLoading; else loading">
         <thead>
             <tr>
@@ -31,13 +32,67 @@
                     <span *ngIf="service.partOptionName">Option: {{service.partOptionName}}</span>
                 </td>
                 <td class="actions-cell">
-                    <button class="view-btn">View</button>
+                    <button class="steps-btn" (click)="openStepsModal(service)">Steps</button>
                     <button class="edit-btn">Edit</button>
                     <button class="delete-btn" (click)="onDelete(service.id!)">Delete</button>
                 </td>
             </tr>
         </tbody>
     </table>
+    <!-- ==================== Service Steps Modal ==================== -->
+    <div class="steps-modal-backdrop" *ngIf="selectedService && showStepsModal">
+        <div class="steps-modal">
+            <div class="steps-header">
+                <h3>{{ selectedService.name }} — Steps</h3>
+                <button class="close-btn" (click)="closeStepsModal()">&times;</button>
+            </div>
+            <div class="steps-body">
+                <div class="steps-table-container" *ngIf="serviceSteps.length > 0; else noSteps">
+                    <table class="steps-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let step of serviceSteps">
+                                <td>{{ step.stepOrder }}</td>
+                                <td>{{ step.description }}</td>
+                                <td class="actions-cell">
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn"
+                                        (click)="deleteStep(step.id!,step.serviceId!)">Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <ng-template #noSteps>
+                    <p class="no-steps">No steps defined for this service yet.</p>
+                </ng-template>
+                <div class="add-step-card">
+                    <h4>Add New Step</h4>
+                    <!-- ✅ Reactive Form -->
+                    <form [formGroup]="CreateStepForm" (ngSubmit)="onAddStep(CreateStepForm)">
+                        <div class="form-grid">
+                            <!-- Step Description -->
+                            <input type="text" formControlName="description" placeholder="Step Description"
+                                [class.invalid]="CreateStepForm.get('description')?.invalid && CreateStepForm.get('description')?.touched" />
+                            <!-- Hidden or dynamic serviceId (set automatically in TS when opening modal) -->
+                            <input type="hidden" formControlName="serviceId" />
+                            <button type="submit" class="add-btn" [disabled]="CreateStepForm.invalid"> + Add Step
+                            </button>
+                        </div>
+                        <!-- Optional inline validation feedback -->
+                        <div *ngIf="CreateStepForm.get('description')?.invalid && CreateStepForm.get('description')?.touched"
+                            class="error-msg"> Step description is required. </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
     <ng-template #loading>
         <div class="loading">Loading services...</div>
     </ng-template>
