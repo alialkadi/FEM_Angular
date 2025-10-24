@@ -1,0 +1,137 @@
+<div class="create-service-container">
+    <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+            <!-- =========================================== -->
+            <!-- LEFT: SERVICE LINKAGE -->
+            <!-- =========================================== -->
+            <div class="linkage-card">
+                <h3>Service Linkage</h3>
+                <p>Select where this service applies in the hierarchy.</p>
+                <!-- Linkage Tabs -->
+                <div class="tab-buttons">
+                    <button type="button" [class.active]="activeLinkage === 'Structure'"
+                        (click)="setLinkage('Structure')"> Structure </button>
+                    <button type="button" [class.active]="activeLinkage === 'Part'" (click)="setLinkage('Part')"> Part
+                    </button>
+                    <button type="button" [class.active]="activeLinkage === 'PartOption'"
+                        (click)="setLinkage('PartOption')"> Part Option </button>
+                </div>
+                <!-- ===================================================== -->
+                <!-- Always visible: CATEGORY + CATEGORY TYPE -->
+                <!-- ===================================================== -->
+                <div class="select-group">
+                    <label>Category</label>
+                    <select formControlName="categoryId" (change)="onCategoryChange($event)">
+                        <option value="">Select Category</option>
+                        <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+                    </select>
+                </div>
+                <div class="select-group" *ngIf="categoryTypes.length > 0">
+                    <label>Category Type</label>
+                    <select formControlName="categoryTypeId" (change)="onCategoryTypeChange($event)">
+                        <option value="">Select Category Type</option>
+                        <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.categoryName }}</option>
+                    </select>
+                </div>
+                <!-- ===================================================== -->
+                <!-- STRUCTURE MODE -->
+                <!-- ===================================================== -->
+                <ng-container *ngIf="activeLinkage === 'Structure'">
+                    <div class="select-group" *ngIf="structures.length > 0">
+                        <label>Structure</label>
+                        <select formControlName="structureId">
+                            <option value="">Select Structure</option>
+                            <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                        </select>
+                    </div>
+                </ng-container>
+                <!-- ===================================================== -->
+                <!-- PART MODE -->
+                <!-- ===================================================== -->
+                <ng-container *ngIf="activeLinkage === 'Part'">
+                    <div class="select-group" *ngIf="structures.length > 0">
+                        <label>Structure</label>
+                        <select formControlName="structureId" (change)="onStructureChange($event)">
+                            <option value="">Select Structure</option>
+                            <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                        </select>
+                    </div>
+                    <div class="select-group" *ngIf="parts.length > 0">
+                        <label>Part</label>
+                        <select formControlName="partId">
+                            <option value="">Select Part</option>
+                            <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+                        </select>
+                    </div>
+                </ng-container>
+                <!-- ===================================================== -->
+                <!-- PART OPTION MODE -->
+                <!-- ===================================================== -->
+                <ng-container *ngIf="activeLinkage === 'PartOption'">
+                    <div class="select-group" *ngIf="structures.length > 0">
+                        <label>Structure</label>
+                        <select formControlName="structureId" (change)="onStructureChange($event)">
+                            <option value="">Select Structure</option>
+                            <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                        </select>
+                    </div>
+                    <div class="select-group" *ngIf="parts.length > 0">
+                        <label>Part</label>
+                        <select formControlName="partId" (change)="onPartChange($event)">
+                            <option value="">Select Part</option>
+                            <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+                        </select>
+                    </div>
+                    <div class="select-group" *ngIf="partOptions.length > 0">
+                        <label>Part Option</label>
+                        <select formControlName="partOptionId">
+                            <option value="">Select Part Option</option>
+                            <option *ngFor="let o of partOptions" [value]="o.id">{{ o.name }}</option>
+                        </select>
+                    </div>
+                </ng-container>
+            </div>
+            <!-- =========================================== -->
+            <!-- RIGHT: SERVICE DATA -->
+            <!-- =========================================== -->
+            <div class="service-card">
+                <h3>Service Data</h3>
+                <p>Enter service details below.</p>
+                <div class="form-group">
+                    <label>Service Name <span class="required">*</span></label>
+                    <input formControlName="name" type="text" placeholder="e.g., Glass Replacement" />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea formControlName="description" placeholder="Provide a detailed description"></textarea>
+                </div>
+                <div class="inline-fields">
+                    <div>
+                        <label>Base Cost</label>
+                        <input type="number" formControlName="baseCost" min="0" />
+                    </div>
+                    <div>
+                        <label>Warranty Duration</label>
+                        <input type="number" formControlName="warrantyDuration" min="0" />
+                    </div>
+                    <div>
+                        <label>Warranty Unit</label>
+                        <select formControlName="warrantyUnit">
+                            <option value="Days">Days</option>
+                            <option value="Weeks">Weeks</option>
+                            <option value="Months">Months</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Delivery Days</label>
+                        <input type="number" formControlName="deliveryDays" min="0" />
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="submit" [disabled]="isSubmitting"> {{ isSubmitting ? 'Saving...' : 'Create Service' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

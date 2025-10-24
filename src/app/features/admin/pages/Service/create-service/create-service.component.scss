@@ -1,0 +1,231 @@
+.create-service-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  form {
+    width: 100%;
+    max-width: 1300px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+
+    @media (max-width: 992px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* --- CARD STYLES --- */
+  .linkage-card,
+  .service-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    padding: 2rem;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  /* --- TABS --- */
+  .tab-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+
+    button {
+      flex: 1;
+      border: none;
+      background: #f3f4f6;
+      color: #374151;
+      padding: 0.75rem;
+      border-radius: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        background: #e0e7ff;
+      }
+
+      &.active {
+        background: #6366f1;
+        color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      }
+    }
+
+    @media (max-width: 600px) {
+      flex-direction: column;
+    }
+  }
+
+  /* --- FORM ELEMENTS --- */
+  .select-group,
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.25rem;
+
+    label {
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: #374151;
+      margin-bottom: 0.35rem;
+    }
+
+    select,
+    input,
+    textarea {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.95rem;
+      color: #111827;
+      background: #f9fafb;
+      transition: all 0.2s ease-in-out;
+
+      &:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        background: #ffffff;
+      }
+    }
+
+    textarea {
+      resize: none;
+      min-height: 100px;
+    }
+  }
+
+  /* --- INLINE FIELDS (Base Cost / Warranty / Delivery) --- */
+  .inline-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1rem;
+      transition: box-shadow 0.2s ease;
+
+      &:hover {
+        background: #ffffff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      label {
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+
+        &::before {
+          content: "🔹";
+          font-size: 0.8rem;
+          opacity: 0.6;
+        }
+      }
+
+      input,
+      select {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.95rem;
+        color: #111827;
+        background: #ffffff;
+        transition: all 0.2s ease-in-out;
+
+        &:focus {
+          outline: none;
+          border-color: #6366f1;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+      }
+    }
+  }
+
+  /* --- ACTION BUTTON --- */
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2rem;
+
+    button {
+      background: #6366f1;
+      color: #ffffff;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(99, 102, 241, 0.3);
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .create-service-container {
+    padding: 1rem;
+
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .linkage-card,
+    .service-card {
+      padding: 1.5rem;
+    }
+  }
+}

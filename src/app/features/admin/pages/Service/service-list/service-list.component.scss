@@ -1,0 +1,248 @@
+/* ========== General Service List ========== */
+.service-list-container {
+  padding: 24px;
+  font-family: 'Poppins', sans-serif;
+  color: #1f2937;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header h2 {
+  font-weight: 600;
+  font-size: 1.6rem;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.actions input {
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 220px;
+  outline: none;
+}
+
+.create-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.create-btn:hover {
+  background-color: #1d4ed8;
+}
+
+/* ========== Service Table ========== */
+.service-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.service-table th,
+.service-table td {
+  padding: 14px;
+  text-align: left;
+}
+
+.service-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+.actions-cell button {
+  margin-right: 8px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.steps-btn {
+  background-color: #3b82f6;
+  color: #fff;
+}
+.steps-btn:hover {
+  background-color: #2563eb;
+}
+
+.edit-btn {
+  background-color: #10b981;
+  color: white;
+}
+.edit-btn:hover {
+  background-color: #059669;
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+}
+.delete-btn:hover {
+  background-color: #dc2626;
+}
+
+/* ========== Modal Overlay ========== */
+.steps-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ========== Modal Box ========== */
+.steps-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.steps-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2563eb;
+  color: white;
+  padding: 16px 20px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.close-btn {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.steps-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* ========== Steps Table ========== */
+.steps-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.steps-table th,
+.steps-table td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 8px;
+}
+
+.steps-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.no-steps {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  margin: 20px 0;
+}
+
+/* ========== Add Step Form ========== */
+.add-step-card {
+  background-color: #f9fafb;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.add-step-card h4 {
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.form-grid {
+  display: flex;
+  gap: 10px;
+}
+
+.form-grid input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  outline: none;
+}
+
+.add-btn {
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.add-btn:hover {
+  background-color: #1d4ed8;
+}
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+
+    button {
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+
+      &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+    }
+  }

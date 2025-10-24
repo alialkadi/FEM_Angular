@@ -25,7 +25,9 @@ export class CategoryTypeService {
       formData
     );
   }
-
+  getTypesByCategory(id: number): Observable<ApiResponse<CategoryTypeListResponse>> {
+    return this._http.get<ApiResponse<CategoryTypeListResponse>>(this.baseurl + `/CategoryTypes/byCategory/${id}`)
+  }
     deleteCategoryType(id: number): Observable<ApiResponse<boolean>>{
         return this._http.delete<ApiResponse<boolean>>(`${this.baseurl}/CategoryTypes/${id}`)
     }
@@ -37,4 +39,4 @@ export class CategoryTypeService {
             { headers: { 'Content-Type': 'application/json' } } // ✅ set content-type
           );
     }
-}
+  }{}
