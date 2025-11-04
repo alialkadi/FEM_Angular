@@ -1,0 +1,18 @@
+<header class="landing-navbar">
+    <div class="navbar-container">
+        <!-- Logo / Title -->
+        <div class="logo">
+            <span class="logo-text">Fenestration Express</span>
+        </div>
+        <!-- Navigation Links -->
+        <nav class="nav-links">
+            <a *ngFor="let section of sections" [routerLink]="section.route" routerLinkActive="active-link"
+                [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
+                <i class="material-icons nav-icon">{{ section.icon }}</i>
+                <span>{{ section.title }}</span>
+            </a>
+            <!-- Login Button -->
+            <a routerLink="/login" class="login-btn">Login</a>
+        </nav>
+    </div>
+</header>

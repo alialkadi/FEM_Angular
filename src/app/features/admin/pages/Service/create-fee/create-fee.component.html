@@ -1,0 +1,74 @@
+<div class="create-fee-wrapper">
+    <div class="fee-card">
+        <div class="header">
+            <h2>Create New Fee</h2>
+            <p>Define a global or service-specific fee with optional linked services.</p>
+        </div>
+        <form [formGroup]="feeForm" (ngSubmit)="onSubmit()" class="form-body">
+            <!-- Fee Name -->
+            <div class="input-group">
+                <label>Fee Name <span>*</span></label>
+                <input type="text" class="form-control" formControlName="name" placeholder="Enter fee name" />
+                <div *ngIf="feeForm.get('name')?.invalid && feeForm.get('name')?.touched" class="error"> Fee name is
+                    required. </div>
+            </div>
+            <!-- Amount -->
+            <div class="input-group">
+                <label>Amount (USD) <span>*</span></label>
+                <input type="number" class="form-control" formControlName="amount" placeholder="Enter amount" />
+                <div *ngIf="feeForm.get('amount')?.invalid && feeForm.get('amount')?.touched" class="error"> Amount must
+                    be a positive number. </div>
+            </div>
+            <!-- Description -->
+            <div class="input-group full">
+                <label>Description</label>
+                <textarea class="form-control" rows="3" formControlName="description"
+                    placeholder="Optional: describe this fee’s purpose"></textarea>
+            </div>
+            <!-- Global Toggle -->
+            <div class="toggle-row">
+                <label class="toggle-label">Apply Globally?</label>
+                <label class="switch">
+                    <input type="checkbox" formControlName="isGlobal" (change)="toggleGlobal()" />
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <!-- Linked Services -->
+            <div *ngIf="!isGlobal" class="input-group full fade-in">
+                <label>Linked Services</label>
+                <div class="dropdown w-100">
+                    <button class="btn dropdown-toggle w-100 d-flex justify-content-between align-items-center"
+                        type="button" data-bs-toggle="dropdown">
+                        <span *ngIf="selectedServiceNames.length > 0; else placeholder"> {{ selectedServiceNames.join(',
+                            ') }} </span>
+                        <ng-template #placeholder>Select Services</ng-template>
+                    </button>
+                    <div class="dropdown-menu p-3 w-100 shadow-sm">
+                        <input type="text" class="form-control mb-2 search-box" placeholder="Search services..."
+                            [(ngModel)]="serviceSearch" (input)="filterServices()" />
+                        <div *ngIf="filteredServices.length > 0; else noResults" class="service-list">
+                            <div class="form-check" *ngFor="let s of filteredServices">
+                                <input class="form-check-input" type="checkbox" [value]="s.id"
+                                    (change)="toggleServiceSelection(s.id, $event)"
+                                    [checked]="feeForm.value.serviceIds.includes(s.id)" id="service_{{ s.id }}" />
+                                <label class="form-check-label" for="service_{{ s.id }}">{{ s.name }}</label>
+                            </div>
+                        </div>
+                        <ng-template #noResults>
+                            <p class="no-results">No matching services found</p>
+                        </ng-template>
+                    </div>
+                </div>
+                <small class="hint">Select one or more services (search supported).</small>
+            </div>
+            <!-- Buttons -->
+            <div class="action-row">
+                <button type="submit" [disabled]="isSubmitting" class="btn-primary">
+                    <span *ngIf="!isSubmitting">Create Fee</span>
+                    <span *ngIf="isSubmitting" class="loading-spinner"></span>
+                </button>
+                <button type="button" class="btn-secondary" routerLink="/admin/dashboard/Fee">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>

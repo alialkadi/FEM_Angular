@@ -1,0 +1,87 @@
+.landing-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 0.8rem 5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+
+  .navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+  }
+
+  /* Logo */
+  .logo-text {
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: #0078d4;
+    letter-spacing: 0.5px;
+  }
+
+  /* Navigation links */
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      font-family: "Inter", sans-serif;
+
+      &:hover,
+      &.active-link {
+        color: #0078d4;
+      }
+
+      .nav-icon {
+        font-size: 18px;
+        color: #0078d4;
+      }
+    }
+
+    /* Login button */
+    .login-btn {
+      background-color: #0078d4;
+      color: #fff;
+      padding: 0.5rem 1.2rem;
+      border-radius: 25px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #005fa3;
+      }
+    }
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .landing-navbar {
+    .nav-links {
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .logo-text {
+      font-size: 1.2rem;
+    }
+  }
+}

@@ -1,0 +1,71 @@
+<div class="fee-list-container">
+    <!-- ================= Header ================= -->
+    <div class="header">
+        <h2>Fees Management</h2>
+        <div class="actions">
+            <input type="text" placeholder="Search by fee name..." [(ngModel)]="searchTerm"
+                (keyup.enter)="onSearch()" />
+            <button class="btn btn-primary" [routerLink]="['/admin/dashboard/createFee']"> + Create Fee </button>
+        </div>
+    </div>
+    <!-- ================= Table ================= -->
+    <table class="fee-table" *ngIf="!isLoading && fees.length > 0; else loading">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Amount</th>
+                <th>Global</th>
+                <th>Description</th>
+                <th>Linked Services</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let fee of fees">
+                <td>{{ fee.name }}</td>
+                <td>{{ fee.amount | currency }}</td>
+                <td>
+                    <span class="badge" [class.global]="fee.isGlobal"> {{ fee.isGlobal ? 'Yes' : 'No' }} </span>
+                </td>
+                <td>
+                    <span class="description" [title]="fee.description"> {{ fee.description || '-' }} </span>
+                </td>
+                <td>
+                    <button class="link-btn" (click)="openServicesModal(fee)"> {{ fee.services.length }} Services
+                    </button>
+                </td>
+                <td class="actions-cell">
+                    <button class="edit-btn" (click)="onEdit(fee.id)">Edit</button>
+                    <button class="delete-btn" (click)="confirmDelete(fee)">Delete</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <!-- ================= Pagination ================= -->
+    <div class="pagination" *ngIf="!isLoading && fees.length > 0">
+        <button [disabled]="page === 1" (click)="onPageChange(page - 1)">Prev</button>
+        <span>Page {{ page }}</span>
+        <button [disabled]="page * pageSize >= totalCount" (click)="onPageChange(page + 1)"> Next </button>
+    </div>
+    <!-- ================= Loading / Empty States ================= -->
+    <ng-template #loading>
+        <div class="loading"> {{ isLoading ? 'Loading fees...' : 'No fees found.' }} </div>
+    </ng-template>
+    <!-- ================= Linked Services Modal ================= -->
+    <div class="modal-backdrop" *ngIf="showModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Linked Services</h3>
+                <button (click)="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul *ngIf="selectedFee?.services?.length! > 0; else noServices">
+                    <li *ngFor="let s of selectedFee?.services">{{ s.name }}</li>
+                </ul>
+                <ng-template #noServices>
+                    <p>No linked services for this fee.</p>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</div>
