@@ -20,7 +20,8 @@ import { MatIconModule } from '@angular/material/icon';
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent
+    LoginComponent,
+    
   ],
   imports: [
     BrowserModule, CoreModule, SharedModule, LayoutsModule,
@@ -30,6 +31,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatInputModule,
     MatButtonModule,
     MatProgressBarModule,
+    
     MatIconModule   
   ],
   providers: [

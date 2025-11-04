@@ -17,7 +17,7 @@ export interface ServiceResponse{
 
 export interface ServiceListResponse{
     totalNumber?: number,
-    services?: ServiceResponse
+    services: ServiceResponse[]
 }
 
 export interface createUpdateServiceRequest{

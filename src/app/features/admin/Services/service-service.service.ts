@@ -35,7 +35,7 @@ export class ServiceService {
     return this._http.delete<ApiResponse<boolean>>(`${this.baseurl}/Service/${id}`)
   }
     
-  updateService(id: boolean, data: { name: string, categoryId: number }): Observable<ApiResponse<ServiceResponse>> {
+  updateService(id: number, data: { name: string, categoryId: number }): Observable<ApiResponse<ServiceResponse>> {
     return this._http.put<ApiResponse<ServiceResponse>>(
       `${this.baseurl}/Service/${id}`,
       data, // ✅ request body
@@ -43,6 +43,26 @@ export class ServiceService {
     );
   }
 
+/** 🔹 Get services linked to a specific structure */
+  getServicesByStructure(structureId: number): Observable<ApiResponse<ServiceListResponse>> {
+    return this._http.get<ApiResponse<ServiceListResponse>>(
+      `${this.baseurl}/Service/byStructure/${structureId}`
+    );
+  }
+
+  /** 🔹 Get services linked to a specific part */
+  getServicesByPart(partId: number): Observable<ApiResponse<ServiceListResponse>> {
+    return this._http.get<ApiResponse<ServiceListResponse>>(
+      `${this.baseurl}/Service/byPart/${partId}`
+    );
+  }
+
+  /** 🔹 Get services linked to a specific part option */
+  getServicesByPartOption(partOptionId: number): Observable<ApiResponse<ServiceListResponse>> {
+    return this._http.get<ApiResponse<ServiceListResponse>>(
+      `${this.baseurl}/Service/byPartOption/${partOptionId}`
+    );
+  }
 
   ////////////////////////////
   // Steps
