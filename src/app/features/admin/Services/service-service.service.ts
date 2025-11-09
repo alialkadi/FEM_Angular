@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environment.prod';
-import { CreateServiceStep, createUpdateServiceRequest, ServiceListResponse, ServiceResponse, ServiceStep, ServiceStepListResponse } from '../../Models/service.Model';
+import { CreateServiceStep, CreateUpdateServiceRequest , ServiceListResponse, ServiceResponse, ServiceStep, ServiceStepListResponse } from '../../Models/service.Model';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../../Models/ApiResponse';
 
@@ -28,7 +28,7 @@ export class ServiceService {
     );
   }
   
-  CreateService(data: createUpdateServiceRequest): Observable<ApiResponse<ServiceResponse>> {
+  CreateService(data: CreateUpdateServiceRequest ): Observable<ApiResponse<ServiceResponse>> {
     return this._http.post<ApiResponse<ServiceResponse>>(`${this.baseurl}/Service`, data)
   }
   deleteService(id: number): Observable<ApiResponse<boolean>> {
@@ -62,6 +62,14 @@ export class ServiceService {
     return this._http.get<ApiResponse<ServiceListResponse>>(
       `${this.baseurl}/Service/byPartOption/${partOptionId}`
     );
+  }
+
+  getCalculatedTotal(id: number): Observable<any> {
+    return this._http.get(`${this.baseurl}/Service/${id}/calculate`)
+  }
+  
+submitServiceRequest(payload: any): Observable<any> {
+    return this._http.post(`${this.baseurl}/ServiceRequest/submit`, payload);
   }
 
   ////////////////////////////

@@ -7,8 +7,11 @@
     <section class="carousel-section">
         <h3>Categories</h3>
         <div class="carousel">
-            <div class="card" *ngFor="let c of categories" (click)="selectCategory(c)"
-                [class.active]="selectedCategory?.id === c.id"> {{ c.name }} </div>
+            <div class="card img" *ngFor="let c of categories" (click)="selectCategory(c)"
+                [class.active]="selectedCategory?.id === c.id">
+                <img *ngIf="c.fileUrl" [src]="c.fileUrl" [alt]="c.name" loading="lazy" />
+                <div class="label">{{ c.name }}</div>
+            </div>
         </div>
     </section>
     <!-- Level 2: Types -->
@@ -26,24 +29,33 @@
     <section *ngIf="structures.length" class="carousel-section">
         <h3>Structures</h3>
         <div class="carousel">
-            <div class="card" *ngFor="let s of structures" (click)="selectStructure(s)"
-                [class.active]="selectedStructure?.id === s.id"> {{ s.name }} </div>
+            <div class="card img" *ngFor="let s of structures" (click)="selectStructure(s)"
+                [class.active]="selectedStructure?.id === s.id">
+                <img *ngIf="s.fileUrl" [src]="s.fileUrl" [alt]="s.name" loading="lazy" />
+                <div class="label">{{ s.name }}</div>
+            </div>
         </div>
     </section>
     <!-- Level 4: Parts -->
     <section *ngIf="parts.length" class="carousel-section">
         <h3>Parts</h3>
         <div class="carousel">
-            <div class="card" *ngFor="let p of parts" (click)="selectPart(p)"
-                [class.active]="selectedPart?.id === p.id"> {{ p.name }} </div>
+            <div class="card img" *ngFor="let p of parts" (click)="selectPart(p)"
+                [class.active]="selectedPart?.id === p.id">
+                <img *ngIf="p.fileUrl" [src]="p.fileUrl" [alt]="p.name" loading="lazy" />
+                <div class="label">{{ p.name }}</div>
+            </div>
         </div>
     </section>
     <!-- Level 5: Part Options -->
     <section *ngIf="partOptions.length" class="carousel-section">
         <h3>Part Options</h3>
         <div class="carousel">
-            <div class="card" *ngFor="let o of partOptions" (click)="selectPartOption(o)"
-                [class.active]="selectedPartOption?.id === o.id"> {{ o.name }} </div>
+            <div class="card img" *ngFor="let o of partOptions" (click)="selectPartOption(o)"
+                [class.active]="selectedPartOption?.id === o.id">
+                <img *ngIf="o.fileUrl" [src]="o.fileUrl" [alt]="o.name" loading="lazy" />
+                <div class="label">{{ o.name }}</div>
+            </div>
         </div>
     </section>
     <!-- Level 6: Services -->
@@ -53,7 +65,7 @@
             <div class="service-card" *ngFor="let s of services" (click)="toggleService(s)"
                 [class.selected]="isSelected(s)">
                 <div class="svc-name">{{ s.name }}</div>
-                <div class="svc-price">{{ s.baseCost | currency }}</div>
+                <div class="svc-price"> {{ s.calculatedTotal ?? s.baseCost | currency }} </div>
             </div>
         </div>
     </section>

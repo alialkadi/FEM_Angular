@@ -1,0 +1,101 @@
+<section class="admin-requests">
+    <header class="header">
+        <h2>🧾 Service Requests</h2>
+        <p class="subtitle">All requests submitted by users are listed below.</p>
+    </header>
+    <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading requests...</p>
+    </div>
+    <div *ngIf="!loading && requests.length > 0" class="table-wrapper">
+        <table class="requests-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let r of requests">
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.userFullName }}</td>
+                    <td>{{ r.email }}</td>
+                    <td>
+                        <span class="status" [ngClass]="r.status.toLowerCase()"> {{ r.status }} </span>
+                    </td>
+                    <td>{{ r.requestedDate | date: 'short' }}</td>
+                    <td>{{ r.totalCost | currency }}</td>
+                    <td>
+                        <button class="view-btn" (click)="openDetails(r.id)"> View Details </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div *ngIf="!loading && !requests.length" class="empty">
+        <p>No service requests found.</p>
+    </div>
+    <!-- Pagination -->
+    <footer class="pagination">
+        <button [disabled]="page === 1" (click)="onPageChange(page - 1)">← Prev</button>
+        <span>Page {{ page }}</span>
+        <button [disabled]="page * pageSize >= totalCount" (click)="onPageChange(page + 1)"> Next → </button>
+    </footer>
+</section>
+<!-- Details Popup -->
+<div class="overlay" *ngIf="popupVisible">
+    <div class="popup">
+        <header class="popup-header">
+            <h3>Request #{{ selectedRequest?.id }}</h3>
+            <button class="close-btn" (click)="closePopup()">×</button>
+        </header>
+        <div *ngIf="loading" class="popup-loading">
+            <div class="spinner"></div>
+            <p>Loading details...</p>
+        </div>
+        <div *ngIf="!loading && selectedRequest" class="popup-content">
+            <h4>User Information</h4>
+            <ul class="user-info">
+                <li><strong>Name:</strong> {{ selectedRequest.fullName }}</li>
+                <li><strong>Email:</strong> {{ selectedRequest.email }}</li>
+                <li><strong>Phone:</strong> {{ selectedRequest.phoneNumber }}</li>
+                <li><strong>Address:</strong> {{ selectedRequest.address }}</li>
+            </ul>
+            <h4>Request Details</h4>
+            <ul class="meta">
+                <li><strong>Status:</strong> {{ selectedRequest.status }}</li>
+                <li>
+                    <strong>Requested On:</strong> {{ selectedRequest.requestedDate | date: 'short' }}
+                </li>
+                <li><strong>Total Cost:</strong> {{ selectedRequest.totalCost | currency }}</li>
+                <li *ngIf="selectedRequest.notes">
+                    <strong>Notes:</strong> {{ selectedRequest.notes }}
+                </li>
+            </ul>
+            <h4>Requested Services</h4>
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Description</th>
+                        <th>Base Cost</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let s of selectedRequest.requestedServices">
+                        <td>{{ s.serviceName }}</td>
+                        <td>{{ s.description || '—' }}</td>
+                        <td>{{ s.baseCost | currency }}</td>
+                        <td>{{ s.calculatedTotal | currency }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

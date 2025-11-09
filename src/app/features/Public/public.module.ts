@@ -17,6 +17,7 @@ import { ServiceExplorerComponent } from './pages/service-explorer/service-explo
 import { ServiceExplorerOptionAComponent } from './pages/service-explorer-option-a/service-explorer-option-a.component';
 import { ServiceExplorerOptionBComponent } from './pages/service-explorer-option-b/service-explorer-option-b.component';
 import { ServiceExplorerOptionCComponent } from './pages/service-explorer-option-c/service-explorer-option-c.component';
+import { ServiceUserFormComponent } from './pages/service-user-form/service-user-form.component';
 
 
 @NgModule({
@@ -30,7 +31,8 @@ import { ServiceExplorerOptionCComponent } from './pages/service-explorer-option
     ServiceExplorerComponent,
     ServiceExplorerOptionAComponent,
     ServiceExplorerOptionBComponent,
-    ServiceExplorerOptionCComponent
+    ServiceExplorerOptionCComponent,
+    ServiceUserFormComponent,
   ],
   imports: [
     CommonModule,

@@ -6,6 +6,8 @@ import { HomeComponent } from './pages/Home/home/home.component';
 import { ServiceExplorerOptionAComponent } from './pages/service-explorer-option-a/service-explorer-option-a.component';
 import { ServiceExplorerOptionBComponent } from './pages/service-explorer-option-b/service-explorer-option-b.component';
 import { ServiceExplorerOptionCComponent } from './pages/service-explorer-option-c/service-explorer-option-c.component';
+import { ServiceRequestReviewComponent } from './pages/service-request-review/service-request-review.component';
+import { ServiceUserFormComponent } from './pages/service-user-form/service-user-form.component';
 
 
 const routes: Routes = [
@@ -13,7 +15,10 @@ const routes: Routes = [
   {
     path: 'Home', component: HomeComponent, children: [
       { path: '', component: LandingPageComponent },
-      {path:'serviceexplorer',component:ServiceExplorerOptionCComponent}
+      { path: 'serviceexplorer', component: ServiceExplorerOptionCComponent },
+      { path: 'service-review', component: ServiceRequestReviewComponent },
+      { path: 'service-user-form', component: ServiceUserFormComponent }
+
     ]}
 ];
 

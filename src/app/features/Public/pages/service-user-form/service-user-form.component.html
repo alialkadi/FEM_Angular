@@ -1,0 +1,69 @@
+<div class="user-form-wrapper" *ngIf="requestedServices.length">
+    <header class="form-header">
+        <h2>🧍‍♂️ Provide Your Information</h2>
+        <p>Please enter your contact details so we can process your request.</p>
+    </header>
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="form-grid">
+            <!-- First Name -->
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input id="firstName" type="text" formControlName="firstName" placeholder="John" />
+                <small *ngIf="f.firstName.invalid && f.firstName.touched">First name is required.</small>
+            </div>
+            <!-- Last Name -->
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input id="lastName" type="text" formControlName="lastName" placeholder="Doe" />
+                <small *ngIf="f.lastName.invalid && f.lastName.touched">Last name is required.</small>
+            </div>
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" formControlName="email" placeholder="example@email.com" />
+                <small *ngIf="f.email.invalid && f.email.touched">Enter a valid email.</small>
+            </div>
+            <!-- Phone -->
+            <div class="form-group">
+                <label for="phoneNumber">Phone Number</label>
+                <input id="phoneNumber" type="text" formControlName="phoneNumber" placeholder="+1 234 567 890" />
+                <small *ngIf="f.phoneNumber.invalid && f.phoneNumber.touched">Enter a valid phone number.</small>
+            </div>
+            <!-- Address -->
+            <div class="form-group full">
+                <label for="address">Address</label>
+                <textarea id="address" formControlName="address" placeholder="Your full address"></textarea>
+                <small *ngIf="f.address.invalid && f.address.touched">Address is required.</small>
+            </div>
+            <!-- Preferred Contact -->
+            <div class="form-group">
+                <label>Preferred Contact Method</label>
+                <select formControlName="preferredContactMethod">
+                    <option value="Email">Email</option>
+                    <option value="Phone">Phone</option>
+                </select>
+            </div>
+        </div>
+        <!-- Summary -->
+        <section class="summary">
+            <h3>🧾 Summary</h3>
+            <ul>
+                <li *ngFor="let item of requestedServices">
+                    <span>{{ item.service.name }}</span>
+                    <span>{{ item.calculation.total | currency }}</span>
+                </li>
+            </ul>
+            <div class="summary-total"> Total: <strong *ngFor="let item of requestedServices">
+                    {{item.service.calculatedTotal}} </strong>
+            </div>
+        </section>
+        <!-- Buttons -->
+        <footer class="actions">
+            <button type="button" class="btn-secondary" (click)="cancel()">⬅ Back</button>
+            <button type="submit" class="btn-primary" [disabled]="submitting">
+                <span *ngIf="!submitting">✅ Submit Request</span>
+                <span *ngIf="submitting">Submitting...</span>
+            </button>
+        </footer>
+    </form>
+</div>

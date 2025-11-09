@@ -6,6 +6,7 @@
             <thead>
                 <tr>
                     <th>Structure Name</th>
+                    <th>Image</th>
                     <th>Type Name</th>
                     <th>Category Name</th>
                     <th>Actions</th>
@@ -14,6 +15,10 @@
             <tbody>
                 <tr *ngFor="let item of structures; let i = index">
                     <td>{{item.name}}</td>
+                    <td>
+                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Type Image" class="type-image" />
+                        <span *ngIf="!item.fileUrl">No Image</span>
+                    </td>
                     <td>{{item.categoryTypeName}}</td>
                     <td>{{item.categoryName}}</td>
                     <td>
@@ -46,7 +51,7 @@
     <!-- Add New Structure -->
     <section class="card form-card">
         <h2>Add New Structure</h2>
-        <form [formGroup]="crateForm" (ngSubmit)="onSave(crateForm)">
+        <form [formGroup]="crateForm" (ngSubmit)="onSave()">
             <div class="form-group">
                 <label for="typeName">Type Name <span class="required">*</span></label>
                 <input type="text" formControlName="name" id="typeName" placeholder="e.g., Electronics" required />
@@ -62,6 +67,11 @@
                     </option>
                     <option *ngFor="let item of categoryTypes" [value]="item.id">{{item.name}} </option>
                 </select>
+                <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
+                <div *ngIf="previewUrl" class="preview">
+                    <p>Preview:</p>
+                    <img [src]="previewUrl" alt="Preview" class="preview-img" />
+                </div>
             </div>
             <div class="form-actions">
                 <button type="button" class="btn cancel">Cancel</button>

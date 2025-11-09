@@ -11,6 +11,7 @@ import { Part } from '../../../Models/Part.Models';
 import { PartOption } from '../../../Models/PartOption.Model';
 import { ServiceResponse } from '../../../Models/service.Model';
 import { Structure } from '../../../Models/Structure.Model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-service-explorer-option-c',
@@ -41,13 +42,25 @@ export class ServiceExplorerOptionCComponent {
     private structureService: StructureService,
     private partService: PartService,
     private optionService: PartOptionService,
-    private serviceService: ServiceService
+    private serviceService: ServiceService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.fetchCategories();
   }
-
+fetchServiceTotal(s: ServiceResponse) {
+  this.serviceService.getCalculatedTotal(s.id).subscribe({
+    next: (res) => {
+      console.log(res)
+      if (res && res.response) {
+        s.calculatedTotal = res.response.total; // add dynamic field
+        console.log(s.calculatedTotal)
+      }
+    },
+    error: (err) => console.error('Calculation failed', err)
+  });
+}
   // ---------------------- Loaders ----------------------
   private fetchCategories() {
     this.loading = true;
@@ -83,24 +96,33 @@ export class ServiceExplorerOptionCComponent {
       next: res => (this.partOptions = res.data?.partOptions ?? [])
     });
   }
+fetchServicesByStructure(structureId: number) {
+  this.serviceService.getServicesByStructure(structureId).subscribe({
+    next: res => {
+      this.services = res.data?.services ?? [];
+      this.services.forEach(s => this.fetchServiceTotal(s));
+    }
+  });
+}
 
-  fetchServicesByStructure(structureId: number) {
-    this.serviceService.getServicesByStructure(structureId).subscribe({
-      next: res => (this.services = res.data?.services ?? [])
-    });
-  }
+fetchServicesByPart(partId: number) {
+  this.serviceService.getServicesByPart(partId).subscribe({
+    next: res => {
+      this.services = res.data?.services ?? [];
+      this.services.forEach(s => this.fetchServiceTotal(s));
+    }
+  });
+}
 
-  fetchServicesByPart(partId: number) {
-    this.serviceService.getServicesByPart(partId).subscribe({
-      next: res => (this.services = res.data?.services ?? [])
-    });
-  }
+fetchServicesByPartOption(partOptionId: number) {
+  this.serviceService.getServicesByPartOption(partOptionId).subscribe({
+    next: res => {
+      this.services = res.data?.services ?? [];
+      this.services.forEach(s => this.fetchServiceTotal(s));
+    }
+  });
+}
 
-  fetchServicesByPartOption(partOptionId: number) {
-    this.serviceService.getServicesByPartOption(partOptionId).subscribe({
-      next: res => (this.services = res.data?.services ?? [])
-    });
-  }
 
   // ---------------------- Selection ----------------------
   selectCategory(c: Category) {
@@ -108,6 +130,7 @@ export class ServiceExplorerOptionCComponent {
     this.types = this.structures = this.parts = this.partOptions = this.services = [];
     this.selectedType = this.selectedStructure = this.selectedPart = this.selectedPartOption = undefined;
     this.fetchTypes(c.id!);
+    console.log(c.id)
   }
 
   selectType(t: CategoryType) {
@@ -142,7 +165,7 @@ export class ServiceExplorerOptionCComponent {
     const idx = this.selectedServices.findIndex(x => x.id === s.id);
     if (idx >= 0) this.selectedServices.splice(idx, 1);
     else this.selectedServices.push(s);
-    this.totalCost = this.selectedServices.reduce((sum, sv) => sum + (sv.baseCost ?? 0), 0);
+    this.totalCost = this.selectedServices.reduce((sum, sv) => sum + (sv.calculatedTotal ?? 0), 0);
   }
 
   isSelected(s: ServiceResponse) {
@@ -168,5 +191,9 @@ export class ServiceExplorerOptionCComponent {
       total: this.totalCost
     };
     console.log('Request payload', payload);
+    console.log(this.selectedServices)
+    this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
+    state: { selectedServices: this.selectedServices }
+  });
   }
 }

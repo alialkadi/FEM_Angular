@@ -32,7 +32,7 @@ export class PartOptionService{
         `${this.baseurl}/PartOption/byPart/${id}`
       );
   }
-    CreatePartOption(data: createUpdatePartOption): Observable<ApiResponse<PartOption>>{
+    CreatePartOption(data: FormData): Observable<ApiResponse<PartOption>>{
       return this._http.post<ApiResponse<PartOption>>(`${this.baseurl}/PartOption`,data)
     }
     deletePartOption(id: number): Observable<ApiResponse<boolean>> {

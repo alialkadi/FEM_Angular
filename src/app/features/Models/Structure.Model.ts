@@ -3,7 +3,8 @@ export interface Structure{
     name: string,
     categoryTypeId: number,
     categoryTypeName: string,
-    categoryName?: string
+    categoryName?: string,
+    fileUrl?: string
 }
 
 export interface StructureListResponse{

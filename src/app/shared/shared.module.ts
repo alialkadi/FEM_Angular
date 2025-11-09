@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 
 import { SpinnerComponent } from './ui/spinner/spinner.component';
 import { PageHeaderComponent } from './ui/page-header/page-header.component';
@@ -15,9 +15,9 @@ import { MatIconModule } from '@angular/material/icon';
 @NgModule({
   declarations: [SpinnerComponent, PageHeaderComponent, EditCategoryDialogComponent, ConfirmDialogComponent],
   imports: [CommonModule,
-    ReactiveFormsModule,MatInputModule,MatIconModule,
-    MatDialogModule,   // ✅ Needed for mat-dialog-title, mat-dialog-content, etc.
-    MatButtonModule,MatFormFieldModule ],   // ✅ For mat-button and mat-raised-button],
+    ReactiveFormsModule, MatInputModule, MatIconModule,
+    MatDialogModule,
+    MatButtonModule, MatFormFieldModule, NgOptimizedImage],   
   exports: [CommonModule, SpinnerComponent, PageHeaderComponent,MatButtonModule,MatDialogModule],
 })
 export class SharedModule {}

@@ -30,7 +30,7 @@ export class StructureService {
     return this._http.get<ApiResponse<StructureListResponse>>(
       `${environment.apiUrl}/Structure/bytype/${id}`);
   }
-  CreateStructure(data: createUpdateStructure): Observable<ApiResponse<Structure>> {
+  CreateStructure(data: FormData): Observable<ApiResponse<Structure>> {
     return this._http.post<ApiResponse<Structure>>(`${this.baseurl}/Structure`, data)
   }
 

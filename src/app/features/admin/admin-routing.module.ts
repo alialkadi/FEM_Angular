@@ -12,6 +12,7 @@ import { ServiceListComponent } from './pages/Service/service-list/service-list.
 import { CreateServiceComponent } from './pages/Service/create-service/create-service.component';
 import { FeeListComponent } from './pages/Service/fee-list/fee-list.component';
 import { CreateFeeComponent } from './pages/Service/create-fee/create-fee.component';
+import { AdminServiceRequestComponent } from './pages/Service_Requests/admin-service-request/admin-service-request.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -27,6 +28,7 @@ const routes: Routes = [
       {path: 'createservice', component: CreateServiceComponent },
       { path: 'Fee', component: FeeListComponent },
       { path: 'createFee', component: CreateFeeComponent },
+      { path: 'ServiceRequests', component: AdminServiceRequestComponent },
 
   ]}
 ];

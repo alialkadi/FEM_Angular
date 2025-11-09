@@ -1,10 +1,11 @@
 import { CategoryType } from "./CategoryType";
 
 export interface Category {
-  id?: number;
+  id: number;
   name: string;
   types: CategoryType[];
   count: number;
+  fileUrl? : string
   typesCount: number;
 }
 export interface CreateCategory{

@@ -6,6 +6,7 @@
             <thead>
                 <tr>
                     <th>Part Option Name</th>
+                    <th>Image</th>
                     <th>Part Name</th>
                     <th>Structure Name</th>
                     <th>Actions</th>
@@ -14,6 +15,10 @@
             <tbody>
                 <tr *ngFor="let item of PartOptions; let i = index">
                     <td>{{item.name}}</td>
+                    <td>
+                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Type Image" class="type-image" />
+                        <span *ngIf="!item.fileUrl">No Image</span>
+                    </td>
                     <td>{{item.mainPartName}}</td>
                     <td>{{item.strucutreName}}</td>
                     <td>
@@ -46,7 +51,7 @@
     <!-- Add New Part -->
     <section class="card form-card">
         <h2>Add New Part</h2>
-        <form [formGroup]="crateForm" (ngSubmit)="onSave(crateForm)">
+        <form [formGroup]="crateForm" (ngSubmit)="onSave()">
             <div class="form-group">
                 <label for="OptionName">Type Name <span class="required">*</span></label>
                 <input type="text" formControlName="name" id="OptionName" placeholder="e.g., Electronics" required />
@@ -62,6 +67,11 @@
                     </option>
                     <option *ngFor="let item of Parts" [value]="item.id">{{item.name}} </option>
                 </select>
+                <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
+                <div *ngIf="previewUrl" class="preview">
+                    <p>Preview:</p>
+                    <img [src]="previewUrl" alt="Preview" class="preview-img" />
+                </div>
             </div>
             <div class="form-actions">
                 <button type="button" class="btn cancel">Cancel</button>

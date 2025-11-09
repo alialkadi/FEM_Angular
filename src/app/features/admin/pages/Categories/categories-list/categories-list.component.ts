@@ -59,22 +59,46 @@ onPageSizeChange(event: Event): void {
   createForm: FormGroup = new FormGroup({
     name: new FormControl('',Validators.required)
   })
-  onSave(form: any) {
-    if (form.valid) {
-      this.newCategory = form.value;
-    }
-    this.categoryService.CreateCategory(this.newCategory).subscribe({
+  selectedFile: File | null = null;
+previewUrl: string | ArrayBuffer | null = null;
+
+onFileSelected(event: any) {
+  this.selectedFile = event.target.files[0];
+  if (this.selectedFile) {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.previewUrl = reader.result;
+    };
+
+    reader.readAsDataURL(this.selectedFile); 
+  }
+}
+
+  onSave() {
+    if (this.createForm.valid) {
+      const formData = new FormData();
+      formData.append('name', this.createForm.value.name);
+      if (this.selectedFile) {
+        formData.append('file', this.selectedFile);
+      }
+      this.categoryService.CreateCategory(formData).subscribe({
       next: (res) => {
         console.log("the create", this.newCategory)
         console.log("posting category", res)
-        this.loadCategories();
+          this.loadCategories();
+          this.createForm.reset();
+          this.previewUrl = null;
+          this.selectedFile = null;
       },
       error: (err) => {
 
-        console.log("the create", form)
+        console.log("the create", formData)
         console.log("error posting category", err)
       }
     })
+    }
+    
   }
 
   onDelete(id: number) {
@@ -92,19 +116,21 @@ onPageSizeChange(event: Event): void {
   
 onEdit(category: Category): void {
   const dialogRef = this.dialog.open(EditCategoryDialogComponent, {
-    width: '400px',
-    maxWidth: '95vw',
-  autoFocus: true,
-    disableClose: true,
-  panelClass: 'custom-dialog-container',
-    data: { id: category.id, name: category.name }
+    data: { id: category.id, name: category.name ,file: category.fileUrl }
   });
 
   dialogRef.afterClosed().subscribe(result => {
     if (result) {
-      this.categoryService.updateCategory(result.id, { name: result.name } ).subscribe({
+      const formData = new FormData();
+      console.log("Fron update Formdata",result)
+      formData.append('name', result.name);
+      formData.append('file', result.file);
+      console.log("formdata after result" , formData)
+      this.categoryService.updateCategory(result.id, formData ).subscribe({
         next: (res) => {
           if (res.success) {
+      console.log("formdata after result res" , formData)
+
             const index = this.categories.findIndex(c => c.id === result.id);
             if (index !== -1) {
               this.loadCategories()

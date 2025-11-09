@@ -75,21 +75,42 @@ export class StructureListComponent {
     name: new FormControl('', Validators.required),
     typeId: new FormControl('')
   })
+ selectedFile: File | null = null;
+previewUrl: string | ArrayBuffer | null = null;
 
-  onSave(form: any) {
-    if (form.valid) {
-      this.newStructure = form.value;
-      console.log(form)
-    }
-    this._structureService.CreateStructure(this.newStructure).subscribe({
-      next:(value) => {
-        console.log(value)
-        this.loadStructures();
-      },
-      error: (err) => {
-        console.log(err)
+onFileSelected(event: any) {
+  this.selectedFile = event.target.files[0];
+  if (this.selectedFile) {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.previewUrl = reader.result;
+    };
+
+    reader.readAsDataURL(this.selectedFile); 
+  }
+}
+  onSave() {
+   if (this.crateForm.valid) {
+      const formData = new FormData();
+      formData.append('name', this.crateForm.value.name);
+      formData.append('typeId', this.crateForm.value.typeId);
+      if (this.selectedFile) {
+        formData.append('file',this.selectedFile)
       }
-    })
+      this._structureService.CreateStructure(formData).subscribe({
+        next:(value) => {
+          console.log(value)
+          this.loadStructures();
+          this.crateForm.reset();
+          this.previewUrl = null;
+          this.selectedFile = null;
+        },
+        error: (err) => {
+          console.log(err)
+        }
+      })
+    }
   }
 
   onDelete(id: number) {

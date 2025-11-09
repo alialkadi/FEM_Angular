@@ -19,7 +19,7 @@ export class CategoryService {
       `${environment.apiUrl}/Category`, {params});
   }
 
-  CreateCategory(data: CreateCategory): Observable<ApiResponse<Category>> {
+  CreateCategory(data: FormData): Observable<ApiResponse<Category>> {
     return this._http.post<ApiResponse<Category>>(`${environment.apiUrl}/Category`, data)
   }
 
@@ -29,11 +29,10 @@ export class CategoryService {
     );
   }
 
-updateCategory(id: number, data: { name: string }): Observable<ApiResponse<Category>> {
+updateCategory(id: number, data: FormData): Observable<ApiResponse<Category>> {
   return this._http.put<ApiResponse<Category>>(
     `${environment.apiUrl}/Category/${id}`,
-    data, // ✅ request body
-    { headers: { 'Content-Type': 'application/json' } } // ✅ set content-type
+    data  // ✅ set content-type
   );
 }
 
