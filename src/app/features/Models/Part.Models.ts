@@ -6,7 +6,8 @@ export interface Part{
     categoryName: string,
     categoryId: number,
     categoryTypeName: string,
-    categoryTypeId: number
+    categoryTypeId: number,
+    fileUrl?: string
 }
 
 export interface PartListResponse{

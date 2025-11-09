@@ -1,0 +1,150 @@
+<div class="wizard-container">
+    <header class="wizard-header">
+        <div class="title">Service Explorer — Pyramid Wizard</div>
+        <div class="actions">
+            <button class="btn-link" (click)="reset()">Reset</button>
+            <button class="btn-primary" (click)="requestServices()"
+                [disabled]="!selectedServices.length">Request</button>
+        </div>
+    </header>
+    <div class="wizard-body">
+        <!-- Step 1: Categories -->
+        <article class="step" [class.expanded]="isExpanded('category')">
+            <button class="step-head" (click)="toggle('category')">
+                <div class="step-label">1. Category</div>
+                <div class="step-meta">{{ selectedCategory?.name || 'Choose a category' }}</div>
+            </button>
+            <div class="step-body" *ngIf="isExpanded('category')">
+                <div class="grid cards">
+                    <div class="card" *ngFor="let c of categories; trackBy: trackById" (click)="selectCategory(c)"
+                        [class.active]="selectedCategory?.id === c.id">
+                        <div class="card-title">{{ c.name }}</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Step 2: Types -->
+        <article class="step" [class.expanded]="isExpanded('type')">
+            <button class="step-head" (click)="toggle('type')">
+                <div class="step-label">2. Type</div>
+                <div class="step-meta">{{ selectedType?.name || 'Choose a type' }}</div>
+            </button>
+            <div class="step-body" *ngIf="isExpanded('type')">
+                <div class="grid cards media">
+                    <div class="card media-card" *ngFor="let t of types; trackBy: trackById" (click)="selectType(t)"
+                        [class.active]="selectedType?.id === t.id">
+                        <div class="thumb" *ngIf="t.fileUrl; else placeholder">
+                            <img [src]="t.fileUrl" [alt]="t.name" loading="lazy" />
+                        </div>
+                        <ng-template #placeholder>
+                            <div class="thumb placeholder">{{ t.name?.charAt(0) }}</div>
+                        </ng-template>
+                        <div class="card-title">{{ t.name }}</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Step 3: Structures -->
+        <article class="step" [class.expanded]="isExpanded('structure')">
+            <button class="step-head" (click)="toggle('structure')">
+                <div class="step-label">3. Structure</div>
+                <div class="step-meta">{{ selectedStructure?.name || 'Choose a structure' }}</div>
+            </button>
+            <div class="step-body" *ngIf="isExpanded('structure')">
+                <div class="grid cards">
+                    <div class="card" *ngFor="let s of structures; trackBy: trackById" (click)="selectStructure(s)"
+                        [class.active]="selectedStructure?.id === s.id">
+                        <div class="card-title">{{ s.name }}</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Step 4: Parts -->
+        <article class="step" [class.expanded]="isExpanded('part')">
+            <button class="step-head" (click)="toggle('part')">
+                <div class="step-label">4. Parts</div>
+                <div class="step-meta">{{ selectedPart?.name || 'Choose a part (or pick structure-level services)' }}
+                </div>
+            </button>
+            <div class="step-body" *ngIf="isExpanded('part')">
+                <div *ngIf="services?.length" class="services-inline">
+                    <h4>Services for {{ selectedStructure?.name }}</h4>
+                    <div class="grid services">
+                        <div class="service-card" *ngFor="let s of services; trackBy: trackById"
+                            (click)="toggleService(s)" [class.selected]="isSelected(s)">
+                            <div class="svc-title">{{ s.name }}</div>
+                            <div class="svc-price">{{ s.baseCost | currency }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid cards">
+                    <div class="card" *ngFor="let p of parts; trackBy: trackById" (click)="selectPart(p)"
+                        [class.active]="selectedPart?.id === p.id">
+                        <div class="card-title">{{ p.name }}</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Step 5: Part Options -->
+        <article class="step" [class.expanded]="isExpanded('partOption')">
+            <button class="step-head" (click)="toggle('partOption')">
+                <div class="step-label">5. Part Options</div>
+                <div class="step-meta">{{ selectedPartOption?.name || 'Choose part option (if exists)' }}</div>
+            </button>
+            <div class="step-body" *ngIf="isExpanded('partOption')">
+                <div *ngIf="services?.length" class="services-inline">
+                    <h4>Services for {{ selectedPart?.name }}</h4>
+                    <div class="grid services">
+                        <div class="service-card" *ngFor="let s of services; trackBy: trackById"
+                            (click)="toggleService(s)" [class.selected]="isSelected(s)">
+                            <div class="svc-title">{{ s.name }}</div>
+                            <div class="svc-price">{{ s.baseCost | currency }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid cards">
+                    <div class="card" *ngFor="let o of partOptions; trackBy: trackById" (click)="selectPartOption(o)"
+                        [class.active]="selectedPartOption?.id === o.id">
+                        <div class="card-title">{{ o.name }}</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Step 6: Services (final listing if needed) -->
+        <article class="step" [class.expanded]="isExpanded('service')">
+            <button class="step-head" (click)="toggle('service')">
+                <div class="step-label">6. Services</div>
+                <div class="step-meta">Select services ({{ services?.length || 0 }})</div>
+            </button>
+            <div class="step-body" *ngIf="isExpanded('service')">
+                <div class="grid services">
+                    <div class="service-card" *ngFor="let s of services; trackBy: trackById" (click)="toggleService(s)"
+                        [class.selected]="isSelected(s)">
+                        <div class="svc-title">{{ s.name }}</div>
+                        <div class="svc-desc" *ngIf="s.description">{{ s.description }}</div>
+                        <div class="svc-price">{{ s.baseCost | currency }}</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+    <!-- Footer summary -->
+    <footer class="wizard-footer" *ngIf="selectedServices.length">
+        <div class="summary">
+            <div class="summary-chips">
+                <span class="chip" *ngFor="let s of selectedServices; trackBy: trackById">{{ s.name }}</span>
+            </div>
+            <div class="summary-path">
+                <small *ngIf="selectedCategory">{{ selectedCategory.name }} ›</small>
+                <small *ngIf="selectedType">{{ selectedType.name }} ›</small>
+                <small *ngIf="selectedStructure">{{ selectedStructure.name }} ›</small>
+                <small *ngIf="selectedPart">{{ selectedPart.name }} ›</small>
+                <small *ngIf="selectedPartOption">{{ selectedPartOption.name }}</small>
+            </div>
+        </div>
+        <div class="summary-actions">
+            <div class="total">Total: {{ totalCost | currency }}</div>
+            <button class="btn-primary" (click)="requestServices()">Request Services</button>
+        </div>
+    </footer>
+</div>

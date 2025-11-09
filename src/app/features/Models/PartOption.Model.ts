@@ -8,6 +8,7 @@ export interface PartOption{
   categoryTypeName?: string;
   categoryTypeId?: number;
   categoryName?: string;
+  fileUrl?: string,
   categoryId?: number;
 }
 

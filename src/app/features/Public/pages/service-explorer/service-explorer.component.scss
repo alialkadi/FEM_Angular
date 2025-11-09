@@ -1,0 +1,67 @@
+.service-explorer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+
+  .level {
+    h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      color: #333;
+    }
+
+    .scroll-row {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding: 0.5rem;
+      scroll-behavior: smooth;
+    }
+
+    .item-card {
+      flex: 0 0 auto;
+      padding: 1rem 1.5rem;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        background: #f0f8ff;
+      }
+
+      &.service-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        .cost {
+          font-weight: bold;
+          color: #007bff;
+        }
+        .selected-badge {
+          color: green;
+          font-size: 1.2rem;
+          margin-top: 0.25rem;
+        }
+      }
+    }
+  }
+
+  .total-cost-bar {
+    position: sticky;
+    bottom: 0;
+    background: #222;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 1.25rem;
+    box-shadow: 0 -4px 8px rgba(0,0,0,0.1);
+  }
+}

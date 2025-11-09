@@ -5,6 +5,10 @@
             <label for="categoryName">Category Name <span class="required">*</span></label>
             <input id="categoryName" type="text" formControlName="name" placeholder="Enter category name"
                 class="custom-input" />
+            <div class="file-upload">
+                <input type="file" (change)="onFileSelected($event)" accept="image/*" />
+                <img *ngIf="previewUrl" [src]="previewUrl" alt="preview" class="preview-img">
+            </div>
             <div class="error" *ngIf="editForm.get('name')?.hasError('required') && editForm.get('name')?.touched">
                 Category name is required </div>
         </div>

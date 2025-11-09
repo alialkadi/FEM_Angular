@@ -8,6 +8,5 @@ import { AuthService } from '../../core/Auth/auth.service';
 })
 export class AdminLayoutComponent {
  constructor(private auth: AuthService) {}
-  loginIfNeeded(){ if (!this.auth.isLoggedIn()) this.auth.fakeLoginAsAdmin(); }
-  logout(){ this.auth.logout(); location.href = '/'; }
+ 
 }

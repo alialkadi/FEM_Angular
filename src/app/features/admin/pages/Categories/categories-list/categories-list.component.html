@@ -7,12 +7,17 @@
                 <tr>
                     <th>Category Name</th>
                     <th>Types Count</th>
+                    <th>Image</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let item of categories">
                     <td>{{ item.name }}</td>
+                    <td>
+                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Type Image" class="type-image" />
+                        <span *ngIf="!item.fileUrl">No Image</span>
+                    </td>
                     <td>{{ item.typesCount }}</td>
                     <td>
                         <button class="icon-btn edit" (click)="onEdit(item)">
@@ -44,7 +49,7 @@
     <!-- Add New Category -->
     <section class="card form-card">
         <h2>Add New Category</h2>
-        <form [formGroup]="createForm" (ngSubmit)="onSave(createForm)">
+        <form [formGroup]="createForm" (ngSubmit)="onSave()">
             <div class="form-group">
                 <label for="categoryName">Category Name <span class="required">*</span></label>
                 <input type="text" id="categoryName" formControlName="name" placeholder="e.g., Electronics" required />
@@ -53,9 +58,17 @@
         createForm.get('name')?.touched
       " class="text-danger"> Name is required! </p>
             </div>
+            <div class="form-group">
+                <label for="fileUpload">Upload Image</label>
+                <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
+                <div *ngIf="previewUrl" class="preview">
+                    <p>Preview:</p>
+                    <img [src]="previewUrl" alt="Preview" class="preview-img" />
+                </div>
+            </div>
             <div class="form-actions">
                 <button type="button" class="btn cancel">Cancel</button>
-                <button type="submit" class="btn primary">Save Category</button>
+                <button type="submit" [disabled]="!createForm.valid" class="btn primary">Save Category</button>
             </div>
         </form>
     </section>

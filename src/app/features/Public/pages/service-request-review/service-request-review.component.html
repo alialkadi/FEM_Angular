@@ -1,0 +1,82 @@
+<div class="review-wrapper" *ngIf="!loading; else loadingTpl">
+    <header class="page-header">
+        <h2 class="page-title">🧾 Review Your Selected Services</h2>
+        <p class="page-subtitle"> Please review the detailed breakdown, costs, and process steps for each selected
+            service before confirming your request. </p>
+    </header>
+    <div class="cards-grid">
+        <div *ngFor="let item of requestedServices" class="service-card">
+            <header class="card-header">
+                <div class="title-group">
+                    <h3 class="service-name">{{ item.service.name }}</h3>
+                    <p class="service-desc">{{ item.service.description || 'No description provided.' }}</p>
+                </div>
+                <div class="price-tag">
+                    <span class="label">Total</span>
+                    <span class="value">{{ item.calculation.total | currency }}</span>
+                </div>
+            </header>
+            <!-- Cost Breakdown -->
+            <section class="card-section cost-breakdown">
+                <h4><i class="fas fa-coins"></i> Cost Breakdown</h4>
+                <div class="fees-list">
+                    <div class="fee-row">
+                        <span class="fee-label">Base Cost</span>
+                        <span class="fee-value">{{ item.calculation?.baseCost | currency }}</span>
+                    </div>
+                    <div *ngFor="let fee of item.calculation?.globalFees" class="fee-row">
+                        <span class="fee-label">🌍 Global Fee — {{ fee.name }}</span>
+                        <span class="fee-value">{{ fee.amount | currency }}</span>
+                    </div>
+                    <div *ngFor="let fee of item.calculation?.serviceSpecificFees" class="fee-row">
+                        <span class="fee-label">🧰 Service Fee — {{ fee.name }}</span>
+                        <span class="fee-value">{{ fee.amount | currency }}</span>
+                    </div>
+                </div>
+                <div class="total-box">
+                    <div>
+                        <span>Subtotal</span>
+                        <span>{{ item.calculation?.subTotal | currency }}</span>
+                    </div>
+                    <div class="final">
+                        <span>Total</span>
+                        <span>{{ item.calculation?.total | currency }}</span>
+                    </div>
+                </div>
+            </section>
+            <!-- Steps Section -->
+            <section class="card-section steps-section">
+                <h4><i class="fas fa-list-check"></i> Service Steps</h4>
+                <ol *ngIf="item.steps.length > 0; else noSteps">
+                    <li *ngFor="let step of item.steps">
+                        <span class="step-number">#{{ step.stepOrder }}</span>
+                        <span class="step-desc">{{ step.description }}</span>
+                    </li>
+                </ol>
+                <ng-template #noSteps>
+                    <div class="no-steps">
+                        <i class="fas fa-circle-info"></i>
+                        <p>This service has no defined steps.</p>
+                    </div>
+                </ng-template>
+            </section>
+        </div>
+    </div>
+    <!-- Summary Footer -->
+    <footer class="summary-footer">
+        <div class="summary-box">
+            <div class="summary-info">
+                <h3>Total for All Services</h3>
+                <h2>{{ overallTotal | currency }}</h2>
+            </div>
+            <button class="confirm-btn" (click)="confirmRequest()">
+                <i class="fas fa-check-circle"></i> Confirm & Submit Request </button>
+        </div>
+    </footer>
+</div>
+<ng-template #loadingTpl>
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading service details...</p>
+    </div>
+</ng-template>

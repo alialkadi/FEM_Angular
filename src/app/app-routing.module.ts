@@ -1,8 +1,10 @@
+import { PublicModule } from './features/Public/public.module';
 import { RoleGuard } from './core/Auth/role.guard';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import { LoginComponent } from './features/login/login.component';
+import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 
 const routes: Routes = [
   {
@@ -18,9 +20,19 @@ const routes: Routes = [
       }
     ]
   },
+  {
+    path: 'FenetrationMaintainence',
+    component: PublicLayoutComponent,
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./features/Public/public.module').then(m => m.PublicModule)
+      }
+    ]
+  },
   { path: 'login', component: LoginComponent },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'login' }
+  { path: '', redirectTo: 'FenetrationMaintainence', pathMatch: 'full' },
+  { path: '**', redirectTo: 'FenetrationMaintainence' }
 ];
 
 @NgModule({

@@ -30,7 +30,7 @@
                     <label>Category Type</label>
                     <select formControlName="categoryTypeId" (change)="onCategoryTypeChange($event)">
                         <option value="">Select Category Type</option>
-                        <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.categoryName }}</option>
+                        <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
                     </select>
                 </div>
                 <!-- ===================================================== -->

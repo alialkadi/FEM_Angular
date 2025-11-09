@@ -9,18 +9,30 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
 })
 export class EditCategoryDialogComponent {
   editForm: FormGroup;
-
+  selectedFile: File | null = null;
+  previewUrl: string | ArrayBuffer | null = null;
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<EditCategoryDialogComponent>,
     private confirmDialog: MatDialog,
-    @Inject(MAT_DIALOG_DATA) public data: { id: number; name: string }
+    @Inject(MAT_DIALOG_DATA) public data: { id: number; name: string,file: string }
   ) {
     this.editForm = this.fb.group({
-      name: [data.name, Validators.required]
+      name: [data.name, Validators.required],
+      file: [data.file,'']
     });
+    this.previewUrl = data.file;
   }
 
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = e => (this.previewUrl = reader.result)
+      reader.readAsDataURL(file);
+    }
+  }
   onCancel(): void {
     this.dialogRef.close();
   }
@@ -38,7 +50,8 @@ export class EditCategoryDialogComponent {
       if (result) {
         this.dialogRef.close({
           id: this.data.id,
-          name: this.editForm.value.name
+          name: this.editForm.value.name,
+          file: this.selectedFile
         });
       }
     });

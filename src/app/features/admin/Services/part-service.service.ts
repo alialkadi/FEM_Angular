@@ -30,7 +30,7 @@ export class PartService {
       `${this.baseurl}/Part/byStructure/${id}`,
     );
   }
-  CreatePart(data: createUpdatePart): Observable<ApiResponse<Part>>{
+  CreatePart(data: FormData): Observable<ApiResponse<Part>>{
     return this._http.post<ApiResponse<Part>>(`${this.baseurl}/Part`,data)
   }
   deletePart(id: number): Observable<ApiResponse<boolean>> {

@@ -16,9 +16,12 @@ import { PartListComponent } from './pages/Parts/part-list/part-list.component';
 import { PartOptionListComponent } from './pages/part-option-list/part-option-list.component';
 import { ServiceListComponent } from './pages/Service/service-list/service-list.component';
 import { CreateServiceComponent } from './pages/Service/create-service/create-service.component';
+import { FeeListComponent } from './pages/Service/fee-list/fee-list.component';
+import { CreateFeeComponent } from './pages/Service/create-fee/create-fee.component';
+import { AdminServiceRequestComponent } from './pages/Service_Requests/admin-service-request/admin-service-request.component';
 
 @NgModule({
-  declarations: [DashboardComponent, ManageUsersComponent, DashboradNavComponent, CategoryTypesComponent,CategoriesListComponent, StructureListComponent, PartListComponent, PartOptionListComponent, ServiceListComponent, CreateServiceComponent],
+  declarations: [DashboardComponent, ManageUsersComponent, DashboradNavComponent, CategoryTypesComponent,CategoriesListComponent, StructureListComponent, PartListComponent, PartOptionListComponent, ServiceListComponent, CreateServiceComponent, FeeListComponent, CreateFeeComponent, AdminServiceRequestComponent],
   imports: [SharedModule, AdminRoutingModule, MatIcon,CommonModule ,MatPaginatorModule,FormsModule, ReactiveFormsModule ,CommonModule ]
 })
 export class AdminModule {}

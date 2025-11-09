@@ -76,21 +76,42 @@ export class PartOptionListComponent {
       name: new FormControl('', Validators.required),
       mainPartId: new FormControl('')
     })
-  
-    onSave(form: any) {
-      if (form.valid) {
-        this.newPartOption = form.value;
-        console.log(form)
+  selectedFile: File | null = null;
+previewUrl: string | ArrayBuffer | null = null;
+
+onFileSelected(event: any) {
+  this.selectedFile = event.target.files[0];
+  if (this.selectedFile) {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.previewUrl = reader.result;
+    };
+
+    reader.readAsDataURL(this.selectedFile); 
+  }
+}
+    onSave() {
+       if (this.crateForm.valid) {
+      const formData = new FormData();
+      formData.append('name', this.crateForm.value.name);
+      formData.append('mainPartId', this.crateForm.value.mainPartId);
+      if (this.selectedFile) {
+        formData.append('file',this.selectedFile)
       }
-      this._PartOptionOptionservice.CreatePartOption(this.newPartOption).subscribe({
-        next:(value) => {
-          console.log(value)
-          this.loadPartOptionOptions();
-        },
-        error: (err) => {
-          console.log(err)
-        }
-      })
+        this._PartOptionOptionservice.CreatePartOption(formData).subscribe({
+          next:(value) => {
+            console.log(value)
+            this.loadPartOptionOptions();
+            this.crateForm.reset();
+          this.previewUrl = null;
+          this.selectedFile = null;
+          },
+          error: (err) => {
+            console.log(err)
+          }
+        })
+      }
     }
   
     onDelete(id: number) {

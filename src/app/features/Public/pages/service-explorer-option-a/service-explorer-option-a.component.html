@@ -1,0 +1,98 @@
+<div class="explorer-container" [class.loading]="loading">
+    <!-- Header / Breadcrumb -->
+    <div class="header">
+        <div class="breadcrumbs">
+            <button (click)="reset()">Categories</button>
+            <ng-container *ngIf="selectedCategory"> › <button (click)="goBack('type')">{{ selectedCategory.name
+                    }}</button>
+            </ng-container>
+            <ng-container *ngIf="selectedType"> › <button (click)="goBack('structure')">{{ selectedType.name }}</button>
+            </ng-container>
+            <ng-container *ngIf="selectedStructure"> › <button (click)="goBack('part')">{{ selectedStructure.name
+                    }}</button>
+            </ng-container>
+            <ng-container *ngIf="selectedPart"> › <button (click)="goBack('partOption')">{{ selectedPart.name
+                    }}</button>
+            </ng-container>
+            <ng-container *ngIf="selectedPartOption"> › <span>{{ selectedPartOption.name }}</span>
+            </ng-container>
+        </div>
+        <div *ngIf="loading" class="spinner"></div>
+    </div>
+    <!-- LEVEL: Categories -->
+    <section *ngIf="currentLevel === 'category'" class="fade-slide">
+        <h2>Categories</h2>
+        <div class="grid">
+            <div class="card" *ngFor="let cat of categories" (click)="selectCategory(cat)"> {{ cat.name }} </div>
+        </div>
+    </section>
+    <!-- LEVEL: Types -->
+    <section *ngIf="currentLevel === 'type'" class="fade-slide">
+        <h2>Types</h2>
+        <div class="grid">
+            <div class="card img" *ngFor="let type of types" (click)="selectType(type)">
+                <img *ngIf="type.fileUrl" [src]="type.fileUrl" [alt]="type.name" />
+                <div class="title">{{ type.name }}</div>
+            </div>
+        </div>
+    </section>
+    <!-- LEVEL: Structures -->
+    <section *ngIf="currentLevel === 'structure'" class="fade-slide">
+        <h2>Structures</h2>
+        <div class="grid">
+            <div class="card" *ngFor="let s of structures" (click)="selectStructure(s)"> {{ s.name }} </div>
+        </div>
+    </section>
+    <!-- LEVEL: Parts -->
+    <section *ngIf="currentLevel === 'part'" class="fade-slide">
+        <h2>Parts</h2>
+        <div class="grid">
+            <div class="card" *ngFor="let p of parts" (click)="selectPart(p)"> {{ p.name }} </div>
+        </div>
+        <div *ngIf="services.length" class="services">
+            <h3>Services for {{ selectedStructure?.name }}</h3>
+            <div class="grid">
+                <div class="service-card" *ngFor="let s of services" (click)="toggleService(s)"
+                    [class.selected]="isSelected(s)">
+                    <div>{{ s.name }}</div>
+                    <div class="price">{{ s.baseCost | currency }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- LEVEL: Part Options -->
+    <section *ngIf="currentLevel === 'partOption'" class="fade-slide">
+        <h2>Part Options</h2>
+        <div class="grid">
+            <div class="card" *ngFor="let o of partOptions" (click)="selectPartOption(o)"> {{ o.name }} </div>
+        </div>
+        <div *ngIf="services.length" class="services">
+            <h3>Services for {{ selectedPart?.name }}</h3>
+            <div class="grid">
+                <div class="service-card" *ngFor="let s of services" (click)="toggleService(s)"
+                    [class.selected]="isSelected(s)">
+                    <div>{{ s.name }}</div>
+                    <div class="price">{{ s.baseCost | currency }}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- LEVEL: Services -->
+    <section *ngIf="currentLevel === 'service'" class="fade-slide">
+        <h2>Services</h2>
+        <div class="grid">
+            <div class="service-card" *ngFor="let s of services" (click)="toggleService(s)"
+                [class.selected]="isSelected(s)">
+                <div>{{ s.name }}</div>
+                <div class="price">{{ s.baseCost | currency }}</div>
+            </div>
+        </div>
+    </section>
+    <!-- Sticky footer -->
+    <footer *ngIf="selectedServices.length" class="footer">
+        <div class="summary">
+            <span *ngFor="let s of selectedServices" class="chip">{{ s.name }}</span>
+        </div>
+        <div class="total">Total: {{ totalCost | currency }}</div>
+    </footer>
+</div>

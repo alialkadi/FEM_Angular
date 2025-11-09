@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { createUpdateServiceRequest } from '../../../../Models/service.Model';
+import { CreateUpdateServiceRequest } from '../../../../Models/service.Model';
 import { ServiceService } from '../../../Services/service-service.service';
 import { StructureService } from '../../../Services/structure-service.service';
 import { PartService } from '../../../Services/part-service.service';
@@ -168,7 +168,7 @@ export class CreateServiceComponent implements OnInit {
       return;
     }
 
-    const payload: createUpdateServiceRequest = { ...this.serviceForm.value };
+    const payload: CreateUpdateServiceRequest = { ...this.serviceForm.value };
     this.isSubmitting = true;
 
     // ✅ sanitize linkage

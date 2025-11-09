@@ -1,0 +1,82 @@
+<div class="carousel-explorer">
+    <header class="header">
+        <h2>Service Explorer — Carousel</h2>
+        <button class="reset" (click)="reset()">Reset</button>
+    </header>
+    <!-- Level 1: Categories -->
+    <section class="carousel-section">
+        <h3>Categories</h3>
+        <div class="carousel">
+            <div class="card img" *ngFor="let c of categories" (click)="selectCategory(c)"
+                [class.active]="selectedCategory?.id === c.id">
+                <img *ngIf="c.fileUrl" [src]="c.fileUrl" [alt]="c.name" loading="lazy" />
+                <div class="label">{{ c.name }}</div>
+            </div>
+        </div>
+    </section>
+    <!-- Level 2: Types -->
+    <section *ngIf="types.length" class="carousel-section">
+        <h3>Types</h3>
+        <div class="carousel">
+            <div class="card img" *ngFor="let t of types" (click)="selectType(t)"
+                [class.active]="selectedType?.id === t.id">
+                <img *ngIf="t.fileUrl" [src]="t.fileUrl" [alt]="t.name" loading="lazy" />
+                <div class="label">{{ t.name }}</div>
+            </div>
+        </div>
+    </section>
+    <!-- Level 3: Structures -->
+    <section *ngIf="structures.length" class="carousel-section">
+        <h3>Structures</h3>
+        <div class="carousel">
+            <div class="card img" *ngFor="let s of structures" (click)="selectStructure(s)"
+                [class.active]="selectedStructure?.id === s.id">
+                <img *ngIf="s.fileUrl" [src]="s.fileUrl" [alt]="s.name" loading="lazy" />
+                <div class="label">{{ s.name }}</div>
+            </div>
+        </div>
+    </section>
+    <!-- Level 4: Parts -->
+    <section *ngIf="parts.length" class="carousel-section">
+        <h3>Parts</h3>
+        <div class="carousel">
+            <div class="card img" *ngFor="let p of parts" (click)="selectPart(p)"
+                [class.active]="selectedPart?.id === p.id">
+                <img *ngIf="p.fileUrl" [src]="p.fileUrl" [alt]="p.name" loading="lazy" />
+                <div class="label">{{ p.name }}</div>
+            </div>
+        </div>
+    </section>
+    <!-- Level 5: Part Options -->
+    <section *ngIf="partOptions.length" class="carousel-section">
+        <h3>Part Options</h3>
+        <div class="carousel">
+            <div class="card img" *ngFor="let o of partOptions" (click)="selectPartOption(o)"
+                [class.active]="selectedPartOption?.id === o.id">
+                <img *ngIf="o.fileUrl" [src]="o.fileUrl" [alt]="o.name" loading="lazy" />
+                <div class="label">{{ o.name }}</div>
+            </div>
+        </div>
+    </section>
+    <!-- Level 6: Services -->
+    <section *ngIf="services.length" class="carousel-section">
+        <h3>Services</h3>
+        <div class="carousel services">
+            <div class="service-card" *ngFor="let s of services" (click)="toggleService(s)"
+                [class.selected]="isSelected(s)">
+                <div class="svc-name">{{ s.name }}</div>
+                <div class="svc-price"> {{ s.calculatedTotal ?? s.baseCost | currency }} </div>
+            </div>
+        </div>
+    </section>
+    <!-- Sticky total footer -->
+    <footer *ngIf="selectedServices.length" class="footer">
+        <div class="summary">
+            <div class="chips">
+                <span class="chip" *ngFor="let s of selectedServices">{{ s.name }}</span>
+            </div>
+            <div class="total">Total: {{ totalCost | currency }}</div>
+        </div>
+        <button class="btn" (click)="requestServices()">Request Services</button>
+    </footer>
+</div>

@@ -145,3 +145,15 @@ select {
     grid-template-columns: 1fr;
   }
 }
+.type-image,
+.preview-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+}
+
+.preview {
+  margin-top: 8px;
+}

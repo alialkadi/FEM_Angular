@@ -1,0 +1,58 @@
+<section class="landing-body">
+    <!-- 🌟 SERVICES SECTION -->
+    <div class="services-section">
+        <h2 class="section-title">Our Professional Fenestration Services</h2>
+        <p class="section-subtitle"> From precision installation to expert repair — we ensure every window and door
+            enhances your building’s performance and appearance. </p>
+        <div class="services-grid">
+            <div class="service-card" *ngFor="let s of services">
+                <div class="image-container">
+                    <img [src]="s.imageUrl" [alt]="s.title" />
+                    <div class="overlay">
+                        <h3>{{ s.title }}</h3>
+                        <p>{{ s.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 🏢 ABOUT SECTION -->
+    <div class="about-section">
+        <div class="about-container">
+            <div class="about-image">
+                <img src="../../../../../../assets/landing-paeg/Window and door installation service with worker for home repair and renovation in illustration _ Premium Vector.jpg"
+                    alt="Technicians at work" />
+            </div>
+            <div class="about-text">
+                <h2>Precision. Performance. Perfection.</h2>
+                <p> Fenestration Express Maintenance provides top-quality maintenance and installation services for
+                    aluminum, glass, and uPVC systems. Whether you need emergency repair, performance upgrades, or
+                    complete replacements — we combine innovation, craftsmanship, and reliability to deliver results
+                    that last. </p>
+                <div class="about-values">
+                    <div class="value-item">
+                        <i class="bi bi-wrench-adjustable"></i>
+                        <div>
+                            <h4>Expert Installation</h4>
+                            <p>Seamless, durable fittings for aluminum and glass structures.</p>
+                        </div>
+                    </div>
+                    <div class="value-item">
+                        <i class="bi bi-house-check"></i>
+                        <div>
+                            <h4>Trusted Maintenance</h4>
+                            <p>Scheduled service plans that extend lifespan and performance.</p>
+                        </div>
+                    </div>
+                    <div class="value-item">
+                        <i class="bi bi-lightning-charge"></i>
+                        <div>
+                            <h4>Energy Efficiency</h4>
+                            <p>Solutions that improve insulation and reduce energy costs.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
