@@ -4,6 +4,14 @@ import { Part } from '../../../Models/Part.Models';
 import { createUpdatePartOption, PartOption } from '../../../Models/PartOption.Model';
 import { PartOptionService } from '../../Services/part-option-service.service';
 import { PartService } from '../../Services/part-service.service';
+import { EditPartOptionDialogComponent } from '../../../../shared/Dialogs/edit-part-option-dialog/edit-part-option-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { CategoryService } from '../../Services/CategoryService';
+import { CategoryTypeService } from '../../Services/categoryTypeService.service';
+import { StructureService } from '../../Services/structure-service.service';
+import { Category } from '../../../Models/Category';
+import { CategoryType } from '../../../Models/CategoryType';
+import { Structure } from '../../../Models/Structure.Model';
 
 @Component({
  selector: 'app-part-option-list',
@@ -17,21 +25,82 @@ export class PartOptionListComponent {
     pageSize = 5;
     pageSizes = [5, 10, 25];
     PartOptions: PartOption[] = []
-    Parts: Part[] = [];
+  Parts: Part[] = [];
+   Structures: Structure[] = [];
+    categories: Category[] = [];
+    categoryTypes: CategoryType[] = [];
     newPartOption: createUpdatePartOption = { name: '', mainPartId: 0 };
   
     get totalPage(): number{
       return Math.ceil(this.totalCount / this.pageSize) || 1;
     }
   
-    constructor(private _PartOptionOptionservice: PartOptionService, private _partService : PartService){}
+  constructor(private dialog: MatDialog,
+    private _PartOptionOptionservice: PartOptionService,
+    private _partService: PartService,
+    private _StructureService: StructureService,
+    private _categoryService: CategoryService,
+    private _categoryTypeService: CategoryTypeService,) { }
   
     ngOnInit(): void {
       this.loadPartOptionOptions();
-      this.loadParts()
+      this.loadCategories()
       
     }
+   loadCategories() {
+    this._categoryService.getAllCategories(true).subscribe({
+      next: (res) => {
+        console.log("Categories From Structure", res)
+        this.categories = res.data.categories;
+      }
+    })
+  }
   
+  onCategoryChange(event: Event) {
+    console.log("changing category from part ", event);
+    console.log("event target form part ", event.target);
+    const categoryId = Number((event.target as HTMLSelectElement)?.value);
+    if (!categoryId) return;
+
+    this._categoryTypeService.getTypesByCategory(categoryId).subscribe({
+      next: (res) => {
+        console.log(`Fetching types by category id: ${categoryId}`, res);
+        if (res.success && res.data) {
+          this.categoryTypes = res.data.categoryTypes;
+        }
+      }
+    })
+  }
+  onCategoryTypeChange(event: Event) {
+    console.log("changing category from part ", event);
+    console.log("event target form part ", event.target);
+    const categoryTypeId = Number((event.target as HTMLSelectElement)?.value);
+    if (!categoryTypeId) return;
+
+    this._StructureService.getStructuresByType(categoryTypeId).subscribe({
+      next: (res) => {
+        console.log(`Fetching types by category id: ${categoryTypeId}`, res);
+        if (res.success && res.data) {
+          this.Structures = res.data.structures;
+        }
+      }
+    })
+  }
+  onStructureChange(event: Event) {
+    console.log("changing category from part ", event);
+    console.log("event target form part ", event.target);
+    const strucutreId = Number((event.target as HTMLSelectElement)?.value);
+    if (!strucutreId) return;
+
+    this._partService.getPartsByStructure(strucutreId).subscribe({
+      next: (res) => {
+        console.log(`Fetching types by category id: ${strucutreId}`, res);
+        if (res.success && res.data) {
+          this.Parts = res.data.parts;
+        }
+      }
+    })
+  }
     loadParts(): void{
        this._partService.getAllParts(true).subscribe({
         next: (res) => {
@@ -126,5 +195,32 @@ onFileSelected(event: any) {
         }
       })
     }
-
+onEdit(partOption: PartOption): void {
+      const dialogRef = this.dialog.open(EditPartOptionDialogComponent, {
+        data: { id: partOption.id, name: partOption.name, file: partOption.fileUrl,mainPartId: partOption.mainPartId }
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          const formData = new FormData();
+          console.log("Fron update Formdata", result)
+          formData.append('name', result.name);
+          formData.append('file', result.file);
+          formData.append('mainPartId', result.mainPartId);
+          console.log("formdata after result", formData)
+          this._PartOptionOptionservice.updatePartOption(result.id, formData).subscribe({
+            next: (res) => {
+              if (res.success) {
+                console.log("formdata after result res", formData)
+  
+                const index = this.PartOptions.findIndex(c => c.id === result.id);
+                if (index !== -1) {
+                  this.loadPartOptionOptions()
+                }
+              }
+            }
+          });
+        }
+      });
+    }
 }

@@ -19,10 +19,10 @@
                         <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Type Image" class="type-image" />
                         <span *ngIf="!item.fileUrl">No Image</span>
                     </td>
-                    <td>{{item.categoryTypeName}}</td>
+                    <td>{{item.typeName}}</td>
                     <td>{{item.categoryName}}</td>
                     <td>
-                        <button class="icon-btn edit">
+                        <button class="icon-btn edit" (click)="onEdit(item)">
                             <i class="fa-solid fa-pen"></i>
                         </button>
                         <button class="icon-btn delete" (click)="onDelete(item.id!)">
@@ -61,9 +61,16 @@
       " class="text-danger"> Name is required! </p>
             </div>
             <div class="form-group">
-                <label for="parentCategory">Parent Category</label>
+                <div class="select-group">
+                    <label>Category</label>
+                    <select formControlName="categoryId" (change)="onCategoryChange($event)">
+                        <option value="">Select Category</option>
+                        <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+                    </select>
+                </div>
+                <label for="parentCategory">Type</label>
                 <select id="parentCategory" formControlName="typeId">
-                    <option value="" disabled selected style="color: #484b4d; text-align: center;">-Select Category-
+                    <option value="" disabled selected style="color: #484b4d; text-align: center;">-Select Type-
                     </option>
                     <option *ngFor="let item of categoryTypes" [value]="item.id">{{item.name}} </option>
                 </select>

@@ -38,11 +38,10 @@ export class StructureService {
     return this._http.delete<ApiResponse<boolean>>(`${this.baseurl}/Structure/${id}`)
   }
 
-  updateStructure(id: boolean, data: { name: string, categoryId: number }): Observable<ApiResponse<Structure>> {
+  updateStructure(id: boolean, data: FormData): Observable<ApiResponse<Structure>> {
     return this._http.put<ApiResponse<Structure>>(
       `${this.baseurl}/Structure/${id}`,
-      data, // ✅ request body
-      { headers: { 'Content-Type': 'application/json' } } // ✅ set content-type
+      data
     );
   }
 }

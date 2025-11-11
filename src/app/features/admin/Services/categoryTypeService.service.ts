@@ -25,6 +25,12 @@ export class CategoryTypeService {
       formData
     );
   }
+  updateCategoryType(id: number, data: FormData): Observable<ApiResponse<CategoryType>> {
+    return this._http.put<ApiResponse<CategoryType>>(
+      `${environment.apiUrl}/CategoryTypes/${id}`,
+      data  // ✅ set content-type
+    );
+  }
   getTypesByCategory(id: number): Observable<ApiResponse<CategoryTypeListResponse>> {
     return this._http.get<ApiResponse<CategoryTypeListResponse>>(this.baseurl + `/CategoryTypes/byCategory/${id}`)
   }
@@ -32,11 +38,5 @@ export class CategoryTypeService {
         return this._http.delete<ApiResponse<boolean>>(`${this.baseurl}/CategoryTypes/${id}`)
     }
 
-    updateCategoryType(id: boolean, data: { name: string, categoryId: number }): Observable<ApiResponse<CategoryType>>{
-         return this._http.put<ApiResponse<CategoryType>>(
-            `${this.baseurl}/CategoryTypes/${id}`,
-            data, // ✅ request body
-            { headers: { 'Content-Type': 'application/json' } } // ✅ set content-type
-          );
-    }
-  }{}
+  
+  }

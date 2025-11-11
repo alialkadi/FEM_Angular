@@ -11,7 +11,7 @@ import { ApiResponse } from '../../Models/ApiResponse';
 export class FeeService {
   private readonly baseUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(page = 1, pageSize = 10, search = ''): Observable<ApiResponse<FeeResponseList>> {
     let params = new HttpParams()
@@ -26,16 +26,22 @@ export class FeeService {
   getById(id: number): Observable<FeeResponse> {
     return this.http.get<FeeResponse>(`${this.baseUrl}/${id}`);
   }
-createFee(data: {
-  name: string;
-  amount: number;
-  isGlobal: boolean;
-  description?: string;
-  serviceIds?: number[];
-}): Observable<ApiResponse<FeeResponse>> {
-  return this.http.post<ApiResponse<FeeResponse>>(`${this.baseUrl}/Fee`, data);
-}
+  createFee(data: {
+    name: string;
+    amount: number;
+    isGlobal: boolean;
+    description?: string;
+    serviceIds?: number[];
+  }): Observable<ApiResponse<FeeResponse>> {
+    return this.http.post<ApiResponse<FeeResponse>>(`${this.baseUrl}/Fee`, data);
+  }
   delete(id: number): Observable<boolean> {
     return this.http.delete<boolean>(`${this.baseUrl}/Fee/${id}`);
   }
+
+  updateFee(id: number, data: any): Observable<ApiResponse<FeeResponse>> {
+    return this.http.put<ApiResponse<FeeResponse>>(`${this.baseUrl}/Fee/${id}`, data);
+  }
+
 }
+

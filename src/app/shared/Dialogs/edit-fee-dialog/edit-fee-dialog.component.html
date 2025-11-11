@@ -1,0 +1,73 @@
+<div class="modal-content modern-fee-dialog">
+    <!-- Header -->
+    <div class="modal-header border-0 p-3">
+        <h5 class="modal-title fw-semibold">{{ title }}</h5>
+        <button type="button" class="btn-close" (click)="cancel()"></button>
+    </div>
+    <!-- Body -->
+    <div class="modal-body">
+        <form [formGroup]="editForm" class="fee-form">
+            <!-- Section: Basic Info -->
+            <div class="dialog-section shadow-sm p-4 mb-4 rounded-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-primary mb-0">Basic Information</h6>
+                    <i class="bi bi-pencil-square text-primary fs-5"></i>
+                </div>
+                <p class="text-muted small mb-4"> Define the fee’s core details. Global fees apply automatically to all
+                    services. </p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Fee Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-lg" formControlName="name"
+                            placeholder="Enter fee name" />
+                        <div *ngIf="editForm.get('name')?.touched && editForm.get('name')?.invalid" class="form-error">
+                            Name is required and must have at least 2 characters. </div>
+                    </div>
+                    <div class="col-md-6" *ngIf="mode === 'full'">
+                        <label class="form-label fw-medium">Amount <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control form-control-lg" formControlName="amount"
+                            placeholder="0.00" min="0" />
+                        <div *ngIf="editForm.get('amount')?.invalid && editForm.get('amount')?.touched"
+                            class="form-error"> Amount must be non-negative. </div>
+                    </div>
+                    <div class="col-12" *ngIf="mode === 'full'">
+                        <label class="form-label fw-medium">Description</label>
+                        <textarea rows="2" class="form-control form-control-lg" placeholder="Optional details..."
+                            formControlName="description"></textarea>
+                    </div>
+                </div>
+                <div class="form-check form-switch mt-4" *ngIf="mode !== 'name'">
+                    <input class="form-check-input" type="checkbox" formControlName="isGlobal" id="isGlobalSwitch" />
+                    <label class="form-check-label fw-medium" for="isGlobalSwitch"> Global Fee (applies to all services)
+                    </label>
+                </div>
+            </div>
+            <!-- Section: Linked Services -->
+            <div class="dialog-section shadow-sm p-4 mb-3 rounded-4"
+                *ngIf="!editForm.get('isGlobal')?.value && mode !== 'name'">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-success mb-0">Linked Services</h6>
+                    <i class="bi bi-link-45deg text-success fs-5"></i>
+                </div>
+                <p class="text-muted small mb-3"> Select the services this fee applies to. </p>
+                <div class="service-list-container p-2 border rounded-3">
+                    <div class="form-check form-check-inline w-100" *ngFor="let s of availableServices">
+                        <input class="form-check-input" type="checkbox" [value]="s.id"
+                            (change)="onServiceToggle(s.id, $event)"
+                            [checked]="editForm.get('serviceIds')?.value?.includes(s.id)" id="service-{{ s.id }}" />
+                        <label class="form-check-label ms-2" [for]="'service-' + s.id">{{ s.name }}</label>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- Footer -->
+    <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-outline-secondary px-4 py-2" (click)="cancel()">Cancel</button>
+        <button class="btn btn-primary px-4 py-2 d-flex align-items-center justify-content-center"
+            [disabled]="loading || editForm.invalid" (click)="submit()">
+            <div *ngIf="loading" class="spinner-border spinner-border-sm me-2"></div>
+            <i *ngIf="!loading" class="bi bi-save me-2"></i> Save Changes
+        </button>
+    </div>
+</div>

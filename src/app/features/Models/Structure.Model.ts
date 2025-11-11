@@ -1,8 +1,8 @@
 export interface Structure{
     id: number,
     name: string,
-    categoryTypeId: number,
-    categoryTypeName: string,
+    typeId: number,
+    typeName: string,
     categoryName?: string,
     fileUrl?: string
 }
