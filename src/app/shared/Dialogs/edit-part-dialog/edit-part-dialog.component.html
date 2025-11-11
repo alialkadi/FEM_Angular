@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>Edit Item</h2>
+<mat-dialog-content>
+    <form [formGroup]="editForm" class="dialog-form">
+        <div class="form-group">
+            <label for="itemName">Item Name <span class="required">*</span></label>
+            <input id="itemName" type="text" formControlName="name" placeholder="Enter Item name"
+                class="custom-input" />
+            <div class="form-group">
+                <label for="parentItems">Parent Items</label>
+                <select id="parentItems" formControlName="structureId">
+                    <option value="" disabled selected>- Select -</option>
+                    <option *ngFor="let item of Structures" [value]="item.id"> {{ item.name }} </option>
+                </select>
+            </div>
+            <div class="file-upload">
+                <input type="file" (change)="onFileSelected($event)" accept="image/*" />
+                <img *ngIf="previewUrl" [src]="previewUrl" alt="preview" class="preview-img">
+            </div>
+            <div class="error" *ngIf="editForm.get('name')?.hasError('required') && editForm.get('name')?.touched"> Item
+                name is required </div>
+        </div>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button color="warn" (click)="onCancel()">Cancel</button>
+    <button mat-flat-button color="primary" (click)="onSave()">Save</button>
+</mat-dialog-actions>

@@ -4,6 +4,10 @@ import { CategoryType } from '../../../../Models/CategoryType';
 import { StructureService } from '../../../Services/structure-service.service';
 import { CategoryTypeService } from '../../../Services/categoryTypeService.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { EditStructureDialogComponent } from '../../../../../shared/Dialogs/edit-structure-dialog/edit-structure-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { CategoryService } from '../../../Services/CategoryService';
+import { Category } from '../../../../Models/Category';
 
 @Component({
   selector: 'app-structure-list',
@@ -19,17 +23,44 @@ export class StructureListComponent {
   structures: Structure[] = []
   categoryTypes: CategoryType[] = [];
   newStructure: createUpdateStructure = { name: '', typeId: 0 };
-
+  categories: Category[] = [];
   get totalPage(): number{
     return Math.ceil(this.totalCount / this.pageSize) || 1;
   }
 
-  constructor(private _structureService: StructureService, private _categoryTypeService : CategoryTypeService){}
+  constructor(private dialog: MatDialog,
+    private _structureService: StructureService,
+    private _categoryTypeService: CategoryTypeService,
+    private _categoryServie : CategoryService) { }
 
   ngOnInit(): void {
     this.loadStructures();
-    this.loadCategoryTypes()
+    this.loadCategories()
     
+  }
+  loadCategories() {
+    this._categoryServie.getAllCategories(true).subscribe({
+      next: (res) => {
+        console.log("Categories From Structure", res)
+        this.categories = res.data.categories;
+      }
+    })
+  }
+
+  onCategoryChange(event: Event) {
+    console.log("changing category from structure ", event);
+    console.log("event target form strucutre ", event.target);
+    const categoryId = Number((event.target as HTMLSelectElement)?.value);
+    if (!categoryId) return;
+
+    this._categoryTypeService.getTypesByCategory(categoryId).subscribe({
+      next: (res) => {
+        console.log(`Fetching types by category id: ${categoryId}`, res);
+        if (res.success && res.data) {
+          this.categoryTypes = res.data.categoryTypes;
+        }
+      }
+    })
   }
 
   loadCategoryTypes(): void{
@@ -112,7 +143,36 @@ onFileSelected(event: any) {
       })
     }
   }
-
+  onEdit(structure: Structure): void {
+    console.log(structure )
+      const dialogRef = this.dialog.open(EditStructureDialogComponent, {
+        data: { id: structure.id, name: structure.name, file: structure.fileUrl, typeId: structure.typeId }
+        
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          const formData = new FormData();
+          console.log("Fron update Formdata", result)
+          formData.append('name', result.name);
+          formData.append('file', result.file);
+          formData.append('typeId', result.typeId);
+          console.log("formdata after result", formData)
+          this._structureService.updateStructure(result.id, formData).subscribe({
+            next: (res) => {
+              if (res.success) {
+                console.log("formdata after result res", formData)
+  
+                const index = this.structures.findIndex(c => c.id === result.id);
+                if (index !== -1) {
+                  this.loadStructures()
+                }
+              }
+            }
+          });
+        }
+      });
+    }
   onDelete(id: number) {
     this._structureService.deleteStructure(id).subscribe({
       next: (res) => {

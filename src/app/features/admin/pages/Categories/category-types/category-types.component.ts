@@ -1,9 +1,12 @@
+import { CategoryTypeService } from './../../../Services/categoryTypeService.service';
 import { Component } from '@angular/core';
-import { CategoryTypeService } from '../../../Services/categoryTypeService.service';
 import { CategoryType, CreateCategoryType } from '../../../../Models/CategoryType';
 import { Category } from '../../../../Models/Category';
 import { CategoryService } from '../../../Services/CategoryService';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { EditCategoryDialogComponent } from '../../../../../shared/Dialogs/edit-category-dialog/edit-category-dialog.component';
+import { EditCateogyTypeComponent } from '../../../../../shared/Dialogs/edit-cateogy-type-dialog/edit-cateogy-type.component';
 
 @Component({
   selector: 'app-category-types',
@@ -26,7 +29,7 @@ createType: FormGroup;
     return Math.ceil(this.totalCount / this.pageSize) || 1;
   }
 
-  constructor(private _catogryTypeService: CategoryTypeService, private categoryService: CategoryService) {
+  constructor(private dialog: MatDialog,private _catogryTypeService: CategoryTypeService, private categoryService: CategoryService) {
      this.createType = new FormGroup({
       name: new FormControl('', Validators.required),
       categoryId: new FormControl('', Validators.required),
@@ -125,4 +128,33 @@ createType: FormGroup;
       }
     })
   }
+
+    onEdit(categoryType: CategoryType): void {
+      const dialogRef = this.dialog.open(EditCateogyTypeComponent, {
+        data: { id: categoryType.id, name: categoryType.name, file: categoryType.fileUrl,categoryId: categoryType.categoryId }
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          const formData = new FormData();
+          console.log("Fron update Formdata", result)
+          formData.append('name', result.name);
+          formData.append('file', result.file);
+          formData.append('categoryId', result.categoryId);
+          console.log("formdata after result", formData)
+          this._catogryTypeService.updateCategoryType(result.id, formData).subscribe({
+            next: (res) => {
+              if (res.success) {
+                console.log("formdata after result res", formData)
+  
+                const index = this.categoryTypes.findIndex(c => c.id === result.id);
+                if (index !== -1) {
+                  this.loadCategoryTypes()
+                }
+              }
+            }
+          });
+        }
+      });
+    }
 }

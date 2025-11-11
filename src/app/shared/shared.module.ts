@@ -11,12 +11,18 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { EditCateogyTypeComponent } from './Dialogs/edit-cateogy-type-dialog/edit-cateogy-type.component';
+import { EditStructureDialogComponent } from './Dialogs/edit-structure-dialog/edit-structure-dialog.component';
+import { EditPartDialogComponent } from './Dialogs/edit-part-dialog/edit-part-dialog.component';
+import { EditPartOptionDialogComponent } from './Dialogs/edit-part-option-dialog/edit-part-option-dialog.component';
+import { EditFeeDialogComponent } from './Dialogs/edit-fee-dialog/edit-fee-dialog.component';
+import { MatOptionModule } from '@angular/material/core';
 
 @NgModule({
-  declarations: [SpinnerComponent, PageHeaderComponent, EditCategoryDialogComponent, ConfirmDialogComponent],
+  declarations: [SpinnerComponent, PageHeaderComponent, EditCategoryDialogComponent, ConfirmDialogComponent, EditCateogyTypeComponent, EditStructureDialogComponent, EditPartDialogComponent, EditPartOptionDialogComponent, EditFeeDialogComponent],
   imports: [CommonModule,
     ReactiveFormsModule, MatInputModule, MatIconModule,
-    MatDialogModule,
+    MatDialogModule, MatOptionModule,
     MatButtonModule, MatFormFieldModule, NgOptimizedImage],   
   exports: [CommonModule, SpinnerComponent, PageHeaderComponent,MatButtonModule,MatDialogModule],
 })

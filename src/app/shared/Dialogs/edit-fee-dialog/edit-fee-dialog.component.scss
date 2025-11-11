@@ -1,0 +1,62 @@
+.modern-fee-dialog {
+  border: none;
+  border-radius: 1rem;
+  background: #fdfdfd;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.dialog-section {
+  background: #ffffff;
+  transition: all 0.25s ease;
+}
+
+.dialog-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+.modal-title{
+    margin: 0;
+}
+.form-label {
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.form-error {
+  color: #e74c3c;
+  font-size: 0.8rem;
+}
+
+.service-list-container {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #fafafa;
+}
+
+.service-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+.service-list-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    border-radius: 0;
+    height: 100vh;
+  }
+
+  .modal-body {
+    padding: 1.2rem;
+  }
+
+  .dialog-section {
+    padding: 1rem;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}

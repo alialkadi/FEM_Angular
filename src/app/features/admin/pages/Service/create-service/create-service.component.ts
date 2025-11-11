@@ -57,6 +57,7 @@ export class CreateServiceComponent implements OnInit {
       warrantyDuration: [0, [Validators.required, Validators.min(0)]],
       warrantyUnit: ['Months', Validators.required],
       deliveryDays: [0, [Validators.required, Validators.min(0)]],
+      labors: [0,[Validators.required,Validators.min(0)]],
       categoryId: [null],
       categoryTypeId: [null],
       structureId: [null],

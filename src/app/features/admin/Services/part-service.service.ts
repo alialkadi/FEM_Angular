@@ -37,11 +37,10 @@ export class PartService {
       return this._http.delete<ApiResponse<boolean>>(`${this.baseurl}/Part/${id}`)
     }
   
-    updatePart(id: boolean, data: { name: string, categoryId: number }): Observable<ApiResponse<Part>> {
+    updatePart(id: boolean, data: FormData): Observable<ApiResponse<Part>> {
       return this._http.put<ApiResponse<Part>>(
         `${this.baseurl}/Part/${id}`,
-        data, // ✅ request body
-        { headers: { 'Content-Type': 'application/json' } } // ✅ set content-type
+        data
       );
     }
 }

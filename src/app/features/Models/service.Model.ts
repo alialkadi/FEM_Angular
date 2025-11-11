@@ -110,6 +110,7 @@ export interface ServiceResponse {
   partId?: number;
   partOptionId?: number;
   partName?: string;
+  labors?: number,
   structureName?: string;
   partOptionName?: string;
   calculatedTotal?: number; // added dynamically after cost calculation
@@ -135,6 +136,8 @@ export interface CreateUpdateServiceRequest {
   structureId?: number;
   partId?: number;
   partOptionId?: number;
+  labors?: number,
+
 }
 
 // ========================================================
