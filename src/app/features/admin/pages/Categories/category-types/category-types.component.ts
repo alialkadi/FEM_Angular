@@ -6,7 +6,7 @@ import { CategoryService } from '../../../Services/CategoryService';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { EditCategoryDialogComponent } from '../../../../../shared/Dialogs/edit-category-dialog/edit-category-dialog.component';
-import { EditCateogyTypeComponent } from '../../../../../shared/Dialogs/edit-cateogy-type-dialog/edit-cateogy-type.component';
+import { EditCateogyTypeComponent } from '../../../../../shared/Dialogs/edit-cateogy-type/edit-cateogy-type.component';
 
 @Component({
   selector: 'app-category-types',

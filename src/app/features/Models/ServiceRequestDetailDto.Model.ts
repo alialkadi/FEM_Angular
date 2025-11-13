@@ -1,17 +1,23 @@
+
 export interface ServiceRequestListDto {
   id: number;
   userFullName: string;
   email: string;
-  requestedDate: string; // ISO
-  status: string;
+  requestedDate: string; 
+  statusId: number;      
+  statusName: string;    
   totalCost: number;
 }
+
+
 export interface PagedServiceRequestListResponse {
   requests: ServiceRequestListDto[];
   totalCount: number;
   currentPage: number;
   pageSize: number;
 }
+
+
 export interface ServiceRequestDetailItemDto {
   serviceId: number;
   serviceName: string;
@@ -19,6 +25,8 @@ export interface ServiceRequestDetailItemDto {
   baseCost: number;
   calculatedTotal: number;
 }
+
+
 export interface ServiceRequestDetailDto {
   id: number;
   userId: string;
@@ -27,8 +35,19 @@ export interface ServiceRequestDetailDto {
   phoneNumber: string;
   address: string;
   requestedDate: string;
-  status: string;
+  statusId: number;       
+  statusName: string;     
   totalCost: number;
   notes?: string;
   requestedServices: ServiceRequestDetailItemDto[];
+}
+
+
+export interface ServiceRequestResponseDto {
+  requestId: number;
+  userId: string;
+  total: number;
+  statusId: number;       
+  statusName: string;     
+  message: string;
 }

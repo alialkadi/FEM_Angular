@@ -20,9 +20,30 @@ import { FeeListComponent } from './pages/Service/fee-list/fee-list.component';
 import { CreateFeeComponent } from './pages/Service/create-fee/create-fee.component';
 import { AdminServiceRequestComponent } from './pages/Service_Requests/admin-service-request/admin-service-request.component';
 import { AppSettingComponent } from './pages/app-setting/app-setting.component';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @NgModule({
-  declarations: [DashboardComponent, ManageUsersComponent, DashboradNavComponent, CategoryTypesComponent,CategoriesListComponent, StructureListComponent, PartListComponent, PartOptionListComponent, ServiceListComponent, CreateServiceComponent, FeeListComponent, CreateFeeComponent, AdminServiceRequestComponent, AppSettingComponent],
-  imports: [SharedModule, AdminRoutingModule, MatIcon,CommonModule ,MatPaginatorModule,FormsModule, ReactiveFormsModule ,CommonModule ]
+  declarations: [DashboardComponent,
+    ManageUsersComponent,
+    DashboradNavComponent,
+    CategoryTypesComponent,
+    CategoriesListComponent,
+    StructureListComponent,
+    PartListComponent,
+    PartOptionListComponent,
+    ServiceListComponent,
+    CreateServiceComponent,
+    FeeListComponent,
+    CreateFeeComponent,
+    AdminServiceRequestComponent,
+    AppSettingComponent],
+  imports: [SharedModule,
+     AdminRoutingModule,
+     MatIcon,CommonModule ,
+    MatPaginatorModule,
+    FormsModule,
+     ReactiveFormsModule ,
+    CommonModule,
+  MatFormFieldModule]
 })
 export class AdminModule {}

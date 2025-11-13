@@ -18,26 +18,36 @@ export class LoginComponent {
   loading: boolean = false;
 
 requestOtp() {
-  this.loading = true;   // ✅ start loading
+  this.loading = true;
   const request: LoginRequest = { email: this.email };
 
   this.auth.login(request).subscribe({
     next: (res) => {
-      // if (res.data.requiresOtp) {
-      //   this.step = 2;
-      // } else {
-      //   this.error = 'Unexpected response';
-      // }
-       localStorage.setItem('app_token', res.data.token);
+      console.log(res);
+
+      if (res.data.requiresOtp) {
+        // Step 2: Show OTP input
+        this.step = 2;
+        this.error = '';
+      } 
+      else if (res.data.token) {
+        // Direct login (no OTP required)
+        localStorage.setItem('app_token', res.data.token);
         this.router.navigate(['/admin/dashboard']);
-      this.loading = false; // ✅ stop loading
+      } 
+      else {
+        this.error = 'Unexpected response';
+      }
+
+      this.loading = false;
     },
     error: (err) => {
       this.error = err.error?.errors?.[0] || 'Something went wrong';
-      this.loading = false; // ✅ stop loading even on error
+      this.loading = false;
     }
   });
 }
+
 
 verifyOtp() {
   this.loading = true;   // ✅ start loading

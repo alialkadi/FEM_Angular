@@ -11,7 +11,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { EditCateogyTypeComponent } from './Dialogs/edit-cateogy-type-dialog/edit-cateogy-type.component';
+import { EditCateogyTypeComponent } from './Dialogs/edit-cateogy-type/edit-cateogy-type.component';
 import { EditStructureDialogComponent } from './Dialogs/edit-structure-dialog/edit-structure-dialog.component';
 import { EditPartDialogComponent } from './Dialogs/edit-part-dialog/edit-part-dialog.component';
 import { EditPartOptionDialogComponent } from './Dialogs/edit-part-option-dialog/edit-part-option-dialog.component';

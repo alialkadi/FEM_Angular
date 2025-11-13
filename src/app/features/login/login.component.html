@@ -1,48 +1,32 @@
 <div class="login-container">
   <div class="login-card">
-    <h1 class="title">
-      {{ step === 1 ? 'Sign In' : 'Verify OTP' }}
-    </h1>
-
-    <p class="subtitle" *ngIf="step === 1">
-      Enter your email address and we’ll send you a one-time password (OTP).
-    </p>
-    <p class="subtitle" *ngIf="step === 2">
-      We’ve sent a 6-digit OTP to your registered phone number. Please enter it below.
-    </p>
-
+    <h1 class="title"> {{ step === 1 ? 'Sign In' : 'Verify OTP' }} </h1>
+    <p class="subtitle" *ngIf="step === 1"> Enter your email address and we’ll send you a one-time password (OTP). </p>
+    <p class="subtitle" *ngIf="step === 2"> We’ve sent a 6-digit OTP to your registered phone number. Please enter it
+      below. </p>
     <form (ngSubmit)="step === 1 ? requestOtp() : verifyOtp()" class="login-form">
-
       <!-- Step 1: Email -->
       <div *ngIf="step === 1" class="form-step">
         <input class="input" type="email" [(ngModel)]="email" name="email" placeholder="Email" required />
         <div class="btn-group">
-          <button class="btn primary" type="submit" [disabled]="loading">
-            {{ loading ? 'Sending...' : 'Send OTP' }}
+          <button class="btn primary" type="submit" [disabled]="loading"> {{ loading ? 'Sending...' : 'Send OTP' }}
           </button>
         </div>
       </div>
-
       <!-- Step 2: OTP -->
       <div *ngIf="step === 2" class="form-step">
         <input class="input" type="text" [(ngModel)]="otp" name="otp" placeholder="Enter OTP" required />
         <div class="btn-group">
-          <button class="btn accent" type="submit" [disabled]="loading">
-            {{ loading ? 'Verifying...' : 'Verify & Sign In' }}
-          </button>
-          <button class="btn outline" type="button" (click)="step = 1" [disabled]="loading">
-            Back
-          </button>
+          <button class="btn accent" type="submit" [disabled]="loading"> {{ loading ? 'Verifying...' : 'Verify & Sign
+            In' }} </button>
+          <button class="btn outline" type="button" (click)="step = 1" [disabled]="loading"> Back </button>
         </div>
       </div>
     </form>
-
     <div class="progress" *ngIf="loading">
       <div class="bar"></div>
     </div>
-
     <p *ngIf="error" class="error-text">{{ error }}</p>
-
     <div class="instructions">
       <p *ngIf="step === 1">👉 Step 1: Enter your email to receive a secure OTP via SMS.</p>
       <p *ngIf="step === 2">👉 Step 2: Enter the OTP to complete your login securely.</p>
