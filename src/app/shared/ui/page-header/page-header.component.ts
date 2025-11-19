@@ -136,7 +136,7 @@ export class PageHeaderComponent {
 
   logout() {
     localStorage.removeItem('app_token');
-    this.router.navigate(['/login']);
+    this.router.navigate(['/FenetrationMaintainence']);
   }
 
   openSettings() {

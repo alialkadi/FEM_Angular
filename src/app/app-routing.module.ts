@@ -11,7 +11,7 @@ const routes: Routes = [
     path: 'admin',
     component: AdminLayoutComponent,
     canActivate: [RoleGuard],
-    data: { roles: ['Admin',"user"] },
+    data: { roles: ['Admin'] },
     children: [
       {
         path: '',
@@ -27,6 +27,18 @@ const routes: Routes = [
       {
         path: '',
         loadChildren: () => import('./features/Public/public.module').then(m => m.PublicModule)
+      }
+    ]
+  },
+  {
+    path: 'user',
+    component: PublicLayoutComponent,
+    data: { roles: ['user'] },
+    canActivate: [RoleGuard],
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./features/user-dashboard/user-dashboard.module').then(m =>m.UserDashboardModule )
       }
     ]
   },

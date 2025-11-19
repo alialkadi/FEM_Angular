@@ -43,13 +43,14 @@ export class CreateFeeComponent {
       amount: [0, [Validators.required, Validators.min(0)]],
       isGlobal: [true],
       description: [''],
-      serviceIds: [[]]
+      serviceIds: [[]],
     });
   }
 
   loadServices(): void {
     this.serviceService.getAllServices(true).subscribe({
       next: (res: ApiResponse<any>) => {
+        console.log(res)
         this.services = res.data.services ?? [];
         this.filteredServices = [...this.services];
       },

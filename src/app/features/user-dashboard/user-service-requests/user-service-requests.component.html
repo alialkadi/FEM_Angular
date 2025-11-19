@@ -1,0 +1,55 @@
+<div class="container">
+    <h2 class="title">My Service Requests</h2>
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-container">
+        <div class="spinner"></div>
+    </div>
+    <!-- Requests List -->
+    <div *ngIf="!loading" class="requests-list">
+        <div class="request-card" *ngFor="let req of response.requests" (click)="openRequest(req)">
+            <div class="header">
+                <h3>Request #{{ req.requestId }}</h3>
+                <span class="status" [ngClass]="req.statusName | lowercase"> {{ req.statusName }} </span>
+            </div>
+            <p><strong>Date:</strong> {{ req.requestedDate | date:'medium' }}</p>
+            <p><strong>Total:</strong> {{ req.totalCost | currency }}</p>
+            <button class="view-btn" (click)="openRequest(req); $event.stopPropagation()">View Details</button>
+        </div>
+    </div>
+    <!-- Request Details Drawer -->
+    <div class="details-panel" *ngIf="selectedRequest as s">
+        <div class="details-header">
+            <h3>Request #{{ s.requestId }}</h3>
+            <button class="close-btn" (click)="closeDetails()">✕</button>
+        </div>
+        <div class="details-body">
+            <div class="info">
+                <p><strong>Name:</strong> {{ s.fullName }}</p>
+                <p><strong>Email:</strong> {{ s.email }}</p>
+                <p><strong>Phone:</strong> {{ s.phoneNumber }}</p>
+            </div>
+            <div class="status-row">
+                <label>Status</label>
+                <select [value]="s.statusName">
+                    <option *ngFor="let op of statusOptions" [value]="op.value"> {{ op.label }} </option>
+                </select>
+            </div>
+            <h4>Requested Services</h4>
+            <div *ngFor="let d of s.requestedServices" class="service-card">
+                <h5>{{ d.serviceName }}</h5>
+                <p><strong>Base Cost:</strong> {{ d.baseCost | currency }}</p>
+                <p><strong>Total:</strong> {{ d.calculatedTotal | currency }}</p>
+                <h6>Steps</h6>
+                <ul>
+                    <li *ngFor="let st of d.steps"> {{ st.stepOrder }}. {{ st.description }} </li>
+                </ul>
+                <h6>Fees</h6>
+                <ul class="fees">
+                    <li *ngFor="let f of d.fees"> {{ f.name }} – {{ f.amount | currency }} <span *ngIf="f.isGlobal"
+                            class="global-badge">Global</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

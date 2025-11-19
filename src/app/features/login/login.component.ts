@@ -57,7 +57,12 @@ verifyOtp() {
     next: (res) => {
       if (res.data.isSuccessful && res.data.token) {
         localStorage.setItem('app_token', res.data.token);
-        this.router.navigate(['/admin/dashboard']);
+        const userRole = this.auth.getRole();
+        if (userRole === 'Admin') {
+          this.router.navigate(['/admin/dashboard']);
+        } else if (userRole === 'user') {
+          this.router.navigate(['/user']);
+        }
       } else {
         this.error = res.Errors?.[0] || 'Login failed';
       }

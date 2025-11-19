@@ -38,12 +38,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     AdminServiceRequestComponent,
     AppSettingComponent],
   imports: [SharedModule,
-     AdminRoutingModule,
-     MatIcon,CommonModule ,
-    MatPaginatorModule,
-    FormsModule,
-     ReactiveFormsModule ,
-    CommonModule,
-  MatFormFieldModule]
+            AdminRoutingModule,
+            MatIcon,CommonModule ,
+            MatPaginatorModule,
+            FormsModule,
+            ReactiveFormsModule ,
+            MatFormFieldModule]
 })
 export class AdminModule {}

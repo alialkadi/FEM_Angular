@@ -45,7 +45,8 @@
                     </button>
                     <div class="dropdown-menu p-3 w-100 shadow-sm">
                         <input type="text" class="form-control mb-2 search-box" placeholder="Search services..."
-                            [(ngModel)]="serviceSearch" (input)="filterServices()" />
+                            [(ngModel)]="serviceSearch" [ngModelOptions]="{ standalone: true }"
+                            (input)="filterServices()" />
                         <div *ngIf="filteredServices.length > 0; else noResults" class="service-list">
                             <div class="form-check" *ngFor="let s of filteredServices">
                                 <input class="form-check-input" type="checkbox" [value]="s.id"

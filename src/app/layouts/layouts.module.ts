@@ -5,6 +5,7 @@ import { RouterOutlet, RouterModule } from "@angular/router";
 import { SharedModule } from '../shared/shared.module';
 import { PublicLayoutComponent } from './public-layout/public-layout.component';
 import { UserLayoutComponent } from './user-layout/user-layout.component';
+import { TechniciaLayoutComponent } from './technicia-layout/technicia-layout.component';
 
 
 
@@ -12,7 +13,8 @@ import { UserLayoutComponent } from './user-layout/user-layout.component';
   declarations: [
     AdminLayoutComponent,
     PublicLayoutComponent,
-    UserLayoutComponent
+    UserLayoutComponent,
+    TechniciaLayoutComponent
   ],
   imports: [
     CommonModule,

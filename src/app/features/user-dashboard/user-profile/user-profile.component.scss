@@ -1,0 +1,54 @@
+.profile-container {
+  max-width: 600px;
+  margin: auto;
+  background: #1e1e1e;
+  padding: 2rem;
+  border-radius: 14px;
+  color: white;
+  border: 1px solid #333;
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+}
+
+.form-row {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    margin-bottom: .3rem;
+    font-size: .9rem;
+    opacity: .8;
+  }
+
+  input, textarea {
+    width: 100%;
+    padding: .8rem;
+    background: #2b2b2b;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: .95rem;
+
+    &:focus {
+      outline: 2px solid #2e7dff;
+    }
+  }
+}
+
+.save-btn {
+  width: 100%;
+  padding: .8rem;
+  background: #2e7dff;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  margin-top: 1rem;
+  cursor: pointer;
+
+  &:hover {
+    background: #1b5fdd;
+  }
+}

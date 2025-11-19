@@ -1,0 +1,143 @@
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 1.5rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.requests-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.request-card {
+  padding: 1rem;
+  background: #1f1f1f;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 1px solid #333;
+
+  &:hover {
+    transform: scale(1.02);
+    background: #292929;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: .5rem;
+
+    .status {
+      padding: .2rem .7rem;
+      border-radius: 6px;
+      font-size: .8rem;
+      text-transform: capitalize;
+
+      &.pending {
+        background: #e7b11a;
+        color: black;
+      }
+
+      &.in\ progress {
+        background: #1a73e8;
+      }
+
+      &.completed {
+        background: #2cc86b;
+      }
+    }
+  }
+
+  .view-btn {
+    background: #2e7dff;
+    padding: .5rem 1rem;
+    color: #fff;
+    border-radius: 6px;
+    border: none;
+    margin-top: .7rem;
+    cursor: pointer;
+
+    &:hover {
+      background: #1b5fdd;
+    }
+  }
+}
+
+.details-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  height: 100%;
+  background: #1e1e1e;
+  color: white;
+  padding: 1.5rem;
+  border-left: 1px solid #333;
+  overflow-y: auto;
+  animation: slideIn .3s ease;
+
+  @keyframes slideIn {
+    from { right: -100%; }
+    to { right: 0; }
+  }
+
+  .details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .close-btn {
+      background: transparent;
+      color: white;
+      font-size: 1.5rem;
+      border: none;
+      cursor: pointer;
+    }
+  }
+
+  .status-row {
+    margin: 1rem 0;
+
+    select {
+      width: 100%;
+      padding: .6rem;
+      border-radius: 6px;
+      border: none;
+      background: #2a2a2a;
+      color: white;
+    }
+  }
+
+  .service-card {
+    background: #262626;
+    padding: .8rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+
+    h5 {
+      margin-bottom: .4rem;
+    }
+
+    .fees {
+      li {
+        display: flex;
+        justify-content: space-between;
+
+        .global-badge {
+          font-size: .75rem;
+          padding: .2rem .5rem;
+          background: #ff7a00;
+          border-radius: 4px;
+          color: black;
+        }
+      }
+    }
+  }
+}

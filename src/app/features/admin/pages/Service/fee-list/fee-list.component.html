@@ -52,13 +52,13 @@
         <div class="loading"> {{ isLoading ? 'Loading fees...' : 'No fees found.' }} </div>
     </ng-template>
     <!-- ================= Linked Services Modal ================= -->
-    <div class="modal-backdrop" *ngIf="showModal">
-        <div class="modal">
-            <div class="modal-header">
+    <div class="custom-modal-overlay" *ngIf="showModal">
+        <div class="custom-modal-box">
+            <div class="custom-modal-header">
                 <h3>Linked Services</h3>
-                <button (click)="closeModal()">&times;</button>
+                <button type="button" class="close-btn" (click)="closeModal()">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="custom-modal-body">
                 <ul *ngIf="selectedFee?.services?.length! > 0; else noServices">
                     <li *ngFor="let s of selectedFee?.services">{{ s.name }}</li>
                 </ul>
