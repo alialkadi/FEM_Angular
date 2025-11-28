@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://localhost:7228/api'
+  apiUrl: 'https://coordinate-reveal-way-artificial.trycloudflare.com/api'.trim()
 };

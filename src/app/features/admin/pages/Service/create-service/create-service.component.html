@@ -98,16 +98,35 @@
                 <h3>Service Data</h3>
                 <p>Enter service details below.</p>
                 <div class="form-group">
-                    <label>Service Name <span class="required">*</span></label>
-                    <input formControlName="name" type="text" placeholder="e.g., Glass Replacement" />
+                    <label>Brand Name <span class="required">*</span></label>
+                    <input formControlName="name" type="text" placeholder="" />
                 </div>
                 <div class="form-group">
                     <label>Description</label>
                     <textarea formControlName="description" placeholder="Provide a detailed description"></textarea>
                 </div>
                 <div class="form-group">
+                    <label>Series</label>
+                    <input formControlName="series" placeholder="Provide a detailed series" />
+                </div>
+                <div class="form-group">
+                    <label>Locking Point</label>
+                    <input formControlName="lockingPoint" placeholder="Provide a detailed lockingPoint" />
+                </div>
+                <div class="form-group">
+                    <label>Point Number</label>
+                    <input formControlName="pointNumber" placeholder="Provide a detailed Point Number" />
+                </div>
+                <div class="form-group">
                     <label>Labors</label>
-                    <input formControlName="labors" type="number" placeholder="Provide a detailed description" />
+                    <input formControlName="labors" type="number" placeholder="Provide a detailed labors" />
+                </div>
+                <div class="form-group">
+                    <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
+                    <div *ngIf="previewUrl" class="preview">
+                        <p>Preview:</p>
+                        <img [src]="previewUrl" alt="Preview" class="preview-img" />
+                    </div>
                 </div>
                 <div class="inline-fields">
                     <div>

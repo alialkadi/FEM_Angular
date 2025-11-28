@@ -5,6 +5,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import { LoginComponent } from './features/login/login.component';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
+import { UserLayoutComponent } from './layouts/user-layout/user-layout.component';
+import { TechniciaLayoutComponent } from './layouts/technicia-layout/technicia-layout.component';
 
 const routes: Routes = [
   {
@@ -32,13 +34,25 @@ const routes: Routes = [
   },
   {
     path: 'user',
-    component: PublicLayoutComponent,
+    component: UserLayoutComponent,
     data: { roles: ['user'] },
     canActivate: [RoleGuard],
     children: [
       {
         path: '',
         loadChildren: () => import('./features/user-dashboard/user-dashboard.module').then(m =>m.UserDashboardModule )
+      }
+    ]
+  },
+  {
+    path: 'technician',
+    component: TechniciaLayoutComponent,
+    data: { roles: ['Worker'] },
+    canActivate: [RoleGuard],
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./features/technician-dashboard/technician-dashboard.module').then(m =>m.TechnicianDashboardModule )
       }
     ]
   },

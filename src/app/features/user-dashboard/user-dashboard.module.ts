@@ -21,7 +21,6 @@ import { UserProfileComponent } from './user-profile/user-profile.component';
     UserProfileComponent,
   ],
   imports: [
-    CommonModule,
     UserDashboardRoutingModule,
     SharedModule,
     MatIcon,CommonModule ,

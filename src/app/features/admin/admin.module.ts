@@ -21,6 +21,8 @@ import { CreateFeeComponent } from './pages/Service/create-fee/create-fee.compon
 import { AdminServiceRequestComponent } from './pages/Service_Requests/admin-service-request/admin-service-request.component';
 import { AppSettingComponent } from './pages/app-setting/app-setting.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { CreateWorkerComponent } from './pages/workers/create-worker/create-worker.component';
+import { WorkersListComponent } from './pages/workers/workers-list/workers-list.component';
 
 @NgModule({
   declarations: [DashboardComponent,
@@ -36,7 +38,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     FeeListComponent,
     CreateFeeComponent,
     AdminServiceRequestComponent,
-    AppSettingComponent],
+    AppSettingComponent,
+    CreateWorkerComponent,
+    WorkersListComponent],
   imports: [SharedModule,
             AdminRoutingModule,
             MatIcon,CommonModule ,

@@ -14,6 +14,8 @@ import { FeeListComponent } from './pages/Service/fee-list/fee-list.component';
 import { CreateFeeComponent } from './pages/Service/create-fee/create-fee.component';
 import { AdminServiceRequestComponent } from './pages/Service_Requests/admin-service-request/admin-service-request.component';
 import { AppSettingComponent } from './pages/app-setting/app-setting.component';
+import { CreateWorkerComponent } from './pages/workers/create-worker/create-worker.component';
+import { WorkersListComponent } from './pages/workers/workers-list/workers-list.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -31,6 +33,8 @@ const routes: Routes = [
       { path: 'createFee', component: CreateFeeComponent },
       { path: 'ServiceRequests', component: AdminServiceRequestComponent },
       { path: 'setting', component: AppSettingComponent },
+      { path: 'create-worker', component: CreateWorkerComponent },
+      { path: 'workers', component: WorkersListComponent },
 
   ]}
 ];

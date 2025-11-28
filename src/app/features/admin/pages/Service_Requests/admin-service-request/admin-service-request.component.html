@@ -43,6 +43,7 @@
                     <td>{{ r.totalCost | currency }}</td>
                     <td>
                         <button class="view-btn" (click)="openDetails(r.id)"> View Details </button>
+                        <button class="assign-btn" (click)="openAssignWorker(r.id)"> Assign Worker </button>
                     </td>
                 </tr>
             </tbody>
@@ -87,6 +88,18 @@
                 <li *ngIf="selectedRequest.notes">
                     <strong>Notes:</strong> {{ selectedRequest.notes }}
                 </li>
+                <!-- Assigned workers (inside details popup) -->
+                <li>
+                    <div>
+                        <h4>Assigned Workers</h4>
+                        <ul class="assigned-workers">
+                            <li *ngFor="let a of selectedRequest.serviceRequestAssignmentResponses">
+                                <strong>{{ a.workerName }}</strong>
+                                <span class="muted"> — assigned on {{ a.assignmentDate | date: 'short' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
             </ul>
             <h4>Requested Services</h4>
             <table class="services-table">
@@ -107,6 +120,41 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+<!-- Assign Worker Popup -->
+<div class="overlay" *ngIf="assignPopupVisible">
+    <div class="popup assign-popup">
+        <header class="popup-header">
+            <h3>Assign Workers – Request #{{ selectedRequestId }}</h3>
+            <button class="close-btn" (click)="closeAssignPopup()">×</button>
+        </header>
+        <div class="popup-content">
+            <!-- Search -->
+            <input type="text" class="search-input" placeholder="Search workers..." [(ngModel)]="workerSearchTerm"
+                (input)="filterWorkers()" />
+            <!-- Status / Errors -->
+            <div *ngIf="assignMessage" class="assign-status"> {{ assignMessage }} </div>
+            <!-- Worker List -->
+            <div *ngIf="assignLoading" class="popup-loading">
+                <div class="spinner"></div>
+                <p>Loading workers...</p>
+            </div>
+            <div *ngIf="!assignLoading" class="workers-list">
+                <label class="worker-item" *ngFor="let w of filteredWorkers">
+                    <input type="checkbox" [value]="w.workerId" [checked]="isAlreadyAssigned(w.workerId)"
+                        (change)="toggleWorkerSelection($event, w)"
+                        [disabled]="isAlreadyAssigned(w.workerId) && !allowUnassign" />
+                    <div>
+                        <strong>{{ w.fullName }}</strong>
+                        <p>{{ w.phoneNumber }}</p>
+                        <small *ngIf="isAlreadyAssigned(w.workerId)" class="muted">Already assigned</small>
+                    </div>
+                </label>
+            </div>
+            <!-- Assign Button -->
+            <button class="assign-confirm-btn" (click)="submitWorkersAssignment()"> Assign Selected Workers </button>
         </div>
     </div>
 </div>

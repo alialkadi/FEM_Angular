@@ -40,6 +40,7 @@ export interface ServiceRequestDetailDto {
   totalCost: number;
   notes?: string;
   requestedServices: ServiceRequestDetailItemDto[];
+  serviceRequestAssignmentResponses: any[];
 }
 
 

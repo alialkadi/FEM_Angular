@@ -1,0 +1,37 @@
+<div class="jobs-container">
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading your assigned jobs...</p>
+    </div>
+    <!-- Error -->
+    <div *ngIf="!loading && errorMessage" class="error"> {{ errorMessage }} </div>
+    <!-- Empty state -->
+    <div *ngIf="!loading && !errorMessage && assignments.length === 0" class="empty">
+        <p>No assigned jobs found.</p>
+    </div>
+    <!-- Jobs List -->
+    <div *ngFor="let job of assignments" class="job-card">
+        <div class="job-header">
+            <h3>Assignment #{{ job.assignmentId }}</h3>
+            <span class="status">{{ job.assignmentStatus }}</span>
+        </div>
+        <div class="job-details">
+            <p><strong>Customer:</strong> {{ job.customerName }}</p>
+            <p><strong>Phone:</strong> {{ job.customerPhone }}</p>
+            <p><strong>Address:</strong> {{ job.address }}</p>
+            <p><strong>Request Status:</strong> {{ job.requestStatus }}</p>
+            <p><strong>Assigned On:</strong> {{ job.assignedDate | date:'short' }}</p>
+        </div>
+        <div class="services-section">
+            <h4>Services</h4>
+            <div *ngFor="let s of job.services" class="service-item">
+                <div class="service-name">{{ s.serviceName }}</div>
+                <div class="service-prices">
+                    <p>Base Cost: {{ s.baseCost | currency }}</p>
+                    <p>Total: {{ s.calculatedTotal | currency }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

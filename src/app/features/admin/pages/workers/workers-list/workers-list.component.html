@@ -1,0 +1,33 @@
+<div class="workers-container">
+    <h2>Workers List</h2>
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading workers...</p>
+    </div>
+    <!-- Error -->
+    <div *ngIf="!loading && errorMessage" class="error"> {{ errorMessage }} </div>
+    <!-- Empty -->
+    <div *ngIf="!loading && !errorMessage && workers.length === 0" class="empty"> No workers found. </div>
+    <!-- Workers Table -->
+    <table *ngIf="!loading && workers.length > 0" class="workers-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Daily Capacity</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let worker of workers">
+                <td>{{ worker.workerId }}</td>
+                <td>{{ worker.fullName }}</td>
+                <td>{{ worker.phoneNumber }}</td>
+                <td>{{ worker.address }}</td>
+                <td>{{ worker.dailyCapacity }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

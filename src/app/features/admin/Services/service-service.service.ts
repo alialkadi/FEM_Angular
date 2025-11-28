@@ -28,7 +28,7 @@ export class ServiceService {
     );
   }
   
-  CreateService(data: CreateUpdateServiceRequest ): Observable<ApiResponse<ServiceResponse>> {
+  CreateService(data: FormData ): Observable<ApiResponse<ServiceResponse>> {
     return this._http.post<ApiResponse<ServiceResponse>>(`${this.baseurl}/Service`, data)
   }
   deleteService(id: number): Observable<ApiResponse<boolean>> {

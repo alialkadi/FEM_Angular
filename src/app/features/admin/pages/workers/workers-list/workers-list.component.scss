@@ -1,0 +1,65 @@
+.workers-container {
+  width: min(95%, 1100px);
+  margin: 30px auto;
+  font-family: 'Inter', sans-serif;
+
+  h2 {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+}
+
+.loading,
+.error,
+.empty {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 1.1rem;
+}
+
+.error {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.spinner {
+  margin: 10px auto;
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  border: 4px solid #ddd;
+  border-top-color: #007bff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.workers-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+
+  th {
+    background: #007bff;
+    color: white;
+    padding: 12px;
+    font-weight: 600;
+  }
+
+  td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  tr:hover {
+    background: #f5f7ff;
+  }
+}

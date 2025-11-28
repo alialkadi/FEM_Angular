@@ -39,7 +39,7 @@ export class CreateServiceComponent implements OnInit {
     private structureService: StructureService,
     private partService: PartService,
     private partOptionService: PartOptionService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.buildForm();
@@ -53,11 +53,14 @@ export class CreateServiceComponent implements OnInit {
     this.serviceForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
+      lockingPoint: [''],
+      series: [''],
+      pointNumber: [''],
       baseCost: [0, [Validators.required, Validators.min(0)]],
       warrantyDuration: [0, [Validators.required, Validators.min(0)]],
       warrantyUnit: ['Months', Validators.required],
       deliveryDays: [0, [Validators.required, Validators.min(0)]],
-      labors: [0,[Validators.required,Validators.min(0)]],
+      labors: [0, [Validators.required, Validators.min(0)]],
       categoryId: [null],
       categoryTypeId: [null],
       structureId: [null],
@@ -73,7 +76,7 @@ export class CreateServiceComponent implements OnInit {
   loadCategories(): void {
     this.categoryService.getAllCategories(true).subscribe({
       next: (res) => {
-                  console.log(res)
+        console.log(res)
         if (res.success && res.data?.categories) {
           this.categories = res.data.categories;
           console.log(res)
@@ -107,7 +110,7 @@ export class CreateServiceComponent implements OnInit {
 
     this.structureService.getStructuresByType(typeId).subscribe({
       next: (res) => {
-                  console.log(res)
+        console.log(res)
         if (res.success && res.data?.structures) {
           this.structures = res.data.structures;
         }
@@ -122,7 +125,7 @@ export class CreateServiceComponent implements OnInit {
 
     this.partService.getPartsByStructure(structureId).subscribe({
       next: (res) => {
-                  console.log(res)
+        console.log(res)
         if (res.success && res.data?.parts) {
           this.parts = res.data.parts;
         }
@@ -137,7 +140,7 @@ export class CreateServiceComponent implements OnInit {
 
     this.partOptionService.getOptionsByPart(partId).subscribe({
       next: (res) => {
-                  console.log(res)
+        console.log(res)
         if (res.success && res.data?.partOptions) {
           this.partOptions = res.data.partOptions;
         }
@@ -164,33 +167,52 @@ export class CreateServiceComponent implements OnInit {
   // SUBMIT
   // --------------------------
   onSubmit(): void {
-    if (this.serviceForm.invalid) {
-      this.serviceForm.markAllAsTouched();
-      return;
-    }
-
-    const payload: CreateUpdateServiceRequest = { ...this.serviceForm.value };
+  if (this.serviceForm.valid) {
+    this.serviceForm.markAllAsTouched();
     this.isSubmitting = true;
 
-    // ✅ sanitize linkage
+    // Extract form values
+    const payload = { ...this.serviceForm.value };
+
+    // Ensure correct linkage (Structure / Part / PartOption)
     if (this.activeLinkage === 'Structure') {
-      (payload as any).partId = null;
-      (payload as any).partOptionId = null;
+      payload.partId = null;
+      payload.partOptionId = null;
     } else if (this.activeLinkage === 'Part') {
-      (payload as any).structureId = null;
-      (payload as any).partOptionId = null;
+      payload.structureId = null;
+      payload.partOptionId = null;
     } else if (this.activeLinkage === 'PartOption') {
-      (payload as any).structureId = null;
-      (payload as any).partId = null;
+      payload.structureId = null;
+      payload.partId = null;
     }
 
-    this.serviceService.CreateService(payload).subscribe({
+    // Build FormData
+    const formData = new FormData();
+
+    // Append all normal fields
+    Object.keys(payload).forEach(key => {
+      const value = payload[key];
+      if (value !== null && value !== undefined) {
+        formData.append(key, value);
+      }
+    });
+
+    // Append the uploaded image
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile);
+    }
+
+    // Send request
+    this.serviceService.CreateService(formData).subscribe({
       next: (res) => {
-                  console.log(res)
+        console.log(res)
         this.isSubmitting = false;
+
         if (res.success) {
           alert('✅ Service created successfully!');
           this.serviceForm.reset();
+          this.selectedFile = null;
+          this.previewUrl = null;
         } else {
           alert('❌ Failed to create service: ' + (res.message ?? 'Unknown error'));
         }
@@ -202,4 +224,23 @@ export class CreateServiceComponent implements OnInit {
       }
     });
   }
+}
+
+
+  selectedFile: File | null = null;
+  previewUrl: string | ArrayBuffer | null = null;
+
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
+    if (this.selectedFile) {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        this.previewUrl = reader.result;
+      };
+
+      reader.readAsDataURL(this.selectedFile);
+    }
+  }
+
 }
