@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://coordinate-reveal-way-artificial.trycloudflare.com/api'.trim()
+  apiUrl: 'https://shoulder-buyer-advantage-thats.trycloudflare.com'.trim()
 };
+  
