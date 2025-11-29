@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://pour-revenues-supplies-protect.trycloudflare.com/api'.trim()
+  apiUrl: ' https://petrographic-marvel-endermically.ngrok-free.dev/api'.trim()
 };
   
