@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://wealth-disable-strip-achievement.trycloudflare.com/api'.trim()
+  apiUrl: 'https://pour-revenues-supplies-protect.trycloudflare.com/api'.trim()
 };
   
