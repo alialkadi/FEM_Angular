@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://petrographic-marvel-endermically.ngrok-free.dev/api'.trim()
+  apiUrl: 'http://muhammad84-001-site1.ntempurl.com/api'.trim()
 };
   
