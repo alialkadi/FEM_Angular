@@ -1,0 +1,62 @@
+<!-- Header -->
+<div class="page-header">
+    <h2>Metadata Attributes</h2>
+    <a [routerLink]="['/admin/dashboard/createattribute']">+ Add Attribute</a>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Display Name</th>
+            <th>Code</th>
+            <th>Data Type</th>
+            <th>Values</th>
+            <th>User Visible</th>
+            <th>Status</th>
+            <th class="actions">Actions</th>
+        </tr>
+    </thead>
+    <tbody *ngIf="!loading">
+        <tr *ngFor="let attr of attributes">
+            <!-- Display Name -->
+            <td>{{ getDisplayName(attr) }}</td>
+            <!-- Code -->
+            <td class="code"> 🔒 {{ attr.code }} </td>
+            <!-- Data Type -->
+            <td>
+                <span class="badge" [ngClass]="getDataTypeLabel(attr.dataType).toLowerCase()"> {{
+                    getDataTypeLabel(attr.dataType) }} </span>
+            </td>
+            <!-- Values (SELECT only) -->
+            <td>
+                <ng-container *ngIf="isSelect(attr); else noValues">
+                    <span class="chip" *ngFor="let v of attr.values"> {{ v.displayName }} </span>
+                </ng-container>
+                <ng-template #noValues>—</ng-template>
+            </td>
+            <!-- User Visible -->
+            <td>
+                <span *ngIf="attr.isVisibleToUser">👁</span>
+                <span *ngIf="!attr.isVisibleToUser">—</span>
+            </td>
+            <!-- Status -->
+            <td>
+                <span class="status" [class.active]="attr.isActive" [class.inactive]="!attr.isActive"> {{ attr.isActive
+                    ? 'Active' : 'Inactive' }} </span>
+            </td>
+            <!-- Actions -->
+            <td class="actions">
+                <button title="Edit">✏️</button>
+                <button *ngIf="isSelect(attr)" [routerLink]="[
+    '/admin/dashboard/assignvalue',
+    attr.id
+  ]" title="Create Value"> ☰ </button>
+                <button title="Toggle Status" (click)="toggleStatus(attr)"> 🔄 </button>
+            </td>
+        </tr>
+    </tbody>
+    <tbody *ngIf="loading">
+        <tr>
+            <td colspan="7" class="loading">Loading...</td>
+        </tr>
+    </tbody>
+</table>

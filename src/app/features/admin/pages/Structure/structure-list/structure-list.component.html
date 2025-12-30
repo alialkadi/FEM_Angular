@@ -28,6 +28,9 @@
                         <button class="icon-btn delete" (click)="onDelete(item.id!)">
                             <i class="fa-solid fa-trash"></i>
                         </button>
+                        <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
+                            <i class="fa-solid fa-tags"></i>
+                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -86,4 +89,13 @@
             </div>
         </form>
     </section>
+</div>
+<!-- Metadata Assignment Panel -->
+<div *ngIf="selectedStructureForMetadata" class="metadata-panel card">
+    <div class="panel-header">
+        <h3> Assign Metadata – {{ selectedStructureForMetadata.name }} </h3>
+        <button class="icon-btn close" (click)="closeMetadata()"> ✖ </button>
+    </div>
+    <app-attribute-assignment [targetType]="MetadataTargetType.Structure" [targetId]="selectedStructureForMetadata.id">
+    </app-attribute-assignment>
 </div>

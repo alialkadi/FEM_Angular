@@ -1,0 +1,41 @@
+<form [formGroup]="form" class="form-container" *ngIf="!loading">
+    <h2>Create Metadata Attribute</h2>
+    <!-- Attribute Identity -->
+    <div class="card">
+        <h3>Attribute Identity</h3>
+        <label>Code</label>
+        <input formControlName="code" />
+        <label>Data Type</label>
+        <select formControlName="dataType">
+            <option *ngFor="let t of dataTypes" [ngValue]="t.value"> {{ t.label }} </option>
+        </select>
+        <label class="checkbox">
+            <input type="checkbox" formControlName="allowMultipleValues" /> Allow Multiple Values </label>
+        <p class="hint"> Technical identity fields cannot be changed after creation. </p>
+    </div>
+    <!-- Display & Behavior -->
+    <div class="card">
+        <h3>Display & Behavior</h3>
+        <label>Display Name</label>
+        <input formControlName="name" />
+        <label class="checkbox">
+            <input type="checkbox" formControlName="isVisibleToUser" /> Make attribute visible to end-users </label>
+        <label class="checkbox">
+            <input type="checkbox" formControlName="isFilterable" /> Allow filtering in service explorer </label>
+        <label class="checkbox">
+            <input type="checkbox" formControlName="affectsPricing" /> This attribute affects pricing </label>
+        <label class="toggle"> Status (Active / Inactive) <input type="checkbox" formControlName="isActive" />
+        </label>
+    </div>
+    <!-- Pricing (SELECT hint only) -->
+    <div class="card" *ngIf="form.get('dataType')?.value === MetadataDataType.Select">
+        <h3>Pricing Rules</h3>
+        <p class="info"> Pricing adjustments are configured per attribute value on the <strong>Manage Values</strong>
+            screen. </p>
+    </div>
+    <!-- Actions -->
+    <div class="actions">
+        <button class="primary" type="button" (click)="submit()"> Create Attribute </button>
+        <button class="secondary" type="button" routerLink="/metadata/attributes"> Cancel </button>
+    </div>
+</form>

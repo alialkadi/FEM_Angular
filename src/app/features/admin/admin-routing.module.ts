@@ -16,6 +16,9 @@ import { AdminServiceRequestComponent } from './pages/Service_Requests/admin-ser
 import { AppSettingComponent } from './pages/app-setting/app-setting.component';
 import { CreateWorkerComponent } from './pages/workers/create-worker/create-worker.component';
 import { WorkersListComponent } from './pages/workers/workers-list/workers-list.component';
+import { MetadataAttributeListComponent } from './pages/Metadata/metadata-attribute-list/metadata-attribute-list.component';
+import { MetadataCreateAttributeComponent } from './pages/Metadata/metadata-create-attribute/metadata-create-attribute.component';
+import { MetadataAssignValueComponent } from './pages/Metadata-values/metadata-assign-value/metadata-assign-value.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -35,6 +38,13 @@ const routes: Routes = [
       { path: 'setting', component: AppSettingComponent },
       { path: 'create-worker', component: CreateWorkerComponent },
       { path: 'workers', component: WorkersListComponent },
+      { path: 'metadata', component: MetadataAttributeListComponent },
+      { path: 'createattribute', component: MetadataCreateAttributeComponent },
+      {
+        path: 'assignvalue/:attributeId',
+        component: MetadataAssignValueComponent
+      }
+
 
   ]}
 ];

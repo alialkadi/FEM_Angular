@@ -14,6 +14,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     { title: 'PartOptions', icon: 'group', route: '/admin/dashboard/PartOptions', roles: ['Admin'] },
     { title: 'Services', icon: 'group', route: '/admin/dashboard/Services', roles: ['Admin'] },
     { title: 'Fee', icon: 'group', route: '/admin/dashboard/Fee', roles: ['Admin'] },
+    { title: 'Metadata', icon: 'group', route: '/admin/dashboard/metadata', roles: ['Admin'] },
     { title: 'Create Fee', icon: 'add_circle', route: '/admin/dashboard/createFee', roles: ['Admin'] },
     { title: 'Requsts', icon: 'add_circle', route: '/admin/dashboard/ServiceRequests', roles: ['Admin'] },
     { title: 'create worker', icon: 'add_circle', route: '/admin/dashboard/create-worker', roles: ['Admin'] },

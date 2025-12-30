@@ -8,6 +8,7 @@ import { EditStructureDialogComponent } from '../../../../../shared/Dialogs/edit
 import { MatDialog } from '@angular/material/dialog';
 import { CategoryService } from '../../../Services/CategoryService';
 import { Category } from '../../../../Models/Category';
+import { MetadataTargetType } from '../../../../Models/MetadataTargetType';
 
 @Component({
   selector: 'app-structure-list',
@@ -15,6 +16,8 @@ import { Category } from '../../../../Models/Category';
   styleUrl: './structure-list.component.scss'
 })
 export class StructureListComponent {
+selectedStructureForMetadata: any | null = null;
+MetadataTargetType = MetadataTargetType; // expose enum to template
 
   totalCount = 0;
   pageIndex = 1;
@@ -46,6 +49,13 @@ export class StructureListComponent {
       }
     })
   }
+openMetadata(structure: any): void {
+  this.selectedStructureForMetadata = structure;
+}
+
+closeMetadata(): void {
+  this.selectedStructureForMetadata = null;
+}
 
   onCategoryChange(event: Event) {
     console.log("changing category from structure ", event);

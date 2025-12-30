@@ -1,0 +1,57 @@
+<div class="page-container">
+    <div class="page-header">
+        <h2>Create Metadata Values</h2>
+        <p class="subtitle"> Attribute: <strong>{{ attributeName }}</strong>
+        </p>
+    </div>
+    <!-- MODE SWITCH -->
+    <div class="mode-switch">
+        <button type="button" [class.active]="mode === 'single'" (click)="mode = 'single'"> Single Value </button>
+        <button type="button" [class.active]="mode === 'bulk'" (click)="mode = 'bulk'"> Bulk Values </button>
+    </div>
+    <!-- SINGLE CREATE -->
+    <form *ngIf="mode === 'single'" [formGroup]="singleForm" (ngSubmit)="submit()" class="card">
+        <div class="form-group">
+            <label>Technical Value</label>
+            <input type="text" formControlName="value" (blur)="normalizeSingleValue()" placeholder="e.g. roto" />
+            <small class="hint"> Immutable identifier (lowercase, underscores only) </small>
+            <div class="error" *ngIf="singleForm.get('value')?.touched && singleForm.get('value')?.invalid"> Value is
+                required </div>
+        </div>
+        <div class="form-group">
+            <label>Display Name</label>
+            <input type="text" formControlName="displayName" placeholder="e.g. Roto Germany" />
+        </div>
+        <div class="form-group">
+            <label>Sort Order</label>
+            <input type="number" formControlName="sortOrder" />
+        </div>
+        <div class="error global" *ngIf="errorMessage"> {{ errorMessage }} </div>
+        <div class="actions">
+            <button type="button" class="btn cancel" (click)="cancel()">Cancel</button>
+            <button type="submit" class="btn primary" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Value'
+                }} </button>
+        </div>
+    </form>
+    <!-- BULK CREATE -->
+    <form *ngIf="mode === 'bulk'" [formGroup]="bulkForm" (ngSubmit)="submit()" class="card">
+        <div class="form-group">
+            <label>Values (one per line)</label>
+            <textarea rows="6" formControlName="values" placeholder="Roto Germany
+Siegenia
+GEZE">
+      </textarea>
+            <small class="hint"> Each line becomes a value automatically </small>
+        </div>
+        <div class="form-group">
+            <label>Starting Sort Order</label>
+            <input type="number" formControlName="startSortOrder" />
+        </div>
+        <div class="error global" *ngIf="errorMessage"> {{ errorMessage }} </div>
+        <div class="actions">
+            <button type="button" class="btn cancel" (click)="cancel()">Cancel</button>
+            <button type="submit" class="btn primary" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Values'
+                }} </button>
+        </div>
+    </form>
+</div>

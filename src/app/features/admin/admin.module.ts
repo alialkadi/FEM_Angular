@@ -23,6 +23,10 @@ import { AppSettingComponent } from './pages/app-setting/app-setting.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CreateWorkerComponent } from './pages/workers/create-worker/create-worker.component';
 import { WorkersListComponent } from './pages/workers/workers-list/workers-list.component';
+import { MetadataAttributeListComponent } from './pages/Metadata/metadata-attribute-list/metadata-attribute-list.component';
+import { MetadataCreateAttributeComponent } from './pages/Metadata/metadata-create-attribute/metadata-create-attribute.component';
+import { MetadataAssignValueComponent } from './pages/Metadata-values/metadata-assign-value/metadata-assign-value.component';
+import { AttributeAssignmentComponent } from './pages/Metadata-values/attribute-assignment/attribute-assignment.component';
 
 @NgModule({
   declarations: [DashboardComponent,
@@ -40,7 +44,11 @@ import { WorkersListComponent } from './pages/workers/workers-list/workers-list.
     AdminServiceRequestComponent,
     AppSettingComponent,
     CreateWorkerComponent,
-    WorkersListComponent],
+    WorkersListComponent,
+    MetadataAttributeListComponent,
+    MetadataCreateAttributeComponent,
+    MetadataAssignValueComponent,
+    AttributeAssignmentComponent],
   imports: [SharedModule,
             AdminRoutingModule,
             MatIcon,CommonModule ,

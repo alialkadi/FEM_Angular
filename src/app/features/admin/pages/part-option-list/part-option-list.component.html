@@ -1,11 +1,11 @@
 <div class="category-type-container">
-    <!-- Part List -->
+    <!-- ================= PART OPTION LIST ================= -->
     <section class="card list-card">
-        <h2>Part List</h2>
+        <h2>Part Option List</h2>
         <table class="category-table">
             <thead>
                 <tr>
-                    <th>Part Option Name</th>
+                    <th>Option Name</th>
                     <th>Image</th>
                     <th>Part Name</th>
                     <th>Structure Name</th>
@@ -13,91 +13,98 @@
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let item of PartOptions; let i = index">
-                    <td>{{item.name}}</td>
+                <tr *ngFor="let item of PartOptions">
+                    <td>{{ item.name }}</td>
                     <td>
-                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Type Image" class="type-image" />
+                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="type-image" />
                         <span *ngIf="!item.fileUrl">No Image</span>
                     </td>
-                    <td>{{item.mainPartName}}</td>
-                    <td>{{item.strucutreName}}</td>
-                    <td>
+                    <td>{{ item.mainPartName }}</td>
+                    <td>{{ item.strucutreName }}</td>
+                    <td class="actions">
                         <button class="icon-btn edit" (click)="onEdit(item)">
                             <i class="fa-solid fa-pen"></i>
                         </button>
                         <button class="icon-btn delete" (click)="onDelete(item.id!)">
                             <i class="fa-solid fa-trash"></i>
                         </button>
+                        <!-- ✅ METADATA -->
+                        <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
+                            <i class="fa-solid fa-tags"></i>
+                        </button>
                     </td>
                 </tr>
             </tbody>
         </table>
-        <!-- Paginator -->
+        <!-- ================= PAGINATION ================= -->
         <div class="paginator">
             <div class="page-size">
-                <label for="pageSize">Rows per page:</label>
-                <select id="pageSize" (change)="onPageSizeChange($event)">
-                    <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{size}}
+                <label>Rows per page:</label>
+                <select (change)="onPageSizeChange($event)">
+                    <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
                     </option>
                 </select>
             </div>
             <div class="page-controls">
-                <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1">Prev</button>
-                <span>Page {{pageIndex}} of {{totalPage}}</span>
-                <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPage">Prev</button>
+                <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1"> Prev </button>
+                <span>Page {{ pageIndex }} of {{ totalPage }}</span>
+                <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPage"> Next </button>
             </div>
         </div>
     </section>
-    <!-- Add New Part -->
+    <!-- ================= ADD PART OPTION ================= -->
     <section class="card form-card">
-        <h2>Add New Part</h2>
+        <h2>Add New Part Option</h2>
         <form [formGroup]="crateForm" (ngSubmit)="onSave()">
             <div class="form-group">
-                <label for="OptionName">Type Name <span class="required">*</span></label>
-                <input type="text" formControlName="name" id="OptionName" placeholder="e.g., Electronics" required />
-                <p *ngIf="
-        crateForm.get('name')?.getError('required') &&
-        crateForm.get('name')?.touched
-      " class="text-danger"> Name is required! </p>
+                <label>Option Name <span class="required">*</span></label>
+                <input type="text" formControlName="name" />
             </div>
-            <div class="select-group">
+            <div class="form-group">
                 <label>Category</label>
-                <select formControlName="categoryId" (change)="onCategoryChange($event)">
+                <select (change)="onCategoryChange($event)">
                     <option value="">Select Category</option>
-                    <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
-                </select>
-            </div>
-            <div class="select-group">
-                <label>Category Type</label>
-                <select formControlName="categoryId" (change)="onCategoryTypeChange($event)">
-                    <option value="">Select Category</option>
-                    <option *ngFor="let c of categoryTypes" [value]="c.id">{{ c.name }}</option>
-                </select>
-            </div>
-            <div class="select-group">
-                <label>Structures</label>
-                <select formControlName="categoryId" (change)="onStructureChange($event)">
-                    <option value="">Select Category</option>
-                    <option *ngFor="let c of Structures" [value]="c.id">{{ c.name }}</option>
+                    <option *ngFor="let c of categories" [value]="c.id"> {{ c.name }} </option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="parentPart">Parent Part</label>
-                <select id="parentPart" formControlName="mainPartId">
-                    <option value="" disabled selected style="color: #484b4d; text-align: center;">-Select Part-
-                    </option>
-                    <option *ngFor="let item of Parts" [value]="item.id">{{item.name}} </option>
+                <label>Category Type</label>
+                <select (change)="onCategoryTypeChange($event)">
+                    <option value="">Select Type</option>
+                    <option *ngFor="let t of categoryTypes" [value]="t.id"> {{ t.name }} </option>
                 </select>
-                <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
-                <div *ngIf="previewUrl" class="preview">
-                    <p>Preview:</p>
-                    <img [src]="previewUrl" alt="Preview" class="preview-img" />
-                </div>
+            </div>
+            <div class="form-group">
+                <label>Structure</label>
+                <select (change)="onStructureChange($event)">
+                    <option value="">Select Structure</option>
+                    <option *ngFor="let s of Structures" [value]="s.id"> {{ s.name }} </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Parent Part</label>
+                <select formControlName="mainPartId">
+                    <option value="">Select Part</option>
+                    <option *ngFor="let p of Parts" [value]="p.id"> {{ p.name }} </option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="file" (change)="onFileSelected($event)" />
+                <img *ngIf="previewUrl" [src]="previewUrl" class="preview-img" />
             </div>
             <div class="form-actions">
-                <button type="button" class="btn cancel">Cancel</button>
                 <button type="submit" class="btn primary">Save</button>
             </div>
         </form>
     </section>
+</div>
+<!-- ================= METADATA PANEL ================= -->
+<div *ngIf="selectedPartOptionForMetadata" class="metadata-panel card">
+    <div class="panel-header">
+        <h3> Assign Metadata – {{ selectedPartOptionForMetadata.name }} </h3>
+        <button class="icon-btn close" (click)="closeMetadata()">✖</button>
+    </div>
+    <app-attribute-assignment [targetType]="MetadataTargetType.PartOption"
+        [targetId]="selectedPartOptionForMetadata.id">
+    </app-attribute-assignment>
 </div>

@@ -1,0 +1,57 @@
+<div class="metadata-assignment">
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading metadata…</p>
+    </div>
+    <!-- Content -->
+    <form *ngIf="!loading" [formGroup]="form">
+        <div formArrayName="attributes" class="attribute-list">
+            <div class="attribute-card" *ngFor="let attr of attributes; let i = index" [formGroupName]="i">
+                <!-- ===== LEFT INFO ===== -->
+                <div class="attribute-info">
+                    <h4 class="attribute-name">{{ attr.name }}</h4>
+                    <span class="attribute-type"> {{ attr.dataType }} <span *ngIf="attr.allowMultipleValues">•
+                            Multiple</span>
+                    </span>
+                </div>
+                <!-- ===== RIGHT INPUT ===== -->
+                <div class="attribute-input">
+                    <!-- SELECT → CHECKBOX GRID -->
+                    <ng-container *ngIf="attr.dataType === MetadataDataType.Select">
+                        <div class="checkbox-grid">
+                            <label class="checkbox-item" *ngFor="let v of attr.values">
+                                <input type="checkbox" [checked]="isChecked(i, v.id, attr.allowMultipleValues)"
+                                    (change)="onCheckboxChange(i, v.id, attr.allowMultipleValues, $event)" />
+                                <span>{{ v.displayName }}</span>
+                            </label>
+                        </div>
+                    </ng-container>
+                    <!-- NUMBER -->
+                    <ng-container *ngIf="attr.dataType === MetadataDataType.Number">
+                        <input type="number" class="form-input" placeholder="Enter number…"
+                            formControlName="valueText" />
+                    </ng-container>
+                    <!-- BOOLEAN -->
+                    <ng-container *ngIf="attr.dataType === MetadataDataType.Boolean">
+                        <div class="boolean-toggle">
+                            <label>
+                                <input type="radio" value="true" formControlName="valueText" /> Yes </label>
+                            <label>
+                                <input type="radio" value="false" formControlName="valueText" /> No </label>
+                        </div>
+                    </ng-container>
+                    <!-- TEXT -->
+                    <ng-container *ngIf="attr.dataType === MetadataDataType.Text">
+                        <input type="text" class="form-input" placeholder="Enter value…" formControlName="valueText" />
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+        <!-- ===== STICKY ACTION BAR ===== -->
+        <div class="actions-bar">
+            <button type="button" class="btn primary" (click)="submit()" [disabled]="saving"> {{ saving ? 'Saving…' :
+                'Save Metadata' }} </button>
+        </div>
+    </form>
+</div>

@@ -1,82 +1,108 @@
-<div class="carousel-explorer">
-    <header class="header">
-        <h2>Service Explorer — Carousel</h2>
-        <button class="reset" (click)="reset()">Reset</button>
+<div class="service-explorer">
+    <!-- HEADER -->
+    <header class="explorer-header">
+        <h2>Service Explorer</h2>
     </header>
-    <!-- Level 1: Categories -->
-    <section class="carousel-section">
-        <h3>Categories</h3>
-        <div class="carousel">
-            <div class="card img" *ngFor="let c of categories" (click)="selectCategory(c)"
-                [class.active]="selectedCategory?.id === c.id">
-                <img *ngIf="c.fileUrl" [src]="c.fileUrl" [alt]="c.name" loading="lazy" />
-                <div class="label">{{ c.name }}</div>
+    <!-- BREADCRUMB -->
+    <nav class="breadcrumb-vertical">
+        <span class="crumb" (click)="resetAll()">Category</span>
+        <span *ngIf="selectedCategory" class="crumb" (click)="selectCategory(selectedCategory!)"> › {{
+            selectedCategory.name }} </span>
+        <span *ngIf="selectedType" class="crumb" (click)="selectType(selectedType!)"> › {{ selectedType.name }} </span>
+        <span *ngIf="selectedStructure" class="crumb" (click)="selectStructure(selectedStructure!)"> › {{
+            selectedStructure.name }} </span>
+        <span *ngIf="selectedPart" class="crumb" (click)="selectPart(selectedPart!)"> › {{ selectedPart.name }} </span>
+        <span *ngIf="selectedOption" class="crumb active"> › {{ selectedOption.name }} </span>
+    </nav>
+    <!-- STEP 1 -->
+    <section class="step" *ngIf="!selectedCategory">
+        <h3>Choose Category</h3>
+        <div class="grid">
+            <div class="item-card" *ngFor="let c of categories" (click)="selectCategory(c)">
+                <img *ngIf="c.fileUrl" [src]="c.fileUrl">
+                <span>{{ c.name }}</span>
             </div>
         </div>
     </section>
-    <!-- Level 2: Types -->
-    <section *ngIf="types.length" class="carousel-section">
-        <h3>Types</h3>
-        <div class="carousel">
-            <div class="card img" *ngFor="let t of types" (click)="selectType(t)"
-                [class.active]="selectedType?.id === t.id">
-                <img *ngIf="t.fileUrl" [src]="t.fileUrl" [alt]="t.name" loading="lazy" />
-                <div class="label">{{ t.name }}</div>
+    <!-- STEP 2 -->
+    <section class="step" *ngIf="selectedCategory && !selectedType">
+        <h3>Choose Type</h3>
+        <div class="grid">
+            <div class="item-card" *ngFor="let t of types" (click)="selectType(t)">
+                <img *ngIf="t.fileUrl" [src]="t.fileUrl">
+                <span>{{ t.name }}</span>
             </div>
         </div>
     </section>
-    <!-- Level 3: Structures -->
-    <section *ngIf="structures.length" class="carousel-section">
-        <h3>Structures</h3>
-        <div class="carousel">
-            <div class="card img" *ngFor="let s of structures" (click)="selectStructure(s)"
-                [class.active]="selectedStructure?.id === s.id">
-                <img *ngIf="s.fileUrl" [src]="s.fileUrl" [alt]="s.name" loading="lazy" />
-                <div class="label">{{ s.name }}</div>
+    <!-- STEP 3 -->
+    <section class="step" *ngIf="selectedType && !selectedStructure">
+        <h3>Choose Structure</h3>
+        <details class="filters" *ngIf="structureFilters.length">
+            <summary>Filter Structures</summary>
+            <div class="filter-group" *ngFor="let f of structureFilters">
+                <strong>{{ f.name }}</strong>
+                <label *ngFor="let v of f.values">
+                    <input type="checkbox" (change)="toggleFilter('structure', f.code, v.value)"> {{ v.displayName }}
+                </label>
+            </div>
+        </details>
+        <div class="grid">
+            <div class="item-card" *ngFor="let s of structures" (click)="selectStructure(s)">
+                <img *ngIf="s.fileUrl" [src]="s.fileUrl">
+                <span>{{ s.name }}</span>
             </div>
         </div>
     </section>
-    <!-- Level 4: Parts -->
-    <section *ngIf="parts.length" class="carousel-section">
-        <h3>Parts</h3>
-        <div class="carousel">
-            <div class="card img" *ngFor="let p of parts" (click)="selectPart(p)"
-                [class.active]="selectedPart?.id === p.id">
-                <img *ngIf="p.fileUrl" [src]="p.fileUrl" [alt]="p.name" loading="lazy" />
-                <div class="label">{{ p.name }}</div>
+    <!-- STEP 4 -->
+    <section class="step" *ngIf="selectedStructure && !selectedPart">
+        <h3>Choose Part</h3>
+        <details class="filters" *ngIf="partFilters.length">
+            <summary>Filter Parts</summary>
+            <div class="filter-group" *ngFor="let f of partFilters">
+                <label *ngFor="let v of f.values">
+                    <input type="checkbox" (change)="toggleFilter('part', f.code, v.value)"> {{ v.displayName }}
+                </label>
+            </div>
+        </details>
+        <div class="grid">
+            <div class="item-card" *ngFor="let p of parts" (click)="selectPart(p)">
+                <img *ngIf="p.fileUrl" [src]="p.fileUrl">
+                <span>{{ p.name }}</span>
             </div>
         </div>
     </section>
-    <!-- Level 5: Part Options -->
-    <section *ngIf="partOptions.length" class="carousel-section">
-        <h3>Part Options</h3>
-        <div class="carousel">
-            <div class="card img" *ngFor="let o of partOptions" (click)="selectPartOption(o)"
-                [class.active]="selectedPartOption?.id === o.id">
-                <img *ngIf="o.fileUrl" [src]="o.fileUrl" [alt]="o.name" loading="lazy" />
-                <div class="label">{{ o.name }}</div>
+    <!-- STEP 5 -->
+    <section class="step" *ngIf="selectedPart && !selectedOption">
+        <h3>Choose Option</h3>
+        <details class="filters" *ngIf="optionFilters.length">
+            <summary>Filter Options</summary>
+            <div class="filter-group" *ngFor="let f of optionFilters">
+                <label *ngFor="let v of f.values">
+                    <input type="checkbox" (change)="toggleFilter('option', f.code, v.value)"> {{ v.displayName }}
+                </label>
+            </div>
+        </details>
+        <div class="grid">
+            <div class="item-card" *ngFor="let o of options" (click)="selectOption(o)">
+                <img *ngIf="o.fileUrl" [src]="o.fileUrl">
+                <span>{{ o.name }}</span>
             </div>
         </div>
     </section>
-    <!-- Level 6: Services -->
-    <section *ngIf="services.length" class="carousel-section">
-        <h3>Services</h3>
-        <div class="carousel services">
+    <!-- STEP 6 -->
+    <section class="step" *ngIf="services.length">
+        <h3>Select Services</h3>
+        <div class="grid services">
             <div class="service-card" *ngFor="let s of services" (click)="toggleService(s)"
-                [class.selected]="isSelected(s)">
-                <div class="svc-name">{{ s.name }}</div>
-                <div class="svc-price"> {{ s.calculatedTotal ?? s.baseCost | currency }} </div>
+                [class.selected]="selectedServices.includes(s)">
+                <span>{{ s.name }}</span>
+                <strong>{{ s.calculatedTotal ?? s.baseCost | currency }}</strong>
             </div>
         </div>
     </section>
-    <!-- Sticky total footer -->
-    <footer *ngIf="selectedServices.length" class="footer">
-        <div class="summary">
-            <div class="chips">
-                <span class="chip" *ngFor="let s of selectedServices">{{ s.name }}</span>
-            </div>
-            <div class="total">Total: {{ totalCost | currency }}</div>
-        </div>
-        <button class="btn" (click)="requestServices()">Request Services</button>
+    <!-- FOOTER -->
+    <footer class="summary-footer" *ngIf="selectedServices.length">
+        <span>Total: {{ totalCost | currency }}</span>
+        <button (click)="requestServices()">Request Services</button>
     </footer>
 </div>
