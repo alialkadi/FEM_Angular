@@ -29,9 +29,9 @@
                             <i class="fa-solid fa-trash"></i>
                         </button>
                         <!-- ✅ METADATA -->
-                        <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
+                        <!-- <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
                             <i class="fa-solid fa-tags"></i>
-                        </button>
+                        </button> -->
                     </td>
                 </tr>
             </tbody>
@@ -104,7 +104,7 @@
         <h3> Assign Metadata – {{ selectedPartOptionForMetadata.name }} </h3>
         <button class="icon-btn close" (click)="closeMetadata()">✖</button>
     </div>
-    <app-attribute-assignment [targetType]="MetadataTargetType.PartOption"
+    <!-- <app-attribute-assignment [targetType]="MetadataTargetType.PartOption"
         [targetId]="selectedPartOptionForMetadata.id">
-    </app-attribute-assignment>
+    </app-attribute-assignment> -->
 </div>

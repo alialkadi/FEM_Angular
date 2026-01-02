@@ -1,23 +1,24 @@
 <div class="metadata-assignment">
-    <!-- Loading -->
+    <!-- ================= LOADING ================= -->
     <div *ngIf="loading" class="loading-state">
         <div class="spinner"></div>
         <p>Loading metadata…</p>
     </div>
-    <!-- Content -->
+    <!-- ================= CONTENT ================= -->
     <form *ngIf="!loading" [formGroup]="form">
         <div formArrayName="attributes" class="attribute-list">
-            <div class="attribute-card" *ngFor="let attr of attributes; let i = index" [formGroupName]="i">
+            <div class="attribute-card" *ngFor="let attr of attributes; let i = index; trackBy: trackByAttrId"
+                [formGroupName]="i">
                 <!-- ===== LEFT INFO ===== -->
                 <div class="attribute-info">
                     <h4 class="attribute-name">{{ attr.name }}</h4>
-                    <span class="attribute-type"> {{ attr.dataType }} <span *ngIf="attr.allowMultipleValues">•
-                            Multiple</span>
+                    <span class="attribute-type"> {{ getDataTypeLabel(attr.dataType) }} <span
+                            *ngIf="attr.allowMultipleValues">• Multiple</span>
                     </span>
                 </div>
                 <!-- ===== RIGHT INPUT ===== -->
                 <div class="attribute-input">
-                    <!-- SELECT → CHECKBOX GRID -->
+                    <!-- SELECT -->
                     <ng-container *ngIf="attr.dataType === MetadataDataType.Select">
                         <div class="checkbox-grid">
                             <label class="checkbox-item" *ngFor="let v of attr.values">
@@ -48,8 +49,8 @@
                 </div>
             </div>
         </div>
-        <!-- ===== STICKY ACTION BAR ===== -->
-        <div class="actions-bar">
+        <!-- ================= ACTION BAR (EDIT MODE ONLY) ================= -->
+        <div class="actions-bar" *ngIf="targetId > 0">
             <button type="button" class="btn primary" (click)="submit()" [disabled]="saving"> {{ saving ? 'Saving…' :
                 'Save Metadata' }} </button>
         </div>

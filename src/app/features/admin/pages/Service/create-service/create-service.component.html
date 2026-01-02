@@ -16,77 +16,70 @@
                     <button type="button" [class.active]="activeLinkage === 'PartOption'"
                         (click)="setLinkage('PartOption')"> Part Option </button>
                 </div>
-                <!-- ===================================================== -->
-                <!-- Always visible: CATEGORY + CATEGORY TYPE -->
-                <!-- ===================================================== -->
+                <!-- CATEGORY -->
                 <div class="select-group">
                     <label>Category</label>
                     <select formControlName="categoryId" (change)="onCategoryChange($event)">
                         <option value="">Select Category</option>
-                        <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+                        <option *ngFor="let c of categories" [value]="c.id"> {{ c.name }} </option>
                     </select>
                 </div>
-                <div class="select-group" *ngIf="categoryTypes.length > 0">
+                <!-- CATEGORY TYPE -->
+                <div class="select-group" *ngIf="categoryTypes.length">
                     <label>Category Type</label>
                     <select formControlName="categoryTypeId" (change)="onCategoryTypeChange($event)">
                         <option value="">Select Category Type</option>
-                        <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
+                        <option *ngFor="let t of categoryTypes" [value]="t.id"> {{ t.name }} </option>
                     </select>
                 </div>
-                <!-- ===================================================== -->
-                <!-- STRUCTURE MODE -->
-                <!-- ===================================================== -->
+                <!-- STRUCTURE -->
                 <ng-container *ngIf="activeLinkage === 'Structure'">
-                    <div class="select-group" *ngIf="structures.length > 0">
+                    <div class="select-group" *ngIf="structures.length">
                         <label>Structure</label>
                         <select formControlName="structureId">
                             <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
                         </select>
                     </div>
                 </ng-container>
-                <!-- ===================================================== -->
-                <!-- PART MODE -->
-                <!-- ===================================================== -->
+                <!-- PART -->
                 <ng-container *ngIf="activeLinkage === 'Part'">
-                    <div class="select-group" *ngIf="structures.length > 0">
+                    <div class="select-group" *ngIf="structures.length">
                         <label>Structure</label>
                         <select formControlName="structureId" (change)="onStructureChange($event)">
                             <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
                         </select>
                     </div>
-                    <div class="select-group" *ngIf="parts.length > 0">
+                    <div class="select-group" *ngIf="parts.length">
                         <label>Part</label>
                         <select formControlName="partId">
                             <option value="">Select Part</option>
-                            <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+                            <option *ngFor="let p of parts" [value]="p.id"> {{ p.name }} </option>
                         </select>
                     </div>
                 </ng-container>
-                <!-- ===================================================== -->
-                <!-- PART OPTION MODE -->
-                <!-- ===================================================== -->
+                <!-- PART OPTION -->
                 <ng-container *ngIf="activeLinkage === 'PartOption'">
-                    <div class="select-group" *ngIf="structures.length > 0">
+                    <div class="select-group" *ngIf="structures.length">
                         <label>Structure</label>
                         <select formControlName="structureId" (change)="onStructureChange($event)">
                             <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
                         </select>
                     </div>
-                    <div class="select-group" *ngIf="parts.length > 0">
+                    <div class="select-group" *ngIf="parts.length">
                         <label>Part</label>
                         <select formControlName="partId" (change)="onPartChange($event)">
                             <option value="">Select Part</option>
-                            <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+                            <option *ngFor="let p of parts" [value]="p.id"> {{ p.name }} </option>
                         </select>
                     </div>
-                    <div class="select-group" *ngIf="partOptions.length > 0">
+                    <div class="select-group" *ngIf="partOptions.length">
                         <label>Part Option</label>
                         <select formControlName="partOptionId">
                             <option value="">Select Part Option</option>
-                            <option *ngFor="let o of partOptions" [value]="o.id">{{ o.name }}</option>
+                            <option *ngFor="let o of partOptions" [value]="o.id"> {{ o.name }} </option>
                         </select>
                     </div>
                 </ng-container>
@@ -99,43 +92,44 @@
                 <p>Enter service details below.</p>
                 <div class="form-group">
                     <label>Brand Name <span class="required">*</span></label>
-                    <input formControlName="name" type="text" placeholder="" />
+                    <input formControlName="name" type="text" />
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea formControlName="description" placeholder="Provide a detailed description"></textarea>
+                    <textarea formControlName="description"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Series</label>
-                    <input formControlName="series" placeholder="Provide a detailed series" />
+                    <input formControlName="series" />
                 </div>
                 <div class="form-group">
                     <label>Locking Point</label>
-                    <input formControlName="lockingPoint" placeholder="Provide a detailed lockingPoint" />
+                    <input formControlName="lockingPoint" />
                 </div>
                 <div class="form-group">
                     <label>Point Number</label>
-                    <input formControlName="pointNumber" placeholder="Provide a detailed Point Number" />
+                    <input formControlName="pointNumber" />
                 </div>
                 <div class="form-group">
                     <label>Labors</label>
-                    <input formControlName="labors" type="number" placeholder="Provide a detailed labors" />
+                    <input type="number" formControlName="labors" />
                 </div>
+                <!-- FILE -->
                 <div class="form-group">
-                    <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
+                    <input type="file" (change)="onFileSelected($event)" />
                     <div *ngIf="previewUrl" class="preview">
-                        <p>Preview:</p>
-                        <img [src]="previewUrl" alt="Preview" class="preview-img" />
+                        <img [src]="previewUrl" class="preview-img" />
                     </div>
                 </div>
+                <!-- INLINE FIELDS -->
                 <div class="inline-fields">
                     <div>
                         <label>Base Cost</label>
-                        <input type="number" formControlName="baseCost" min="0" />
+                        <input type="number" formControlName="baseCost" />
                     </div>
                     <div>
                         <label>Warranty Duration</label>
-                        <input type="number" formControlName="warrantyDuration" min="0" />
+                        <input type="number" formControlName="warrantyDuration" />
                     </div>
                     <div>
                         <label>Warranty Unit</label>
@@ -147,14 +141,30 @@
                     </div>
                     <div>
                         <label>Delivery Days</label>
-                        <input type="number" formControlName="deliveryDays" min="0" />
+                        <input type="number" formControlName="deliveryDays" />
                     </div>
                 </div>
-                <div class="actions">
-                    <button type="submit" [disabled]="isSubmitting"> {{ isSubmitting ? 'Saving...' : 'Create Service' }}
-                    </button>
-                </div>
             </div>
+        </div>
+        <!-- =========================================== -->
+        <!-- METADATA (COLLAPSIBLE – SAME STYLE) -->
+        <!-- =========================================== -->
+        <div class="service-card metadata-card">
+            <div class="metadata-header" (click)="toggleMetadata()">
+                <h3>Metadata Attributes</h3>
+                <span class="arrow" [class.open]="showMetadata">▼</span>
+            </div>
+            <div class="metadata-body" *ngIf="showMetadata">
+                <app-attribute-assignment [targetType]="metadataTargetType" [targetId]="metadataTargetId"
+                    (metadataChange)="onMetadataChange($event)">
+                </app-attribute-assignment>
+            </div>
+        </div>
+        <!-- =========================================== -->
+        <!-- ACTIONS -->
+        <!-- =========================================== -->
+        <div class="actions">
+            <button type="submit" [disabled]="isSubmitting"> {{ isSubmitting ? 'Saving…' : 'Create Service' }} </button>
         </div>
     </form>
 </div>

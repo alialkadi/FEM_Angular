@@ -1,7 +1,5 @@
 export enum MetadataTargetType {
-  Structure = 1,
-  Part = 2,
-  PartOption = 3
+  Service = 1
 }
 export interface MetadataAssignmentSaveRequest {
   targetType: MetadataTargetType;

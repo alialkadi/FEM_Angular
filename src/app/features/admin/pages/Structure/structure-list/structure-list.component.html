@@ -28,9 +28,9 @@
                         <button class="icon-btn delete" (click)="onDelete(item.id!)">
                             <i class="fa-solid fa-trash"></i>
                         </button>
-                        <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
+                        <!-- <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
                             <i class="fa-solid fa-tags"></i>
-                        </button>
+                        </button> -->
                     </td>
                 </tr>
             </tbody>
@@ -96,6 +96,4 @@
         <h3> Assign Metadata – {{ selectedStructureForMetadata.name }} </h3>
         <button class="icon-btn close" (click)="closeMetadata()"> ✖ </button>
     </div>
-    <app-attribute-assignment [targetType]="MetadataTargetType.Structure" [targetId]="selectedStructureForMetadata.id">
-    </app-attribute-assignment>
 </div>

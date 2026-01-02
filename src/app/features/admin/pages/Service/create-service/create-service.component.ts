@@ -1,12 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { CreateUpdateServiceRequest } from '../../../../Models/service.Model';
+
+import {
+  MetadataTargetType,
+  MetadataAssignmentItemRequest
+} from '../../../../Models/MetadataTargetType';
+
 import { ServiceService } from '../../../Services/service-service.service';
+import { CategoryService } from '../../../Services/CategoryService';
+import { CategoryTypeService } from '../../../Services/categoryTypeService.service';
 import { StructureService } from '../../../Services/structure-service.service';
 import { PartService } from '../../../Services/part-service.service';
 import { PartOptionService } from '../../../Services/part-option-service.service';
-import { CategoryService } from '../../../Services/CategoryService';
-import { CategoryTypeService } from '../../../Services/categoryTypeService.service';
+
 import { Category } from '../../../../Models/Category';
 import { CategoryType } from '../../../../Models/CategoryType';
 import { Structure } from '../../../../Models/Structure.Model';
@@ -16,11 +22,15 @@ import { PartOption } from '../../../../Models/PartOption.Model';
 @Component({
   selector: 'app-create-service',
   templateUrl: './create-service.component.html',
-  styleUrls: ['./create-service.component.scss'] // ✅ fixed: should be styleUrls[]
+  styleUrls: ['./create-service.component.scss']
 })
 export class CreateServiceComponent implements OnInit {
 
+  // ================= FORM =================
   serviceForm!: FormGroup;
+  isSubmitting = false;
+
+  // ================= LINKAGE =================
   activeLinkage: 'Structure' | 'Part' | 'PartOption' = 'Structure';
 
   categories: Category[] = [];
@@ -29,7 +39,16 @@ export class CreateServiceComponent implements OnInit {
   parts: Part[] = [];
   partOptions: PartOption[] = [];
 
-  isSubmitting = false;
+  // ================= FILE =================
+  selectedFile: File | null = null;
+  previewUrl: string | null = null;
+
+  // ================= METADATA =================
+  showMetadata = false;
+  metadataPayload: MetadataAssignmentItemRequest[] = [];
+
+  metadataTargetType = MetadataTargetType.Service;
+  metadataTargetId = 0; // CREATE MODE ONLY
 
   constructor(
     private fb: FormBuilder,
@@ -39,28 +58,27 @@ export class CreateServiceComponent implements OnInit {
     private structureService: StructureService,
     private partService: PartService,
     private partOptionService: PartOptionService
-  ) { }
+  ) {}
 
+  // ================= INIT =================
   ngOnInit(): void {
     this.buildForm();
-    this.loadCategories(); // ✅ initial load
+    this.loadCategories();
   }
 
-  // --------------------------
-  // FORM INITIALIZATION
-  // --------------------------
-  buildForm(): void {
+  // ================= FORM =================
+  private buildForm(): void {
     this.serviceForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
-      lockingPoint: [''],
       series: [''],
+      lockingPoint: [''],
       pointNumber: [''],
       baseCost: [0, [Validators.required, Validators.min(0)]],
       warrantyDuration: [0, [Validators.required, Validators.min(0)]],
       warrantyUnit: ['Months', Validators.required],
       deliveryDays: [0, [Validators.required, Validators.min(0)]],
-      labors: [0, [Validators.required, Validators.min(0)]],
+      labors: [0, [Validators.min(0)]],
       categoryId: [null],
       categoryTypeId: [null],
       structureId: [null],
@@ -69,91 +87,82 @@ export class CreateServiceComponent implements OnInit {
     });
   }
 
-  // --------------------------
-  // HIERARCHICAL LOADERS
-  // --------------------------
+  // ================= METADATA =================
+  toggleMetadata(): void {
+    this.showMetadata = !this.showMetadata;
+  }
 
+  onMetadataChange(items: MetadataAssignmentItemRequest[]): void {
+    this.metadataPayload = items;
+  }
+
+  // ================= FILE =================
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files.length) return;
+
+    this.selectedFile = input.files[0];
+
+    const reader = new FileReader();
+    reader.onload = () => (this.previewUrl = reader.result as string);
+    reader.readAsDataURL(this.selectedFile);
+  }
+
+  // ================= LOADERS =================
   loadCategories(): void {
-    this.categoryService.getAllCategories(true).subscribe({
-      next: (res) => {
-        console.log(res)
-        if (res.success && res.data?.categories) {
-          this.categories = res.data.categories;
-          console.log(res)
-        }
-      },
-      error: (err) => console.error('Error loading categories:', err)
+    this.categoryService.getAllCategories(true).subscribe(res => {
+      if (res.success && res.data?.categories) {
+        this.categories = res.data.categories;
+      }
     });
   }
 
-  onCategoryChange(event: Event): void {
-    const categoryId = Number((event.target as HTMLSelectElement)?.value);
-    if (!categoryId) return;
+  onCategoryChange(e: Event): void {
+    const id = Number((e.target as HTMLSelectElement).value);
+    if (!id) return;
 
-    this.categoryTypeService.getTypesByCategory(categoryId).subscribe({
-      next: (res) => {
-        console.log(res);
-        if (res.success && res.data) {
-          this.categoryTypes = res.data.categoryTypes;
-          console.log(res.data);
-          console.log(this.categoryTypes)
-          this.structures = [];
-        }
-      },
-      error: (err) => console.error('Error loading category types:', err)
+    this.categoryTypeService.getTypesByCategory(id).subscribe(res => {
+      this.categoryTypes = res.data?.categoryTypes ?? [];
+      this.structures = [];
+      this.parts = [];
+      this.partOptions = [];
     });
   }
 
-  onCategoryTypeChange(event: Event): void {
-    const typeId = Number((event.target as HTMLSelectElement)?.value);
-    if (!typeId) return;
+  onCategoryTypeChange(e: Event): void {
+    const id = Number((e.target as HTMLSelectElement).value);
+    if (!id) return;
 
-    this.structureService.getStructuresByType(typeId).subscribe({
-      next: (res) => {
-        console.log(res)
-        if (res.success && res.data?.structures) {
-          this.structures = res.data.structures;
-        }
-      },
-      error: (err) => console.error('Error loading structures:', err)
+    this.structureService.getStructuresByType(id).subscribe(res => {
+      this.structures = res.data?.structures ?? [];
+      this.parts = [];
+      this.partOptions = [];
     });
   }
 
-  onStructureChange(event: Event): void {
-    const structureId = Number((event.target as HTMLSelectElement)?.value);
-    if (!structureId) return;
+  onStructureChange(e: Event): void {
+    const id = Number((e.target as HTMLSelectElement).value);
+    if (!id) return;
 
-    this.partService.getPartsByStructure(structureId).subscribe({
-      next: (res) => {
-        console.log(res)
-        if (res.success && res.data?.parts) {
-          this.parts = res.data.parts;
-        }
-      },
-      error: (err) => console.error('Error loading parts:', err)
+    this.partService.getPartsByStructure(id).subscribe(res => {
+      this.parts = res.data?.parts ?? [];
+      this.partOptions = [];
     });
   }
 
-  onPartChange(event: Event): void {
-    const partId = Number((event.target as HTMLSelectElement)?.value);
-    if (!partId) return;
+  onPartChange(e: Event): void {
+    const id = Number((e.target as HTMLSelectElement).value);
+    if (!id) return;
 
-    this.partOptionService.getOptionsByPart(partId).subscribe({
-      next: (res) => {
-        console.log(res)
-        if (res.success && res.data?.partOptions) {
-          this.partOptions = res.data.partOptions;
-        }
-      },
-      error: (err) => console.error('Error loading part options:', err)
+    this.partOptionService.getOptionsByPart(id).subscribe(res => {
+      this.partOptions = res.data?.partOptions ?? [];
     });
   }
 
-  // --------------------------
-  // LINKAGE SWITCH
-  // --------------------------
+  // ================= LINKAGE =================
   setLinkage(link: 'Structure' | 'Part' | 'PartOption'): void {
     this.activeLinkage = link;
+
     this.serviceForm.patchValue({
       structureId: null,
       partId: null,
@@ -163,84 +172,88 @@ export class CreateServiceComponent implements OnInit {
     });
   }
 
-  // --------------------------
-  // SUBMIT
-  // --------------------------
+  // ================= SUBMIT =================
   onSubmit(): void {
-  if (this.serviceForm.valid) {
-    this.serviceForm.markAllAsTouched();
-    this.isSubmitting = true;
+    if (this.serviceForm.invalid) {
+      this.serviceForm.markAllAsTouched();
+      return;
+    }
 
-    // Extract form values
+    this.isSubmitting = true;
     const payload = { ...this.serviceForm.value };
 
-    // Ensure correct linkage (Structure / Part / PartOption)
+    // Enforce single linkage
     if (this.activeLinkage === 'Structure') {
       payload.partId = null;
       payload.partOptionId = null;
     } else if (this.activeLinkage === 'Part') {
       payload.structureId = null;
       payload.partOptionId = null;
-    } else if (this.activeLinkage === 'PartOption') {
+    } else {
       payload.structureId = null;
       payload.partId = null;
     }
 
-    // Build FormData
     const formData = new FormData();
 
-    // Append all normal fields
     Object.keys(payload).forEach(key => {
-      const value = payload[key];
-      if (value !== null && value !== undefined) {
-        formData.append(key, value);
+      if (payload[key] !== null && payload[key] !== undefined) {
+        formData.append(key, payload[key]);
       }
     });
 
-    // Append the uploaded image
     if (this.selectedFile) {
       formData.append('file', this.selectedFile);
     }
 
-    // Send request
+    // ✅ METADATA (CORRECT FORM-DATA BINDING)
+    this.metadataPayload.forEach((m, i) => {
+      formData.append(
+        `Metadata[${i}].MetadataAttributeId`,
+        m.metadataAttributeId.toString()
+      );
+
+      if (m.valueIds?.length) {
+        m.valueIds.forEach((v, j) => {
+          formData.append(
+            `Metadata[${i}].ValueIds[${j}]`,
+            v.toString()
+          );
+        });
+      }
+
+      if (m.valueText !== null && m.valueText !== undefined) {
+        formData.append(
+          `Metadata[${i}].ValueText`,
+          m.valueText
+        );
+      }
+    });
+
     this.serviceService.CreateService(formData).subscribe({
-      next: (res) => {
-        console.log(res)
+      next: res => {
         this.isSubmitting = false;
 
         if (res.success) {
-          alert('✅ Service created successfully!');
-          this.serviceForm.reset();
-          this.selectedFile = null;
-          this.previewUrl = null;
+          alert('✅ Service created successfully');
+          this.reset();
         } else {
-          alert('❌ Failed to create service: ' + (res.message ?? 'Unknown error'));
+          alert(res.message ?? 'Failed to create service');
         }
       },
-      error: (err) => {
+      error: () => {
         this.isSubmitting = false;
-        console.error('Error creating service:', err);
-        alert('❌ Error creating service.');
+        alert('Unexpected error');
       }
     });
   }
-}
 
-
-  selectedFile: File | null = null;
-  previewUrl: string | ArrayBuffer | null = null;
-
-  onFileSelected(event: any) {
-    this.selectedFile = event.target.files[0];
-    if (this.selectedFile) {
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        this.previewUrl = reader.result;
-      };
-
-      reader.readAsDataURL(this.selectedFile);
-    }
+  private reset(): void {
+    this.serviceForm.reset();
+    this.selectedFile = null;
+    this.previewUrl = null;
+    this.metadataPayload = [];
+    this.showMetadata = false;
+    this.metadataTargetId = 0;
   }
-
 }
