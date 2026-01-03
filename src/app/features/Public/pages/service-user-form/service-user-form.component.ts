@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { RequestedService } from '../../../Models/service.Model';
 import { ServiceService } from '../../../admin/Services/service-service.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-service-user-form',
   templateUrl: './service-user-form.component.html',
   styleUrl: './service-user-form.component.scss'
 })
-export class ServiceUserFormComponent {
-requestedServices: RequestedService[] = [];
+export class ServiceUserFormComponent implements OnInit {
+
+  requestedServices: RequestedService[] = [];
   submitting = false;
 
   constructor(
@@ -28,16 +29,19 @@ requestedServices: RequestedService[] = [];
     preferredContactMethod: ['Email']
   });
 
+  // ✅ REQUIRED FOR TEMPLATE ACCESS
+  get f() {
+    return this.userForm.controls;
+  }
+
   ngOnInit(): void {
     const state = history.state;
+
     this.requestedServices = state.requestedServices || [];
+
     if (!this.requestedServices.length) {
       this.router.navigate(['/FenetrationMaintainence/Home/service-explorer']);
     }
-  }
-
-  get f() {
-    return this.userForm.controls;
   }
 
   onSubmit() {
@@ -48,39 +52,48 @@ requestedServices: RequestedService[] = [];
 
     this.submitting = true;
 
-    const formData = this.userForm.value;
     const payload = {
-      user: formData,
-      services: this.requestedServices.map(r => ({
-        serviceId: r.service.id,
-        baseCost: r.calculation.baseCost,
-        calculatedTotal: r.calculation.total,
-        description: r.service.description
-      })),
-      total: this.requestedServices.reduce(
-        (sum, s) => sum + (s.calculation.total ?? 0),
-        0
-      ),
-      notes: 'Public user service request submission'
-    };
+  user: this.userForm.value,
+
+  services: this.requestedServices.map(r => ({
+    serviceId: r.service.id,
+    baseCost: r.calculation.baseCost,
+    calculatedTotal: r.calculation.total,
+    description: r.service.description,
+
+    // ✅ FIXED
+    metadata: r.service.metadata ?? []
+  })),
+
+  total: this.requestedServices.reduce(
+    (sum, r) => sum + (r.calculation.total ?? 0),
+    0
+  ),
+
+  notes: 'Public user service request submission'
+};
+
+
+    console.log('🚀 FINAL REQUEST PAYLOAD', payload);
 
     this.serviceRequestApi.submitServiceRequest(payload).subscribe({
-      next: (res) => {
+      next: _ => {
         this.submitting = false;
         alert('✅ Request submitted successfully!');
         this.router.navigate(['/FenetrationMaintainence/Home/success']);
       },
-      error: (err) => {
+      error: err => {
         console.error('❌ Submission failed:', err);
         this.submitting = false;
-        alert('An error occurred while submitting your request. Please try again later.');
+        alert('An error occurred while submitting your request.');
       }
     });
   }
 
   cancel() {
-    this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
-      state: { requestedServices: this.requestedServices }
-    });
+    this.router.navigate(
+      ['/FenetrationMaintainence/Home/service-review'],
+      { state: { requestedServices: this.requestedServices } }
+    );
   }
 }

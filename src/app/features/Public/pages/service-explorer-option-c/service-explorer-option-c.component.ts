@@ -5,6 +5,10 @@ import { CategoryTypeService } from "../../../admin/Services/categoryTypeService
 import { ExplorerItem, MetadataFilter, ExplorerItemType, MetadataExplorerService, ServiceExplorerRequest } from "../../../admin/Services/MetadataExplorerService.service";
 import { Category } from "../../../Models/Category";
 import { CategoryType } from "../../../Models/CategoryType";
+interface ExplorerCrumb {
+  label: string;
+  level: 'category' | 'type' | 'structure' | 'part' | 'option';
+}
 
 @Component({
   selector: 'app-service-explorer-option-c',
@@ -101,6 +105,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       next: res => {
         this.explorerItems = res?.items ?? [];
         this.filters = res?.filters ?? [];
+        console.log(res)
       },
       error: _ => {
         this.explorerItems = [];
@@ -175,9 +180,91 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   requestServices() {
+    console.log("before route ",this.selectedServices)
     this.router.navigate(
       ['/FenetrationMaintainence/Home/service-review'],
       { state: { selectedServices: this.selectedServices } }
     );
+
   }
+
+  get breadcrumbs(): ExplorerCrumb[] {
+  const crumbs: ExplorerCrumb[] = [];
+
+  if (this.selectedCategory) {
+    crumbs.push({ label: this.selectedCategory.name, level: 'category' });
+  }
+
+  if (this.selectedType) {
+    crumbs.push({ label: this.selectedType.name, level: 'type' });
+  }
+
+  const structure = this.explorerItems.find(
+    i => i.itemType === ExplorerItemType.Structure && i.id === this.structureId
+  );
+  if (structure) {
+    crumbs.push({ label: structure.name, level: 'structure' });
+  }
+
+  const part = this.explorerItems.find(
+    i => i.itemType === ExplorerItemType.Part && i.id === this.partId
+  );
+  if (part) {
+    crumbs.push({ label: part.name, level: 'part' });
+  }
+
+  const option = this.explorerItems.find(
+    i => i.itemType === ExplorerItemType.PartOption && i.id === this.optionId
+  );
+  if (option) {
+    crumbs.push({ label: option.name, level: 'option' });
+  }
+
+  return crumbs;
+}
+goToCrumb(level: ExplorerCrumb['level']) {
+  switch (level) {
+    case 'category':
+      this.resetAll();
+      break;
+
+    case 'type':
+      this.resetBelow('type');
+      this.loadExplorer();
+      break;
+
+    case 'structure':
+      this.resetBelow('structure');
+      this.loadExplorer();
+      break;
+
+    case 'part':
+      this.resetBelow('part');
+      this.loadExplorer();
+      break;
+
+    case 'option':
+      this.optionId = undefined;
+      this.selectedFilters = {};
+      this.loadExplorer();
+      break;
+  }
+}
+goBack() {
+  if (this.optionId) {
+    this.optionId = undefined;
+  } else if (this.partId) {
+    this.partId = undefined;
+  } else if (this.structureId) {
+    this.structureId = undefined;
+  } else if (this.selectedType) {
+    this.selectedType = undefined;
+  } else if (this.selectedCategory) {
+    this.selectedCategory = undefined;
+  }
+
+  this.selectedFilters = {};
+  this.loadExplorer();
+}
+
 }

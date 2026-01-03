@@ -15,7 +15,7 @@ export class ServiceRequestReviewComponent {
   requestedServices: RequestedService[] = [];
   overallTotal: number = 0;
   loading = false;
-
+  metadate: any;
   constructor(private serviceService: ServiceService,private router: Router) {}
 
   ngOnInit(): void {
@@ -78,7 +78,8 @@ export class ServiceRequestReviewComponent {
           results.push({
             service: s,
             calculation: calcRes!,
-            steps: steps
+            steps: steps,
+            
           });
           completedCount++;
 

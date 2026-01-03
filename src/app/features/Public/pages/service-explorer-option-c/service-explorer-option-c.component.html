@@ -1,17 +1,34 @@
 <div class="service-explorer">
-    <!-- ===============================
-       HEADER
-  =============================== -->
+    <!-- HEADER -->
     <header class="explorer-header">
         <h2>Service Explorer</h2>
     </header>
+    <!-- ===============================
+       BREADCRUMBS + BACK
+  =============================== -->
+    <div class="nav-bar" *ngIf="breadcrumbs.length">
+        <button class="back-btn" (click)="goBack()"> ← Back </button>
+        <nav class="breadcrumbs">
+            <a *ngFor="let c of breadcrumbs; let last = last" href="javascript:void(0)" class="crumb"
+                [class.active]="last" (click)="!last && goToCrumb(c.level)"> {{ c.label }} <span class="sep"
+                    *ngIf="!last">›</span>
+            </a>
+        </nav>
+    </div>
     <!-- ===============================
        CATEGORY
   =============================== -->
     <section *ngIf="!selectedCategory">
         <h3>Choose Category</h3>
         <div class="grid">
-            <div class="item-card" *ngFor="let c of categories" (click)="selectCategory(c)"> {{ c.name }} </div>
+            <div class="card" *ngFor="let c of categories" (click)="selectCategory(c)">
+                <img *ngIf="c.fileUrl; else noImg" [src]="c.fileUrl" />
+                <ng-template #noImg>
+                    <div class="placeholder"></div>
+                </ng-template>
+                <div class="card-title">{{ c.name }}</div>
+                <span class="badge category">Category</span>
+            </div>
         </div>
     </section>
     <!-- ===============================
@@ -20,42 +37,63 @@
     <section *ngIf="selectedCategory && !selectedType">
         <h3>Choose Type</h3>
         <div class="grid">
-            <div class="item-card" *ngFor="let t of types" (click)="selectType(t)"> {{ t.name }} </div>
+            <div class="card" *ngFor="let t of types" (click)="selectType(t)">
+                <img *ngIf="t.fileUrl; else noImg" [src]="t.fileUrl" />
+                <ng-template #noImg>
+                    <div class="placeholder"></div>
+                </ng-template>
+                <div class="card-title">{{ t.name }}</div>
+                <span class="badge type">Type</span>
+            </div>
         </div>
     </section>
     <!-- ===============================
        STRUCTURES
   =============================== -->
     <section *ngIf="structures.length">
-        <h3>Choose Structure</h3>
+        <h3>Structures</h3>
         <div class="grid">
-            <div class="item-card" *ngFor="let s of structures" (click)="selectItem(s)"> {{ s.name }} </div>
+            <div class="card" *ngFor="let s of structures" (click)="selectItem(s)">
+                <img *ngIf="s.fileUrl; else noImg" [src]="s.fileUrl" />
+                <ng-template #noImg>
+                    <div class="placeholder"></div>
+                </ng-template>
+                <div class="card-title">{{ s.name }}</div>
+                <span class="badge structure">Structure</span>
+            </div>
         </div>
     </section>
     <!-- ===============================
-       PARTS
+       PARTS + OPTIONS
   =============================== -->
-    <section *ngIf="parts.length">
-        <h3>Choose Part</h3>
+    <section *ngIf="parts.length || options.length">
+        <h3>Components</h3>
+        <p class="hint">Parts and options may appear together</p>
         <div class="grid">
-            <div class="item-card" *ngFor="let p of parts" (click)="selectItem(p)"> {{ p.name }} </div>
+            <div class="card" *ngFor="let p of parts" (click)="selectItem(p)">
+                <img *ngIf="p.fileUrl; else noImg" [src]="p.fileUrl" />
+                <ng-template #noImg>
+                    <div class="placeholder"></div>
+                </ng-template>
+                <div class="card-title">{{ p.name }}</div>
+                <span class="badge part">Part</span>
+            </div>
+            <div class="card" *ngFor="let o of options" (click)="selectItem(o)">
+                <img *ngIf="o.fileUrl; else noImg" [src]="o.fileUrl" />
+                <ng-template #noImg>
+                    <div class="placeholder"></div>
+                </ng-template>
+                <div class="card-title">{{ o.name }}</div>
+                <span class="badge option">Option</span>
+            </div>
         </div>
     </section>
     <!-- ===============================
-       OPTIONS
-  =============================== -->
-    <section *ngIf="options.length">
-        <h3>Choose Option</h3>
-        <div class="grid">
-            <div class="item-card" *ngFor="let o of options" (click)="selectItem(o)"> {{ o.name }} </div>
-        </div>
-    </section>
-    <!-- ===============================
-       FILTERS (SERVICES ONLY)
+       FILTERS
   =============================== -->
     <section *ngIf="filters.length">
         <details class="filters">
-            <summary>Filters</summary>
+            <summary>Filter Services</summary>
             <div class="filter-group" *ngFor="let f of filters">
                 <strong>{{ f.name }}</strong>
                 <label *ngFor="let v of f.values">
@@ -67,15 +105,27 @@
     <!-- ===============================
        SERVICES
   =============================== -->
+    <!-- ===============================
+     SERVICES
+=============================== -->
     <section *ngIf="services.length">
-        <h3>Select Services</h3>
-        <div class="grid services">
-            <div class="service-card" *ngFor="let s of services" (click)="selectItem(s)"
+        <h3>Services</h3>
+        <div class="grid services-grid">
+            <div class="card service-card" *ngFor="let s of services" (click)="selectItem(s)"
                 [class.selected]="isServiceSelected(s)">
-                <strong>{{ s.name }}</strong>
-                <div class="meta">
+                <!-- IMAGE -->
+                <img *ngIf="s.fileUrl; else noServiceImg" [src]="s.fileUrl" class="card-img" />
+                <ng-template #noServiceImg>
+                    <div class="card-img placeholder"></div>
+                </ng-template>
+                <!-- TITLE -->
+                <div class="card-title">{{ s.name }}</div>
+                <!-- METADATA -->
+                <div class="meta" *ngIf="s.metadata?.length">
                     <span class="chip" *ngFor="let m of s.metadata"> {{ m.valueText || m.value }} </span>
                 </div>
+                <!-- BADGE -->
+                <span class="badge service">Service</span>
             </div>
         </div>
     </section>
@@ -83,6 +133,6 @@
        FOOTER
   =============================== -->
     <footer class="summary-footer" *ngIf="selectedServices.length">
-        <button (click)="requestServices()"> Request Services ({{ selectedServices.length }}) </button>
+        <button (click)="requestServices()"> Continue ({{ selectedServices.length }}) </button>
     </footer>
 </div>

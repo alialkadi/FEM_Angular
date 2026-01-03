@@ -114,6 +114,7 @@ export interface ServiceResponse {
   structureName?: string;
   partOptionName?: string;
   calculatedTotal?: number; // added dynamically after cost calculation
+  metadata?: ServiceSelectedMetadataDto[];
 }
 
 export interface ServiceListResponse {
@@ -207,6 +208,7 @@ export interface RequestedService {
   service: ServiceResponse;
   calculation: ServiceCalculationResult;
   steps: ServiceStep[];
+  
 }
 
 // ========================================================
@@ -237,4 +239,11 @@ export interface ServiceRequestResponse {
   total: number;
   status: string;
   message: string;
+}
+export interface ServiceSelectedMetadataDto {
+  attributeCode: string;
+  attributeName: string;
+  value: string;
+  dataType: number;
+  affectsPricing: boolean;
 }
