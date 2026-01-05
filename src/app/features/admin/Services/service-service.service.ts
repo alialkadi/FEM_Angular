@@ -35,14 +35,24 @@ export class ServiceService {
     return this._http.delete<ApiResponse<boolean>>(`${this.baseurl}/Service/${id}`)
   }
     
-  updateService(id: number, data: { name: string, categoryId: number }): Observable<ApiResponse<ServiceResponse>> {
-    return this._http.put<ApiResponse<ServiceResponse>>(
-      `${this.baseurl}/Service/${id}`,
-      data, // ✅ request body
-      { headers: { 'Content-Type': 'application/json' } } // ✅ set content-type
+  updateService(
+  id: number,
+  formData: FormData
+): Observable<ApiResponse<ServiceResponse>> {
+
+  return this._http.put<ApiResponse<ServiceResponse>>(
+    `${this.baseurl}/Service/${id}`,
+    formData
+    // ❌ DO NOT set headers
+    // Angular will auto-set multipart/form-data with boundary
+  );
+}
+
+getServicesById(serviceId: number): Observable<ApiResponse<ServiceResponse>> {
+    return this._http.get<ApiResponse<ServiceResponse>>(
+      `${this.baseurl}/Service/${serviceId}`
     );
   }
-
 /** 🔹 Get services linked to a specific structure */
   getServicesByStructure(structureId: number): Observable<ApiResponse<ServiceListResponse>> {
     return this._http.get<ApiResponse<ServiceListResponse>>(

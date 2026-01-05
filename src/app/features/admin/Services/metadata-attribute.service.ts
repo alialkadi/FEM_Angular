@@ -1,11 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { MetadataAttribute } from '../../Models/MetadataAttribute';
 import { MetadataAttributeCreate } from '../../Models/MetadataAttributeCreate';
 import { MetadataAttributeListResponse } from '../../Models/MetadataAttributeListResponse';
 import { MetadataAttributeUpdate } from '../../Models/MetadataAttributeUpdate';
 import { environment } from '../../../environment.prod';
+import { ApiResponse } from '../../Models/ApiResponse';
 
 @Injectable({
   providedIn: 'root'
@@ -36,16 +37,20 @@ export class MetadataAttributeService {
 
   // DETAILS
   getById(id: number): Observable<MetadataAttribute> {
-    return this.http.get<MetadataAttribute>(`${this.baseUrl}/${id}`);
-  }
+  return this.http
+    .get<ApiResponse<MetadataAttribute>>(`${this.baseUrl}/${id}`)
+    .pipe(map(res => res.data));
+}
+
 
   create(model: any) {
     return this.http.post<number>(this.baseUrl, model);
   }
 
-  update(id: number, model: Partial<MetadataAttributeCreate>) {
-    return this.http.put<void>(`${this.baseUrl}/${id}`, model);
-  }
+ update(id: number, model: MetadataAttributeUpdate): Observable<any> {
+  return this.http.put<any>(`${this.baseUrl}/${id}`, model);
+}
+
 
   // DELETE (SOFT + GUARDED)
   delete(id: number): Observable<void> {

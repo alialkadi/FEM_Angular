@@ -111,7 +111,7 @@ export class AttributeAssignmentComponent
 
         // EDIT MODE → load assignments
         this.assignmentService
-          .getByTarget(this.targetType, this.targetId)
+          .getByTarget( this.targetId)
           .subscribe({
             next: assignRes => {
               this.assignedValues = assignRes.data ?? [];

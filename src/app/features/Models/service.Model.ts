@@ -246,4 +246,7 @@ export interface ServiceSelectedMetadataDto {
   value: string;
   dataType: number;
   affectsPricing: boolean;
+  metadataAttributeId?: number,
+  metadataAttributeValueId: number,
+  valueText? : string
 }

@@ -19,6 +19,8 @@ import { WorkersListComponent } from './pages/workers/workers-list/workers-list.
 import { MetadataAttributeListComponent } from './pages/Metadata/metadata-attribute-list/metadata-attribute-list.component';
 import { MetadataCreateAttributeComponent } from './pages/Metadata/metadata-create-attribute/metadata-create-attribute.component';
 import { MetadataAssignValueComponent } from './pages/Metadata-values/metadata-assign-value/metadata-assign-value.component';
+import { UpdateServiceComponent } from './pages/Service/update-service/update-service.component';
+import { MetadataUpdateAttributeComponent } from './pages/Metadata/metadata-update-attribute/metadata-update-attribute.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -43,7 +45,10 @@ const routes: Routes = [
       {
         path: 'assignvalue/:attributeId',
         component: MetadataAssignValueComponent
-      }
+      },
+      { path: "editservice/:id", component: UpdateServiceComponent },
+      { path: "editattribute/:id", component: MetadataUpdateAttributeComponent }
+      
 
 
   ]}

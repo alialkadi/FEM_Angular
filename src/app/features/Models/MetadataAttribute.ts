@@ -4,6 +4,7 @@ export interface MetadataAttribute {
   // identity
   id: number;
   name: string;
+  description: string,
   code: string;
   dataType: MetadataDataType;
   allowMultipleValues: boolean;

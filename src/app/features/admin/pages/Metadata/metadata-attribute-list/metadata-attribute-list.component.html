@@ -45,12 +45,11 @@
             </td>
             <!-- Actions -->
             <td class="actions">
-                <button title="Edit">✏️</button>
+                <button class="edit-btn" [routerLink]="['/admin/dashboard/editattribute', attr.id]">✏️</button>
                 <button *ngIf="isSelect(attr)" [routerLink]="[
     '/admin/dashboard/assignvalue',
     attr.id
   ]" title="Create Value"> ☰ </button>
-                <button title="Toggle Status" (click)="toggleStatus(attr)"> 🔄 </button>
             </td>
         </tr>
     </tbody>

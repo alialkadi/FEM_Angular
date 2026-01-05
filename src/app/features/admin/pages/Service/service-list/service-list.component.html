@@ -33,7 +33,7 @@
                 </td>
                 <td class="actions-cell">
                     <button class="steps-btn" (click)="openStepsModal(service)">Steps</button>
-                    <button class="edit-btn">Edit</button>
+                    <button class="edit-btn" [routerLink]="['/admin/dashboard/editservice', service.id]"> Edit </button>
                     <button class="delete-btn" (click)="onDelete(service.id!)">Delete</button>
                 </td>
             </tr>

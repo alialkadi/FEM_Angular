@@ -15,15 +15,12 @@ private readonly baseUrl = environment.apiUrl+'/MetadataAssignments';
       request
     );
   }
-  getByTarget(
-    targetType: MetadataTargetType,
-    targetId: number
-  ): Observable<any> {
+  getByTarget(targetId: number): Observable<ApiResponse<any[]>> {
+  const params = new HttpParams().set('targetId', targetId);
+  return this.http.get<ApiResponse<any[]>>(
+    `${this.baseUrl}/by-target`,
+    { params }
+  );
+}
 
-    const params = new HttpParams()
-      .set('targetType', targetType)
-      .set('targetId', targetId);
-
-    return this.http.get(`${this.baseUrl}/by-target`, { params });
-  }
 }

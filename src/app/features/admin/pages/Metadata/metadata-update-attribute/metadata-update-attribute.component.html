@@ -1,0 +1,28 @@
+<div class="card" *ngIf="attribute">
+    <h2>Edit Metadata Attribute</h2>
+    <!-- SUCCESS MESSAGE -->
+    <div class="alert success" *ngIf="successMessage"> {{ successMessage }} </div>
+    <!-- ERROR MESSAGE -->
+    <div class="alert error" *ngIf="errorMessage"> {{ errorMessage }} </div>
+    <!-- READ ONLY INFO -->
+    <div class="readonly-info">
+        <div><strong>Code:</strong> {{ attribute.code }}</div>
+        <div><strong>Data Type:</strong> {{ attribute.dataType }}</div>
+        <div><strong>Multiple Values:</strong> {{ attribute.allowMultipleValues ? 'Yes' : 'No' }} </div>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+        <label>Name</label>
+        <input type="text" formControlName="name" />
+        <label>Description</label>
+        <textarea formControlName="description"></textarea>
+        <label>
+            <input type="checkbox" formControlName="isFilterable" /> Filterable </label>
+        <label>
+            <input type="checkbox" formControlName="isVisibleToUser" /> Visible to user </label>
+        <label>
+            <input type="checkbox" formControlName="affectsPricing" /> Affects pricing </label>
+        <label>
+            <input type="checkbox" formControlName="isActive" /> Active </label>
+        <button type="submit" [disabled]="form.invalid || loading"> {{ loading ? 'Saving…' : 'Save Changes' }} </button>
+    </form>
+</div>

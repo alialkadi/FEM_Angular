@@ -1,22 +1,100 @@
 <div class="page-container">
+    <!-- ===============================
+       HEADER
+  ================================ -->
     <div class="page-header">
-        <h2>Create Metadata Values</h2>
+        <h2>Manage Metadata Values</h2>
         <p class="subtitle"> Attribute: <strong>{{ attributeName }}</strong>
         </p>
     </div>
-    <!-- MODE SWITCH -->
-    <div class="mode-switch">
-        <button type="button" [class.active]="mode === 'single'" (click)="mode = 'single'"> Single Value </button>
-        <button type="button" [class.active]="mode === 'bulk'" (click)="mode = 'bulk'"> Bulk Values </button>
+    <!-- ===============================
+       GLOBAL MESSAGES
+  ================================ -->
+    <div class="alert error" *ngIf="errorMessage"> {{ errorMessage }} </div>
+    <div class="alert success" *ngIf="successMessage"> {{ successMessage }} </div>
+    <!-- ===============================
+       VALUES LIST
+  ================================ -->
+    <div class="card">
+        <h3>Existing Values</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Technical Value</th>
+                    <th>Display Name</th>
+                    <th>Sort Order</th>
+                    <th>Status</th>
+                    <th class="actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody *ngIf="!loading && values.length">
+                <tr *ngFor="let v of values">
+                    <!-- Technical Value (READ ONLY) -->
+                    <td class="mono">{{ v.value }}</td>
+                    <!-- Display Name -->
+                    <td>
+                        <input *ngIf="editingId === v.id" type="text" [(ngModel)]="v._edit.displayName" />
+                        <span *ngIf="editingId !== v.id"> {{ v.displayName || '—' }} </span>
+                    </td>
+                    <!-- Sort Order -->
+                    <td>
+                        <input *ngIf="editingId === v.id" type="number" [(ngModel)]="v._edit.sortOrder" />
+                        <span *ngIf="editingId !== v.id"> {{ v.sortOrder }} </span>
+                    </td>
+                    <!-- Status -->
+                    <td>
+                        <label *ngIf="editingId === v.id" class="checkbox">
+                            <input type="checkbox" [(ngModel)]="v._edit.isActive" /> Active </label>
+                        <span *ngIf="editingId !== v.id" class="status" [class.active]="v.isActive"
+                            [class.inactive]="!v.isActive"> {{ v.isActive ? 'Active' : 'Inactive' }} </span>
+                    </td>
+                    <!-- Actions -->
+                    <td class="actions">
+                        <button *ngIf="editingId !== v.id" class="icon edit" title="Edit" (click)="startEdit(v)"> <i
+                                class="bi bi-pencil-square"></i>
+                        </button>
+                        <button *ngIf="editingId === v.id" class="icon save" title="Save" (click)="saveEdit(v)"> <i
+                                class="bi bi-bookmark-check"></i>
+                        </button>
+                        <button *ngIf="editingId === v.id" class="icon cancel" title="Cancel" (click)="cancelEdit(v)">
+                            <i class="bi bi-x-circle text-danger"></i>
+                        </button>
+                        <button class="icon delete" title="Delete" (click)="deleteValue(v)"> <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+            <!-- EMPTY STATE -->
+            <tbody *ngIf="!loading && !values.length">
+                <tr>
+                    <td colspan="5" class="empty"> No values defined for this attribute yet. </td>
+                </tr>
+            </tbody>
+            <!-- LOADING -->
+            <tbody *ngIf="loading">
+                <tr>
+                    <td colspan="5" class="loading"> Loading values... </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    <!-- SINGLE CREATE -->
-    <form *ngIf="mode === 'single'" [formGroup]="singleForm" (ngSubmit)="submit()" class="card">
+    <!-- ===============================
+       CREATE MODE SWITCH
+  ================================ -->
+    <div class="mode-switch">
+        <button type="button" [class.active]="mode === 'single'" (click)="mode = 'single'"> ➕ Add Single Value </button>
+        <button type="button" [class.active]="mode === 'bulk'" (click)="mode = 'bulk'"> 📄 Add Bulk Values </button>
+    </div>
+    <!-- ===============================
+       CREATE SINGLE VALUE
+  ================================ -->
+    <form *ngIf="mode === 'single'" [formGroup]="singleForm" (ngSubmit)="submitSingle()" class="card">
+        <h3>Add New Value</h3>
         <div class="form-group">
             <label>Technical Value</label>
-            <input type="text" formControlName="value" (blur)="normalizeSingleValue()" placeholder="e.g. roto" />
-            <small class="hint"> Immutable identifier (lowercase, underscores only) </small>
-            <div class="error" *ngIf="singleForm.get('value')?.touched && singleForm.get('value')?.invalid"> Value is
-                required </div>
+            <input type="text" formControlName="value" (blur)="normalizeSingleValue()"
+                placeholder="e.g. roto_germany" />
+            <small class="hint"> Immutable system identifier (lowercase, underscores only) </small>
         </div>
         <div class="form-group">
             <label>Display Name</label>
@@ -26,32 +104,36 @@
             <label>Sort Order</label>
             <input type="number" formControlName="sortOrder" />
         </div>
-        <div class="error global" *ngIf="errorMessage"> {{ errorMessage }} </div>
         <div class="actions">
-            <button type="button" class="btn cancel" (click)="cancel()">Cancel</button>
             <button type="submit" class="btn primary" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Value'
                 }} </button>
         </div>
     </form>
-    <!-- BULK CREATE -->
-    <form *ngIf="mode === 'bulk'" [formGroup]="bulkForm" (ngSubmit)="submit()" class="card">
+    <!-- ===============================
+       CREATE BULK VALUES
+  ================================ -->
+    <form *ngIf="mode === 'bulk'" [formGroup]="bulkForm" (ngSubmit)="submitBulk()" class="card">
+        <h3>Add Bulk Values</h3>
         <div class="form-group">
             <label>Values (one per line)</label>
             <textarea rows="6" formControlName="values" placeholder="Roto Germany
 Siegenia
-GEZE">
-      </textarea>
+GEZE"></textarea>
             <small class="hint"> Each line becomes a value automatically </small>
         </div>
         <div class="form-group">
             <label>Starting Sort Order</label>
             <input type="number" formControlName="startSortOrder" />
         </div>
-        <div class="error global" *ngIf="errorMessage"> {{ errorMessage }} </div>
         <div class="actions">
-            <button type="button" class="btn cancel" (click)="cancel()">Cancel</button>
             <button type="submit" class="btn primary" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Values'
                 }} </button>
         </div>
     </form>
+    <!-- ===============================
+       FOOTER ACTIONS
+  ================================ -->
+    <div class="footer-actions">
+        <button class="btn cancel" (click)="cancel()">⬅ Back to Attributes</button>
+    </div>
 </div>
