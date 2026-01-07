@@ -192,3 +192,21 @@ h2[mat-dialog-title] {
     height: 100px;
   }
 }
+
+
+// Toaster
+
+.toast-success {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.toast-error {
+  background: #c62828;
+  color: #fff;
+}
+
+.toast-info {
+  background: #1565c0;
+  color: #fff;
+}

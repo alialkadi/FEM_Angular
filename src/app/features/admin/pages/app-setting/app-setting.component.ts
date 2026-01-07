@@ -17,7 +17,10 @@ export class AppSettingComponent implements OnInit {
   currentSetting: AppSettingResponse | null = null;
   message: string | null = null;
 
-  constructor(private fb: FormBuilder, private appSettingService: AppSettingService) {}
+  constructor(
+    private fb: FormBuilder,
+    private appSettingService: AppSettingService
+  ) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -30,17 +33,20 @@ export class AppSettingComponent implements OnInit {
 
   loadSettings() {
     this.loading = true;
+    this.message = null;
+
     this.appSettingService.getSettings().subscribe({
       next: res => {
         this.loading = false;
+
+        this.message = res.message;
+
         if (res.success && res.data) {
           this.currentSetting = res.data;
           this.form.patchValue({
             rate: res.data.rate,
             logistic: res.data.logistic
           });
-        } else {
-          this.message = res.message ?? 'No settings found.';
         }
       },
       error: () => {
@@ -54,6 +60,8 @@ export class AppSettingComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.saving = true;
+    this.message = null;
+
     const payload = this.form.value;
 
     const request$ = this.currentSetting
@@ -63,11 +71,10 @@ export class AppSettingComponent implements OnInit {
     request$.subscribe({
       next: res => {
         this.saving = false;
+        this.message = res.message;
+
         if (res.success && res.data) {
           this.currentSetting = res.data;
-          this.message = 'Settings saved successfully!';
-        } else {
-          this.message = res.message ?? 'Failed to save settings.';
         }
       },
       error: () => {

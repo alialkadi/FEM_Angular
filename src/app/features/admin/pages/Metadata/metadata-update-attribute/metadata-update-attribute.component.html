@@ -1,9 +1,6 @@
 <div class="card" *ngIf="attribute">
     <h2>Edit Metadata Attribute</h2>
     <!-- SUCCESS MESSAGE -->
-    <div class="alert success" *ngIf="successMessage"> {{ successMessage }} </div>
-    <!-- ERROR MESSAGE -->
-    <div class="alert error" *ngIf="errorMessage"> {{ errorMessage }} </div>
     <!-- READ ONLY INFO -->
     <div class="readonly-info">
         <div><strong>Code:</strong> {{ attribute.code }}</div>

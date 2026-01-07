@@ -25,6 +25,7 @@ import { MetadataDataType } from '../../../../Models/MetadataDataType';
 
 import { MetadataAssignmentService } from '../../../Services/metadata-assignment.service';
 import { MetadataAttributeService } from '../../../Services/metadata-attribute.service';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-attribute-assignment',
@@ -36,7 +37,7 @@ export class AttributeAssignmentComponent
 
   // ================= INPUTS =================
   @Input() targetType!: MetadataTargetType;
-  @Input() targetId!: number; // 0 = create, >0 = edit
+  @Input() targetId!: number;
 
   // ================= OUTPUT =================
   @Output() metadataChange =
@@ -56,7 +57,8 @@ export class AttributeAssignmentComponent
   constructor(
     private fb: FormBuilder,
     private attributesService: MetadataAttributeService,
-    private assignmentService: MetadataAssignmentService
+    private assignmentService: MetadataAssignmentService,
+    private toast: ToastService
   ) {}
 
   // ================= INIT =================
@@ -99,9 +101,9 @@ export class AttributeAssignmentComponent
 
     this.attributesService.getAll().subscribe({
       next: attrRes => {
-        this.attributes = attrRes.data ?? [];
+        this.attributes = attrRes.data.data ?? [];
 
-        // CREATE MODE → no assignments yet
+        // CREATE MODE
         if (!this.targetId || this.targetId <= 0) {
           this.assignedValues = [];
           this.buildForm();
@@ -109,22 +111,25 @@ export class AttributeAssignmentComponent
           return;
         }
 
-        // EDIT MODE → load assignments
+        // EDIT MODE
         this.assignmentService
-          .getByTarget( this.targetId)
+          .getByTarget(this.targetId)
           .subscribe({
             next: assignRes => {
               this.assignedValues = assignRes.data ?? [];
               this.buildForm();
+              this.toast.show(assignRes.message, 'success');
               this.loading = false;
             },
             error: () => {
               this.buildForm();
+              this.toast.show('Failed to load metadata assignments.', 'error');
               this.loading = false;
             }
           });
       },
       error: () => {
+        this.toast.show('Failed to load metadata attributes.', 'error');
         this.loading = false;
       }
     });
@@ -142,7 +147,6 @@ export class AttributeAssignmentComponent
         metadataAttributeId: [attr.id]
       };
 
-      // SELECT
       if (attr.dataType === MetadataDataType.Select) {
         group.valueIds = [
           attr.allowMultipleValues
@@ -150,9 +154,7 @@ export class AttributeAssignmentComponent
             : assigned?.valueIds?.[0] ?? null
         ];
         group.valueText = [null];
-      }
-      // TEXT / NUMBER / BOOLEAN
-      else {
+      } else {
         group.valueText = [assigned?.valueText ?? ''];
         group.valueIds = [null];
       }
@@ -160,7 +162,6 @@ export class AttributeAssignmentComponent
       this.attributesForm.push(this.fb.group(group));
     }
 
-    // Emit initial state (important for create mode)
     this.emitMetadata();
   }
 
@@ -214,7 +215,7 @@ export class AttributeAssignmentComponent
     this.metadataChange.emit(normalized);
   }
 
-  // ================= SAVE (EDIT MODE ONLY) =================
+  // ================= SAVE =================
   submit(): void {
     if (!this.targetId || this.targetId <= 0) return;
     if (this.form.invalid) return;
@@ -237,8 +238,14 @@ export class AttributeAssignmentComponent
     this.saving = true;
 
     this.assignmentService.save(payload).subscribe({
-      next: () => (this.saving = false),
-      error: () => (this.saving = false)
+      next: (res) => {
+        this.toast.show(res.message, 'success');
+        this.saving = false;
+      },
+      error: () => {
+        this.toast.show('Failed to save metadata assignments.', 'error');
+        this.saving = false;
+      }
     });
   }
 

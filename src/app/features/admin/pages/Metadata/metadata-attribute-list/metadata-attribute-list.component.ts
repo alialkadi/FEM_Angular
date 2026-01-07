@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MetadataAttribute } from '../../../../Models/MetadataAttribute';
 import { MetadataDataType } from '../../../../Models/MetadataDataType';
 import { MetadataAttributeService } from '../../../Services/metadata-attribute.service';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-metadata-attribute-list',
@@ -10,7 +11,7 @@ import { MetadataAttributeService } from '../../../Services/metadata-attribute.s
 })
 export class MetadataAttributeListComponent implements OnInit {
 
-  attributes: MetadataAttribute[] = [];
+  attributes: MetadataAttribute[] =[];
   loading = false;
 
   // filters (UI only for now)
@@ -21,31 +22,74 @@ export class MetadataAttributeListComponent implements OnInit {
   readonly MetadataDataType = MetadataDataType;
 
   constructor(
-    private attributeService: MetadataAttributeService
+    private attributeService: MetadataAttributeService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
     this.loadAttributes();
   }
 
+  // ================= LOAD =================
   loadAttributes(): void {
     this.loading = true;
 
     this.attributeService.getAll().subscribe({
       next: (res) => {
-        this.attributes = res.data;
+        this.attributes = res.data.data;
+        this.toast.show(res.message, 'success');
         this.loading = false;
-        console.log(res.data)
-        console.log('Metadata Attributes:', res);
       },
-      error: err => {
-        console.error('Failed to load metadata attributes', err);
+      error: (err) => {
+        this.toast.show(
+          err?.error?.message ?? 'Failed to load metadata attributes.',
+          'error'
+        );
         this.loading = false;
       }
     });
   }
 
-  // ========= Helpers (SAFE) =========
+  // ================= DELETE (SINGLE) =================
+  delete(attr: MetadataAttribute): void {
+    if (!confirm(`Delete metadata attribute "${attr.name}"?`)) return;
+
+    this.attributeService.delete(attr.id).subscribe({
+      next: (res) => {
+        this.toast.show(res.message, 'success');
+        this.attributes = this.attributes.filter(a => a.id !== attr.id);
+      },
+      error: (err) => {
+        this.toast.show(
+          err?.error?.message ?? 'Failed to delete metadata attribute.',
+          'error'
+        );
+      }
+    });
+  }
+
+  // ================= TOGGLE ACTIVE =================
+  toggleStatus(attr: MetadataAttribute): void {
+    this.attributeService
+      .toggleActive(attr.id, !attr.isActive)
+      .subscribe({
+        next: () => {
+          attr.isActive = !attr.isActive;
+          this.toast.show(
+            `Attribute ${attr.isActive ? 'activated' : 'deactivated'} successfully`,
+            'success'
+          );
+        },
+        error: (err) => {
+          this.toast.show(
+            err?.error?.message ?? 'Failed to update attribute status.',
+            'error'
+          );
+        }
+      });
+  }
+
+  // ========= Helpers =========
 
   getDisplayName(attr: MetadataAttribute): string {
     return attr.displayName ?? attr.name;
@@ -63,13 +107,5 @@ export class MetadataAttributeListComponent implements OnInit {
 
   isSelect(attr: MetadataAttribute): boolean {
     return attr.dataType === MetadataDataType.Select;
-  }
-
-  toggleStatus(attr: MetadataAttribute): void {
-    this.attributeService
-      .toggleActive(attr.id, !attr.isActive)
-      .subscribe(() => {
-        attr.isActive = !attr.isActive;
-      });
   }
 }
