@@ -18,6 +18,7 @@ import { CategoryType } from '../../../../Models/CategoryType';
 import { Structure } from '../../../../Models/Structure.Model';
 import { Part } from '../../../../Models/Part.Models';
 import { PartOption } from '../../../../Models/PartOption.Model';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-create-service',
@@ -57,7 +58,8 @@ export class CreateServiceComponent implements OnInit {
     private categoryTypeService: CategoryTypeService,
     private structureService: StructureService,
     private partService: PartService,
-    private partOptionService: PartOptionService
+    private partOptionService: PartOptionService,
+    private toast: ToastService
   ) {}
 
   // ================= INIT =================
@@ -110,54 +112,93 @@ export class CreateServiceComponent implements OnInit {
 
   // ================= LOADERS =================
   loadCategories(): void {
-    this.categoryService.getAllCategories(true).subscribe(res => {
-      if (res.success && res.data?.categories) {
+    this.categoryService.getAllCategories(true).subscribe({
+      next: (res) => {
+        if (res.success && res.data?.categories) {
         this.categories = res.data.categories;
+      }
+      },
+      error: (err) => {
+        console.log(err)
+        this.toast.show(err.error.message?? "Error loading categories", "error")
       }
     });
   }
 
   onCategoryChange(e: Event): void {
-    const id = Number((e.target as HTMLSelectElement).value);
-    if (!id) return;
+  const id = Number((e.target as HTMLSelectElement).value);
+  if (!id) return;
 
-    this.categoryTypeService.getTypesByCategory(id).subscribe(res => {
-      this.categoryTypes = res.data?.categoryTypes ?? [];
-      this.structures = [];
-      this.parts = [];
-      this.partOptions = [];
-    });
-  }
+  this.categoryTypeService.getTypesByCategory(id).subscribe({
+    next: (res) => {
+      if (res.success && res.data?.categoryTypes) {
+        this.categoryTypes = res.data.categoryTypes;
+        this.structures = [];
+        this.parts = [];
+        this.partOptions = [];
+      }
+    },
+    error: (err) => {
+      this.toast.show(err.error.message ?? 'Error loading category types', 'error');
+    }
+  });
+}
+
 
   onCategoryTypeChange(e: Event): void {
-    const id = Number((e.target as HTMLSelectElement).value);
-    if (!id) return;
+  const id = Number((e.target as HTMLSelectElement).value);
+  if (!id) return;
 
-    this.structureService.getStructuresByType(id).subscribe(res => {
-      this.structures = res.data?.structures ?? [];
-      this.parts = [];
-      this.partOptions = [];
-    });
-  }
+  this.structureService.getStructuresByType(id).subscribe({
+    next: (res) => {
+      if (res.success && res.data?.structures) {
+        this.structures = res.data.structures;
+        this.parts = [];
+        this.partOptions = [];
+      }
+    },
+    error: (err) => {
+      console.log(err)
+      this.toast.show(err.error.message ?? 'Error loading structures', 'error');
+    }
+  });
+}
+
 
   onStructureChange(e: Event): void {
-    const id = Number((e.target as HTMLSelectElement).value);
-    if (!id) return;
+  const id = Number((e.target as HTMLSelectElement).value);
+  if (!id) return;
 
-    this.partService.getPartsByStructure(id).subscribe(res => {
-      this.parts = res.data?.parts ?? [];
-      this.partOptions = [];
-    });
-  }
+  this.partService.getPartsByStructure(id).subscribe({
+    next: (res) => {
+      if (res.success && res.data?.parts) {
+        this.parts = res.data.parts;
+        this.partOptions = [];
+      }
+    },
+    error: (err) => {
+      this.toast.show(err.error.message ?? 'Error loading parts', 'error');
+    }
+  });
+}
+
 
   onPartChange(e: Event): void {
-    const id = Number((e.target as HTMLSelectElement).value);
-    if (!id) return;
+  const id = Number((e.target as HTMLSelectElement).value);
+  if (!id) return;
 
-    this.partOptionService.getOptionsByPart(id).subscribe(res => {
-      this.partOptions = res.data?.partOptions ?? [];
-    });
-  }
+  this.partOptionService.getOptionsByPart(id).subscribe({
+    next: (res) => {
+      if (res.success && res.data?.partOptions) {
+        this.partOptions = res.data.partOptions;
+      }
+    },
+    error: (err) => {
+      this.toast.show(err.error.message ?? 'Error loading part options', 'error');
+    }
+  });
+}
+
 
   // ================= LINKAGE =================
   setLinkage(link: 'Structure' | 'Part' | 'PartOption'): void {
@@ -235,15 +276,15 @@ export class CreateServiceComponent implements OnInit {
         this.isSubmitting = false;
 
         if (res.success) {
-          alert('✅ Service created successfully');
+          this.toast.show(res.message ?? "Service created successfully","success")
           this.reset();
         } else {
-          alert(res.message ?? 'Failed to create service');
+          this.toast.show(res.message ?? 'Failed to create service',"error")
         }
       },
-      error: () => {
+      error: (err) => {
         this.isSubmitting = false;
-        alert('Unexpected error');
+        this.toast.show(err.error.message ?? 'Failed to create service',"error")
       }
     });
   }

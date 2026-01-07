@@ -9,12 +9,12 @@ export class ToastService {
   show(
     message: string,
     type: 'success' | 'error' | 'info' = 'info',
-    duration = 3000
+    duration = 30000
   ) {
     this.snackBar.open(message, 'Close', {
       duration,
       horizontalPosition: 'right',
-      verticalPosition: 'top',
+      verticalPosition: 'bottom',
       panelClass: [`toast-${type}`]
     });
   }

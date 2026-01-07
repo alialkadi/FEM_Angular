@@ -61,8 +61,8 @@ export class CreateFeeComponent {
           this.toast.show(res.message, 'error');
         }
       },
-      error: () => {
-        this.toast.show('Failed to load services.', 'error');
+      error: (err) => {
+        this.toast.show(err.error.message??'Failed to load services.', 'error');
       }
     });
   }
@@ -114,8 +114,8 @@ export class CreateFeeComponent {
         }
         this.isSubmitting = false;
       },
-      error: () => {
-        this.toast.show('Failed to create fee.', 'error');
+      error: (err) => {
+        this.toast.show(err.error.message??'Failed to create fee.', 'error');
         this.isSubmitting = false;
       }
     });

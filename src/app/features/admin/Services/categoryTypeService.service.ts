@@ -37,6 +37,8 @@ export class CategoryTypeService {
     deleteCategoryType(id: number): Observable<ApiResponse<boolean>>{
         return this._http.delete<ApiResponse<boolean>>(`${this.baseurl}/CategoryTypes/${id}`)
     }
-
+getById(id: number): Observable<ApiResponse<CategoryType>>{
+    return this._http.get<ApiResponse<CategoryType>>(`${environment.apiUrl}/CategoryTypes/${id}`)
+  }
   
   }

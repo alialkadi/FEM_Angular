@@ -9,17 +9,17 @@ import { ApiResponse } from '../../Models/ApiResponse';
 })
 export class MetadataValuesService {
 
-    private readonly baseUrl = environment.apiUrl + '/MetadataAttributeValues';
+  private readonly baseUrl = environment.apiUrl + '/MetadataAttributeValues';
 
   constructor(private http: HttpClient) {}
 
-  getByAttribute(attributeId: number) {
+  getByAttribute(attributeId: number): Observable<ApiResponse<any[]>> {
     return this.http.get<ApiResponse<any[]>>(this.baseUrl, {
       params: { attributeId }
     });
   }
 
-  create(attributeId: number, payload: any) {
+  create(attributeId: number, payload: any): Observable<ApiResponse<number>> {
     return this.http.post<ApiResponse<number>>(
       this.baseUrl,
       payload,
@@ -27,7 +27,7 @@ export class MetadataValuesService {
     );
   }
 
-  createBulk(attributeId: number, payload: any) {
+  createBulk(attributeId: number, payload: any): Observable<ApiResponse<number[]>> {
     return this.http.post<ApiResponse<number[]>>(
       `${this.baseUrl}/bulk`,
       payload,
@@ -35,11 +35,11 @@ export class MetadataValuesService {
     );
   }
 
-  update(id: number, payload: any) {
+  update(id: number, payload: any): Observable<ApiResponse<any>> {
     return this.http.put<ApiResponse<any>>(`${this.baseUrl}/${id}`, payload);
   }
 
-  delete(id: number) {
+  delete(id: number): Observable<ApiResponse<any>> {
     return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/${id}`);
   }
 }

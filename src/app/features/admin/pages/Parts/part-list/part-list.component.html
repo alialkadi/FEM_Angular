@@ -1,102 +1,120 @@
 <div class="category-type-container">
-    <!-- ================= PART LIST ================= -->
-    <section class="card list-card">
-        <h2>Part List</h2>
-        <table class="category-table">
-            <thead>
-                <tr>
-                    <th>Part Name</th>
-                    <th>Structure Name</th>
-                    <th>Type Name</th>
-                    <th>Image</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let item of Parts">
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.strucutreName }}</td>
-                    <td>{{ item.categoryTypeName }}</td>
-                    <td>
-                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="type-image" />
-                        <span *ngIf="!item.fileUrl">No Image</span>
-                    </td>
-                    <td class="actions">
-                        <button class="icon-btn edit" (click)="onEdit(item)">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button class="icon-btn delete" (click)="onDelete(item.id!)">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                        <!-- ✅ METADATA BUTTON -->
-                        <!-- <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
-                            <i class="fa-solid fa-tags"></i>
-                        </button> -->
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- ================= PAGINATION ================= -->
-        <div class="paginator">
-            <div class="page-size">
-                <label>Rows per page:</label>
-                <select (change)="onPageSizeChange($event)">
-                    <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
-                    </option>
-                </select>
-            </div>
-            <div class="page-controls">
-                <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1"> Prev </button>
-                <span>Page {{ pageIndex }} of {{ totalPage }}</span>
-                <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPage"> Next </button>
-            </div>
-        </div>
-    </section>
-    <!-- ================= ADD PART ================= -->
-    <section class="card form-card">
-        <h2>Add New Part</h2>
-        <form [formGroup]="crateForm" (ngSubmit)="onSave()">
-            <div class="form-group">
-                <label>Part Name <span class="required">*</span></label>
-                <input type="text" formControlName="name" />
-            </div>
+    <!-- ================= FILTERS ================= -->
+    <section class="card filter-card">
+        <h2>Filters</h2>
+        <div class="filter-grid">
             <div class="form-group">
                 <label>Category</label>
                 <select (change)="onCategoryChange($event)">
-                    <option value="">Select Category</option>
+                    <option value="">All Categories</option>
                     <option *ngFor="let c of categories" [value]="c.id"> {{ c.name }} </option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Category Type</label>
                 <select (change)="onCategoryTypeChange($event)">
-                    <option value="">Select Type</option>
+                    <option value="">All Types</option>
                     <option *ngFor="let t of categoryTypes" [value]="t.id"> {{ t.name }} </option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Parent Structure</label>
-                <select formControlName="structureId">
-                    <option value="">Select Structure</option>
+                <label>Structure</label>
+                <select (change)="onStructureChange($event)">
+                    <option value="">All Structures</option>
                     <option *ngFor="let s of Structures" [value]="s.id"> {{ s.name }} </option>
                 </select>
             </div>
-            <div class="form-group">
-                <input type="file" (change)="onFileSelected($event)" />
-                <img *ngIf="previewUrl" [src]="previewUrl" class="preview-img" />
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn primary">Save</button>
-            </div>
-        </form>
+        </div>
     </section>
-</div>
-<!-- ================= METADATA PANEL ================= -->
-<div *ngIf="selectedPartForMetadata" class="metadata-panel card">
-    <div class="panel-header">
-        <h3> Assign Metadata – {{ selectedPartForMetadata.name }} </h3>
-        <button class="icon-btn close" (click)="closeMetadata()">✖</button>
+    <!-- ================= MAIN GRID ================= -->
+    <div class="main-grid">
+        <!-- ================= PART LIST ================= -->
+        <section class="card list-card">
+            <h2>Part List</h2>
+            <table class="category-table">
+                <thead>
+                    <tr>
+                        <th>Part Name</th>
+                        <th>Structure</th>
+                        <th>Type</th>
+                        <th>Image</th>
+                        <th class="center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of Parts">
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.strucutreName }}</td>
+                        <td>{{ item.categoryTypeName }}</td>
+                        <td>
+                            <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="type-image" />
+                            <span *ngIf="!item.fileUrl" class="muted">No Image</span>
+                        </td>
+                        <td class="actions center">
+                            <button class="icon-btn edit" (click)="onEdit(item)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="icon-btn delete" (click)="onDelete(item.id!)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- ================= PAGINATION ================= -->
+            <div class="paginator">
+                <div class="page-size">
+                    <label>Rows</label>
+                    <select (change)="onPageSizeChange($event)">
+                        <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
+                        </option>
+                    </select>
+                </div>
+                <div class="page-controls">
+                    <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1"> Prev </button>
+                    <span>Page {{ pageIndex }} of {{ totalPage }}</span>
+                    <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPage"> Next </button>
+                </div>
+            </div>
+        </section>
+        <!-- ================= ADD PART ================= -->
+        <section class="card form-card">
+            <h2>Add New Part</h2>
+            <form [formGroup]="crateForm" (ngSubmit)="onSave()">
+                <div class="form-group">
+                    <label>Part Name <span class="required">*</span></label>
+                    <input type="text" formControlName="name" placeholder="Enter part name" />
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select (change)="onCategoryChange($event)">
+                        <option value="">Select Category</option>
+                        <option *ngFor="let c of categories" [value]="c.id"> {{ c.name }} </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category Type</label>
+                    <select (change)="onCategoryTypeChange($event)">
+                        <option value="">Select Type</option>
+                        <option *ngFor="let t of categoryTypes" [value]="t.id"> {{ t.name }} </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Parent Structure</label>
+                    <select formControlName="structureId">
+                        <option value="">Select Structure</option>
+                        <option *ngFor="let s of Structures" [value]="s.id"> {{ s.name }} </option>
+                    </select>
+                </div>
+                <div class="form-group file-upload">
+                    <input type="file" (change)="onFileSelected($event)" />
+                    <img *ngIf="previewUrl" [src]="previewUrl" class="preview-img" />
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary">
+                        <i class="fa-solid fa-plus"></i> Save Part </button>
+                </div>
+            </form>
+        </section>
     </div>
-    <!-- <app-attribute-assignment [targetType]="MetadataTargetType.Part" [targetId]="selectedPartForMetadata.id">
-    </app-attribute-assignment> -->
 </div>

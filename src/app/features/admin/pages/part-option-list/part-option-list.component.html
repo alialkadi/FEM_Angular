@@ -1,110 +1,127 @@
-<div class="category-type-container">
-    <!-- ================= PART OPTION LIST ================= -->
-    <section class="card list-card">
-        <h2>Part Option List</h2>
-        <table class="category-table">
-            <thead>
-                <tr>
-                    <th>Option Name</th>
-                    <th>Image</th>
-                    <th>Part Name</th>
-                    <th>Structure Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let item of PartOptions">
-                    <td>{{ item.name }}</td>
-                    <td>
-                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="type-image" />
-                        <span *ngIf="!item.fileUrl">No Image</span>
-                    </td>
-                    <td>{{ item.mainPartName }}</td>
-                    <td>{{ item.strucutreName }}</td>
-                    <td class="actions">
-                        <button class="icon-btn edit" (click)="onEdit(item)">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button class="icon-btn delete" (click)="onDelete(item.id!)">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                        <!-- ✅ METADATA -->
-                        <!-- <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
-                            <i class="fa-solid fa-tags"></i>
-                        </button> -->
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- ================= PAGINATION ================= -->
-        <div class="paginator">
-            <div class="page-size">
-                <label>Rows per page:</label>
-                <select (change)="onPageSizeChange($event)">
-                    <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
-                    </option>
-                </select>
-            </div>
-            <div class="page-controls">
-                <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1"> Prev </button>
-                <span>Page {{ pageIndex }} of {{ totalPage }}</span>
-                <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPage"> Next </button>
-            </div>
+<div class="admin-crud-container">
+    <!-- ================= PAGE HEADER ================= -->
+    <div class="page-header">
+        <h1>Part Options</h1>
+        <p class="subtitle">Manage part options and their hierarchy</p>
+    </div>
+    <!-- ================= FILTERS ================= -->
+    <section class="card filter-card">
+        <div class="card-header">
+            <h3>Filters</h3>
         </div>
-    </section>
-    <!-- ================= ADD PART OPTION ================= -->
-    <section class="card form-card">
-        <h2>Add New Part Option</h2>
-        <form [formGroup]="crateForm" (ngSubmit)="onSave()">
-            <div class="form-group">
-                <label>Option Name <span class="required">*</span></label>
-                <input type="text" formControlName="name" />
-            </div>
+        <div class="filter-grid">
             <div class="form-group">
                 <label>Category</label>
                 <select (change)="onCategoryChange($event)">
-                    <option value="">Select Category</option>
+                    <option value="">All Categories</option>
                     <option *ngFor="let c of categories" [value]="c.id"> {{ c.name }} </option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Category Type</label>
                 <select (change)="onCategoryTypeChange($event)">
-                    <option value="">Select Type</option>
+                    <option value="">All Types</option>
                     <option *ngFor="let t of categoryTypes" [value]="t.id"> {{ t.name }} </option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Structure</label>
                 <select (change)="onStructureChange($event)">
-                    <option value="">Select Structure</option>
+                    <option value="">All Structures</option>
                     <option *ngFor="let s of Structures" [value]="s.id"> {{ s.name }} </option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Parent Part</label>
-                <select formControlName="mainPartId">
-                    <option value="">Select Part</option>
+                <label>Part</label>
+                <select (change)="onPartFilterChange($event)">
+                    <option value="">All Parts</option>
                     <option *ngFor="let p of Parts" [value]="p.id"> {{ p.name }} </option>
                 </select>
             </div>
-            <div class="form-group">
-                <input type="file" (change)="onFileSelected($event)" />
-                <img *ngIf="previewUrl" [src]="previewUrl" class="preview-img" />
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn primary">Save</button>
-            </div>
-        </form>
+        </div>
     </section>
-</div>
-<!-- ================= METADATA PANEL ================= -->
-<div *ngIf="selectedPartOptionForMetadata" class="metadata-panel card">
-    <div class="panel-header">
-        <h3> Assign Metadata – {{ selectedPartOptionForMetadata.name }} </h3>
-        <button class="icon-btn close" (click)="closeMetadata()">✖</button>
+    <!-- ================= CONTENT GRID ================= -->
+    <div class="content-grid">
+        <!-- ================= LIST ================= -->
+        <section class="card list-card">
+            <div class="card-header between">
+                <h3>Part Option List</h3>
+                <span class="badge">{{ totalCount }} items</span>
+            </div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>Image</th>
+                        <th>Part</th>
+                        <th>Structure</th>
+                        <th>Category Type</th>
+                        <th class="center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of PartOptions">
+                        <td class="strong">{{ item.name }}</td>
+                        <td>
+                            <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="thumb" />
+                            <span *ngIf="!item.fileUrl" class="muted">—</span>
+                        </td>
+                        <td>{{ item.mainPartName }}</td>
+                        <td>{{ item.strucutreName }}</td>
+                        <td>{{ item.categoryTypeName }}</td>
+                        <td class="center actions">
+                            <button class="icon-btn edit" (click)="onEdit(item)">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="icon-btn delete" (click)="onDelete(item.id!)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- ================= PAGINATION ================= -->
+            <div class="table-footer">
+                <div class="page-size">
+                    <label>Rows</label>
+                    <select (change)="onPageSizeChange($event)">
+                        <option *ngFor="let size of pageSizes" [value]="size"> {{ size }} </option>
+                    </select>
+                </div>
+                <div class="page-controls">
+                    <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1"> Prev </button>
+                    <span>Page {{ pageIndex }} of {{ totalPage }}</span>
+                    <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPage"> Next </button>
+                </div>
+            </div>
+        </section>
+        <!-- ================= CREATE ================= -->
+        <section class="card form-card">
+            <div class="card-header">
+                <h3>Create Part Option</h3>
+            </div>
+            <form [formGroup]="crateForm" (ngSubmit)="onSave()">
+                <div class="form-group">
+                    <label>Option Name *</label>
+                    <input type="text" formControlName="name" placeholder="e.g. Operator 01" />
+                </div>
+                <div class="form-group">
+                    <label>Parent Part *</label>
+                    <select formControlName="mainPartId">
+                        <option value="">Select Part</option>
+                        <option *ngFor="let p of Parts" [value]="p.id"> {{ p.name }} </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Image</label>
+                    <input type="file" (change)="onFileSelected($event)" />
+                    <img *ngIf="previewUrl" [src]="previewUrl" class="preview-img" />
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary">
+                        <i class="fa-solid fa-plus"></i> Create </button>
+                </div>
+            </form>
+        </section>
     </div>
-    <!-- <app-attribute-assignment [targetType]="MetadataTargetType.PartOption"
-        [targetId]="selectedPartOptionForMetadata.id">
-    </app-attribute-assignment> -->
 </div>

@@ -19,6 +19,9 @@ export class CategoryService {
       `${environment.apiUrl}/Category`, {params});
   }
 
+  getById(id: number): Observable<ApiResponse<Category>>{
+    return this._http.get<ApiResponse<Category>>(`${environment.apiUrl}/Category/${id}`)
+  }
   CreateCategory(data: FormData): Observable<ApiResponse<Category>> {
     return this._http.post<ApiResponse<Category>>(`${environment.apiUrl}/Category`, data)
   }
