@@ -3,6 +3,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MetadataAttribute } from '../../../../Models/MetadataAttribute';
 import { MetadataAttributeService } from '../../../Services/metadata-attribute.service';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-metadata-update-attribute',
@@ -16,15 +17,12 @@ export class MetadataUpdateAttributeComponent {
   attribute!: MetadataAttribute;
   loading = false;
 
-  // ✅ UI messages
-  successMessage: string | null = null;
-  errorMessage: string | null = null;
-
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private service: MetadataAttributeService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -46,7 +44,6 @@ export class MetadataUpdateAttributeComponent {
 
   private loadAttribute(): void {
     this.loading = true;
-    this.errorMessage = null;
 
     this.service.getById(this.attributeId).subscribe({
       next: attr => {
@@ -64,7 +61,7 @@ export class MetadataUpdateAttributeComponent {
         this.loading = false;
       },
       error: () => {
-        this.errorMessage = 'Failed to load metadata attribute.';
+        this.toast.show('Failed to load metadata attribute.', 'error');
         this.loading = false;
       }
     });
@@ -74,26 +71,23 @@ export class MetadataUpdateAttributeComponent {
     if (this.form.invalid || this.loading) return;
 
     this.loading = true;
-    this.errorMessage = null;
-    this.successMessage = null;
 
     this.service.update(this.attributeId, this.form.value).subscribe({
-      next: () => {
+      next: (res) => {
+        this.toast.show(res.message, 'success');
         this.loading = false;
-        this.successMessage = 'Metadata attribute updated successfully.';
 
         // optional delay before navigation
         setTimeout(() => {
           this.router.navigate(['/admin/dashboard/metadata']);
         }, 1000);
       },
-      error: err => {
+      error: (err) => {
+        this.toast.show(
+          err?.error?.message ?? 'Failed to update metadata attribute.',
+          'error'
+        );
         this.loading = false;
-
-        // ✅ Extract backend message safely
-        this.errorMessage =
-          err?.error?.message ??
-          'Failed to update metadata attribute.';
       }
     });
   }

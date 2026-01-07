@@ -44,4 +44,8 @@ export class StructureService {
       data
     );
   }
+
+  getById(id: number): Observable<ApiResponse<Structure>>{
+    return this._http.get<ApiResponse<Structure>>(`${environment.apiUrl}/Structure/${id}`)
+  }
 }

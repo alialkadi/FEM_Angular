@@ -3,6 +3,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MetadataDataType } from '../../../../Models/MetadataDataType';
 import { MetadataAttributeService } from '../../../Services/metadata-attribute.service';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-metadata-create-attribute',
@@ -26,7 +27,8 @@ export class MetadataCreateAttributeComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private service: MetadataAttributeService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -49,7 +51,7 @@ export class MetadataCreateAttributeComponent implements OnInit {
       isActive: [true]
     });
 
-    // Enforce backend rule: AllowMultipleValues ONLY for SELECT
+    // Enforce backend rule
     this.form.get('dataType')!.valueChanges.subscribe(type => {
       if (type !== MetadataDataType.Select) {
         this.form.get('allowMultipleValues')!.setValue(false);
@@ -65,7 +67,7 @@ export class MetadataCreateAttributeComponent implements OnInit {
   // -------------------------
   submit(): void {
     if (this.form.invalid || this.loading) return;
-    console.log(this.form)
+
     this.loading = true;
 
     const payload = {
@@ -75,13 +77,12 @@ export class MetadataCreateAttributeComponent implements OnInit {
 
     this.service.create(payload).subscribe({
       next: (res) => {
+        this.toast.show(res.message, 'success');
         this.loading = false;
-        console.log(payload)
-        console.log(res)
         this.router.navigate(['/admin/dashboard/metadata']);
       },
-      error: err => {
-        console.error('Failed to create metadata attribute', err);
+      error: () => {
+        this.toast.show('Failed to create metadata attribute.', 'error');
         this.loading = false;
       }
     });

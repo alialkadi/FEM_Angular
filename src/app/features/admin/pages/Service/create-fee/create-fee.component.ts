@@ -4,6 +4,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ServiceMiniResponse } from '../../../../Models/FeeResponse.Model';
 import { FeeService } from '../../../Services/fee.service';
 import { ServiceService } from '../../../Services/service-service.service';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-create-fee',
@@ -11,6 +12,7 @@ import { ServiceService } from '../../../Services/service-service.service';
   styleUrl: './create-fee.component.scss'
 })
 export class CreateFeeComponent {
+
   feeForm!: FormGroup;
   isSubmitting = false;
   isGlobal = true;
@@ -22,7 +24,8 @@ export class CreateFeeComponent {
   constructor(
     private fb: FormBuilder,
     private feeService: FeeService,
-    private serviceService: ServiceService
+    private serviceService: ServiceService,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -50,11 +53,17 @@ export class CreateFeeComponent {
   loadServices(): void {
     this.serviceService.getAllServices(true).subscribe({
       next: (res: ApiResponse<any>) => {
-        console.log(res)
-        this.services = res.data.services ?? [];
-        this.filteredServices = [...this.services];
+        if (res.success) {
+          this.services = res.data.services ?? [];
+          this.filteredServices = [...this.services];
+          // this.toast.show(res.message, 'success');
+        } else {
+          this.toast.show(res.message, 'error');
+        }
       },
-      error: (err) => console.error('Failed to load services', err)
+      error: (err) => {
+        this.toast.show(err.error.message??'Failed to load services.', 'error');
+      }
     });
   }
 
@@ -92,17 +101,21 @@ export class CreateFeeComponent {
 
   onSubmit(): void {
     if (this.feeForm.invalid) return;
+
     this.isSubmitting = true;
 
     this.feeService.createFee(this.feeForm.value).subscribe({
       next: (res) => {
-        alert(`✅ Fee "${res.data.name}" created successfully!`);
-        this.feeForm.reset({ isGlobal: true });
+        if (res.success) {
+          this.toast.show(res.message, 'success');
+          this.feeForm.reset({ isGlobal: true });
+        } else {
+          this.toast.show(res.message, 'error');
+        }
         this.isSubmitting = false;
       },
       error: (err) => {
-        console.error(err);
-        alert('❌ Failed to create fee.');
+        this.toast.show(err.error.message??'Failed to create fee.', 'error');
         this.isSubmitting = false;
       }
     });

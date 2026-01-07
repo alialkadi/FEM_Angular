@@ -20,6 +20,7 @@ import { Structure } from '../../../../Models/Structure.Model';
 import { Part } from '../../../../Models/Part.Models';
 import { PartOption } from '../../../../Models/PartOption.Model';
 import { ServiceResponse } from '../../../../Models/service.Model';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-update-service',
@@ -28,12 +29,10 @@ import { ServiceResponse } from '../../../../Models/service.Model';
 })
 export class UpdateServiceComponent implements OnInit {
 
-  // ================= CORE =================
   serviceId!: number;
   serviceForm!: FormGroup;
   isSubmitting = false;
 
-  // ================= LINKAGE =================
   activeLinkage: 'Structure' | 'Part' | 'PartOption' = 'Structure';
 
   categories: Category[] = [];
@@ -42,11 +41,9 @@ export class UpdateServiceComponent implements OnInit {
   parts: Part[] = [];
   partOptions: PartOption[] = [];
 
-  // ================= FILE =================
   selectedFile: File | null = null;
   previewUrl: string | null = null;
 
-  // ================= METADATA =================
   showMetadata = false;
   metadataPayload: MetadataAssignmentItemRequest[] = [];
 
@@ -62,7 +59,8 @@ export class UpdateServiceComponent implements OnInit {
     private categoryTypeService: CategoryTypeService,
     private structureService: StructureService,
     private partService: PartService,
-    private partOptionService: PartOptionService
+    private partOptionService: PartOptionService,
+    private toast: ToastService
   ) {}
 
   // ================= INIT =================
@@ -80,96 +78,109 @@ export class UpdateServiceComponent implements OnInit {
     this.serviceForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
-      series: [''],
-      lockingPoint: [''],
-      pointNumber: [''],
       baseCost: [0, [Validators.required, Validators.min(0)]],
       warrantyDuration: [0, [Validators.required, Validators.min(0)]],
       warrantyUnit: ['Months', Validators.required],
       deliveryDays: [0, [Validators.required, Validators.min(0)]],
-      labors: [0, [Validators.min(0)]],
-       categoryId: [{ value: null, disabled: true }],
-  categoryTypeId: [{ value: null, disabled: true }],
-  structureId: [{ value: null, disabled: true }],
-  partId: [{ value: null, disabled: true }],
-  partOptionId: [{ value: null, disabled: true }],
-    });
-  }
-  isReassignMode: boolean = false;
-enableReassign(): void {
-  if (!confirm(
-    'Changing the service hierarchy may affect pricing, metadata, and availability.\n\nContinue?'
-  )) {
-    return;
-  }
+      labors: [0, Validators.min(0)],
 
-  this.isReassignMode = true;
-
-  this.serviceForm.get('categoryId')?.enable();
-  this.serviceForm.get('categoryTypeId')?.enable();
-  this.serviceForm.get('structureId')?.enable();
-  this.serviceForm.get('partId')?.enable();
-  this.serviceForm.get('partOptionId')?.enable();
-}
-
-  // ================= LOAD DATA =================
-  loadCategories(): void {
-    this.categoryService.getAllCategories(true).subscribe(res => {
-      if (res.success && res.data?.categories) {
-        this.categories = res.data.categories;
-      }
+      categoryId: [{ value: null, disabled: true }],
+      categoryTypeId: [{ value: null, disabled: true }],
+      structureId: [{ value: null, disabled: true }],
+      partId: [{ value: null, disabled: true }],
+      partOptionId: [{ value: null, disabled: true }]
     });
   }
 
+  // ================= LOAD SERVICE =================
   private loadService(): void {
-    this.serviceService.getServicesById(this.serviceId).subscribe(res => {
-      if (!res.success || !res.data) return;
+    this.serviceService.getServicesById(this.serviceId).subscribe({
+      next: res => {
+        if (!res.success || !res.data) return;
 
-      const s: ServiceResponse = res.data;
+        const s: ServiceResponse = res.data;
 
-      // -------- Detect linkage --------
-      if (s.partOptionId) this.activeLinkage = 'PartOption';
-      else if (s.partId) this.activeLinkage = 'Part';
-      else this.activeLinkage = 'Structure';
+        if (s.partOptionId) this.activeLinkage = 'PartOption';
+        else if (s.partId) this.activeLinkage = 'Part';
+        else this.activeLinkage = 'Structure';
 
-      // -------- Patch form --------
-      this.serviceForm.patchValue({
-        name: s.name,
-        description: s.description,
-        baseCost: s.baseCost,
-        warrantyDuration: s.warrantyDuration,
-        warrantyUnit: s.warrantyUnit,
-        deliveryDays: s.deliveryDays,
-        labors: s.labors,
-        structureId: s.structureId,
-        partId: s.partId,
-        partOptionId: s.partOptionId
-      });
-
-      // -------- Load cascading dropdowns --------
-      if (s.structureId) {
-        this.partService.getPartsByStructure(s.structureId).subscribe(res => {
-          this.parts = res.data?.parts ?? [];
+        this.serviceForm.patchValue({
+          name: s.name,
+          description: s.description,
+          baseCost: s.baseCost,
+          warrantyDuration: s.warrantyDuration,
+          warrantyUnit: s.warrantyUnit,
+          deliveryDays: s.deliveryDays,
+          labors: s.labors
         });
-      }
 
-      if (s.partId) {
-        this.partOptionService.getOptionsByPart(s.partId).subscribe(res => {
-          this.partOptions = res.data?.partOptions ?? [];
-        });
-      }
+        this.restoreHierarchy(s);
 
-      // -------- Metadata --------
-      this.metadataPayload =
-        s.metadata
-          ?.filter(m => m.metadataAttributeId != null)
-          .map(m => ({
+        this.metadataPayload =
+          s.metadata?.map(m => ({
             metadataAttributeId: m.metadataAttributeId!,
-            valueIds: m.metadataAttributeValueId
-              ? [m.metadataAttributeValueId]
-              : [],
+            valueIds: m.metadataAttributeValueId ? [m.metadataAttributeValueId] : [],
             valueText: m.valueText ?? undefined
           })) ?? [];
+      },
+      error: err => {
+        this.toast.show(err.error?.message ?? 'Error loading service', 'error');
+      }
+    });
+  }
+
+  // ================= RESTORE HIERARCHY =================
+  private restoreHierarchy(s: ServiceResponse): void {
+    if (!s.structureId) return;
+
+    this.structureService.getById(s.structureId).subscribe(structRes => {
+      const structure = structRes.data;
+      if (!structure) return;
+
+      this.categoryTypeService.getById(structure.typeId!).subscribe(typeRes => {
+        const type = typeRes.data;
+        if (!type) return;
+
+        this.categoryService.getById(type.categoryId!).subscribe(catRes => {
+          const category = catRes.data;
+          if (!category) return;
+
+          this.categoryTypeService.getTypesByCategory(category.id).subscribe(ct => {
+            this.categoryTypes = ct.data?.categoryTypes ?? [];
+
+            this.structureService.getStructuresByType(type.id).subscribe(st => {
+              this.structures = st.data?.structures ?? [];
+
+              this.serviceForm.patchValue({
+                categoryId: category.id,
+                categoryTypeId: type.id,
+                structureId: structure.id
+              });
+
+              if (s.partId) {
+                this.partService.getPartsByStructure(structure.id).subscribe(p => {
+                  this.parts = p.data?.parts ?? [];
+                  this.serviceForm.patchValue({ partId: s.partId });
+
+                  if (s.partOptionId) {
+                    this.partOptionService.getOptionsByPart(s.partId!).subscribe(o => {
+                      this.partOptions = o.data?.partOptions ?? [];
+                      this.serviceForm.patchValue({ partOptionId: s.partOptionId });
+                    });
+                  }
+                });
+              }
+            });
+          });
+        });
+      });
+    });
+  }
+
+  // ================= LOADERS =================
+  loadCategories(): void {
+    this.categoryService.getAllCategories(true).subscribe(res => {
+      this.categories = res.data?.categories ?? [];
     });
   }
 
@@ -188,95 +199,24 @@ enableReassign(): void {
     if (!input.files?.length) return;
 
     this.selectedFile = input.files[0];
-
     const reader = new FileReader();
-    reader.onload = () => (this.previewUrl = reader.result as string);
+    reader.onload = () => this.previewUrl = reader.result as string;
     reader.readAsDataURL(this.selectedFile);
-  }
-
-  // ================= LOADERS (SAME AS CREATE) =================
-  onCategoryChange(e: Event): void {
-    const id = Number((e.target as HTMLSelectElement).value);
-    if (!id) return;
-
-    this.categoryTypeService.getTypesByCategory(id).subscribe(res => {
-      this.categoryTypes = res.data?.categoryTypes ?? [];
-      this.structures = [];
-      this.parts = [];
-      this.partOptions = [];
-    });
-  }
-
-  onCategoryTypeChange(e: Event): void {
-    const id = Number((e.target as HTMLSelectElement).value);
-    if (!id) return;
-
-    this.structureService.getStructuresByType(id).subscribe(res => {
-      this.structures = res.data?.structures ?? [];
-      this.parts = [];
-      this.partOptions = [];
-    });
-  }
-
-  onStructureChange(e: Event): void {
-    const id = Number((e.target as HTMLSelectElement).value);
-    if (!id) return;
-
-    this.partService.getPartsByStructure(id).subscribe(res => {
-      this.parts = res.data?.parts ?? [];
-      this.partOptions = [];
-    });
-  }
-
-  onPartChange(e: Event): void {
-    const id = Number((e.target as HTMLSelectElement).value);
-    if (!id) return;
-
-    this.partOptionService.getOptionsByPart(id).subscribe(res => {
-      this.partOptions = res.data?.partOptions ?? [];
-    });
-  }
-
-  // ================= LINKAGE =================
-  setLinkage(link: 'Structure' | 'Part' | 'PartOption'): void {
-    this.activeLinkage = link;
-
-    this.serviceForm.patchValue({
-      structureId: null,
-      partId: null,
-      partOptionId: null,
-      categoryId: null,
-      categoryTypeId: null
-    });
   }
 
   // ================= SUBMIT =================
   onSubmit(): void {
-    if (this.serviceForm.invalid) {
-      this.serviceForm.markAllAsTouched();
-      return;
-    }
+    if (this.serviceForm.invalid) return;
 
     this.isSubmitting = true;
-    const payload = { ...this.serviceForm.value };
 
-    // Enforce single linkage
-    if (this.activeLinkage === 'Structure') {
-      payload.partId = null;
-      payload.partOptionId = null;
-    } else if (this.activeLinkage === 'Part') {
-      payload.structureId = null;
-      payload.partOptionId = null;
-    } else {
-      payload.structureId = null;
-      payload.partId = null;
-    }
+    // 🔥 CRITICAL: getRawValue to include disabled hierarchy
+    const payload = this.serviceForm.getRawValue();
 
     const formData = new FormData();
-
-    Object.keys(payload).forEach(key => {
-      if (payload[key] !== null && payload[key] !== undefined) {
-        formData.append(key, payload[key]);
+    Object.entries(payload).forEach(([k, v]) => {
+      if (v !== null && v !== undefined) {
+        formData.append(k, v as any);
       }
     });
 
@@ -284,14 +224,11 @@ enableReassign(): void {
       formData.append('file', this.selectedFile);
     }
 
-    // -------- Metadata (replace-all) --------
     this.metadataPayload.forEach((m, i) => {
       formData.append(`Metadata[${i}].MetadataAttributeId`, m.metadataAttributeId.toString());
-
-      m.valueIds?.forEach((v, j) => {
-        formData.append(`Metadata[${i}].ValueIds[${j}]`, v.toString());
-      });
-
+      m.valueIds?.forEach((v, j) =>
+        formData.append(`Metadata[${i}].ValueIds[${j}]`, v.toString())
+      );
       if (m.valueText) {
         formData.append(`Metadata[${i}].ValueText`, m.valueText);
       }
@@ -301,16 +238,15 @@ enableReassign(): void {
       next: res => {
         this.isSubmitting = false;
         if (res.success) {
-          alert('✅ Service updated successfully');
-          this.router.navigate(['/admin/services']);
+          this.toast.show('Service updated successfully', 'success');
+          this.router.navigate(['/admin/dashboard/Services']);
         } else {
-          alert(res.message ?? 'Update failed');
+          this.toast.show(res.message ?? 'Update failed', 'error');
         }
       },
-      error: (err) => {
+      error: err => {
         this.isSubmitting = false;
-        console.log(err)
-        alert('Unexpected error');
+        this.toast.show(err.error?.message ?? 'Update failed', 'error');
       }
     });
   }

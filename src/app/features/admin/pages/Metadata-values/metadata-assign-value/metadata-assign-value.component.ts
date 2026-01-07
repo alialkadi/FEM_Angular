@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MetadataValuesService } from '../../../Services/metadata-values.service';
 import { MetadataAttributeService } from '../../../Services/metadata-attribute.service';
 import { MetadataDataType } from '../../../../Models/MetadataDataType';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-metadata-assign-value',
@@ -12,44 +13,28 @@ import { MetadataDataType } from '../../../../Models/MetadataDataType';
 })
 export class MetadataAssignValueComponent implements OnInit {
 
-  // ===============================
-  // ATTRIBUTE
-  // ===============================
   attributeId!: number;
   attributeName = '';
 
-  // ===============================
-  // VALUES DATA
-  // ===============================
   values: any[] = [];
   editingId: number | null = null;
 
-  // ===============================
-  // CREATE MODES
-  // ===============================
   mode: 'single' | 'bulk' = 'single';
 
   singleForm!: FormGroup;
   bulkForm!: FormGroup;
 
-  // ===============================
-  // UI STATE
-  // ===============================
   loading = false;
-  errorMessage = '';
-  successMessage = '';
 
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private valuesService: MetadataValuesService,
     private attributeService: MetadataAttributeService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
-  // ===============================
-  // INIT
-  // ===============================
   ngOnInit(): void {
     this.attributeId = Number(this.route.snapshot.paramMap.get('attributeId'));
 
@@ -68,46 +53,50 @@ export class MetadataAssignValueComponent implements OnInit {
     this.loadValues();
   }
 
-  // ===============================
-  // LOAD ATTRIBUTE (GUARD)
-  // ===============================
+  // ------------------------------
+  // LOAD ATTRIBUTE
+  // ------------------------------
   private loadAttribute() {
-    this.attributeService.getById(this.attributeId).subscribe(attr => {
-      if (!attr || attr.dataType !== MetadataDataType.Select) {
+    this.attributeService.getById(this.attributeId).subscribe(res => {
+      if (!res || res.dataType !== MetadataDataType.Select) {
+        this.toast.show('Invalid metadata attribute', 'error');
         this.router.navigate(['/admin/dashboard/metadata']);
         return;
       }
-      this.attributeName = attr.name;
+      this.toast.show("Metadata Fetched Successfully", "success")
+      this.attributeName = res.name;
     });
   }
 
-  // ===============================
+  // ------------------------------
   // LOAD VALUES
-  // ===============================
+  // ------------------------------
   loadValues() {
     this.loading = true;
     this.valuesService.getByAttribute(this.attributeId).subscribe({
       next: res => {
+        if (!res.success) {
+          this.toast.show(res.message, 'error');
+          this.loading = false;
+          return;
+        }
         this.values = res.data;
         this.loading = false;
       },
-      error: err => {
-        this.errorMessage = err?.error?.message || 'Failed to load values';
+      error: () => {
+        this.toast.show('Failed to load metadata values', 'error');
         this.loading = false;
       }
     });
   }
 
-  // ===============================
+  // ------------------------------
   // CREATE SINGLE
-  // ===============================
+  // ------------------------------
   normalizeSingleValue() {
     const value = this.singleForm.get('value')?.value || '';
     this.singleForm.patchValue({
-      value: value
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '_')
+      value: value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_')
     });
   }
 
@@ -116,60 +105,69 @@ export class MetadataAssignValueComponent implements OnInit {
 
     this.loading = true;
     this.valuesService.create(this.attributeId, this.singleForm.value).subscribe({
-      next: () => {
+      next: res => {
+        if (!res.success) {
+          this.toast.show(res.message, 'error');
+          this.loading = false;
+          return;
+        }
+
+        this.toast.show(res.message, 'success');
         this.singleForm.reset({ sortOrder: 0 });
         this.loadValues();
-        this.loading = false;
       },
-      error: err => {
-        this.errorMessage = err?.error?.message || 'Create failed';
+      error: () => {
+        this.toast.show('Create failed', 'error');
         this.loading = false;
       }
     });
   }
 
-  // ===============================
+  // ------------------------------
   // CREATE BULK
-  // ===============================
+  // ------------------------------
   submitBulk() {
     const raw = this.bulkForm.value.values;
     const start = this.bulkForm.value.startSortOrder;
 
     const values = raw
       .split('\n')
-      .map((x:string) => x.trim())
+      .map((x: string) => x.trim())
       .filter(Boolean)
       .map((line: string, i: number) => ({
-        value: line
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9]+/g, '_'),
+        value: line.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
         displayName: line,
         sortOrder: start + i
       }));
 
     if (!values.length) {
-      this.errorMessage = 'No valid values found';
+      this.toast.show('No valid values found', 'error');
       return;
     }
 
     this.loading = true;
     this.valuesService.createBulk(this.attributeId, { values }).subscribe({
-      next: () => {
+      next: res => {
+        if (!res.success) {
+          this.toast.show(res.message, 'error');
+          this.loading = false;
+          return;
+        }
+
+        this.toast.show(res.message, 'success');
         this.bulkForm.reset({ startSortOrder: 0 });
         this.loadValues();
-        this.loading = false;
       },
-      error: err => {
-        this.errorMessage = err?.error?.message || 'Bulk create failed';
+      error: () => {
+        this.toast.show('Bulk create failed', 'error');
         this.loading = false;
       }
     });
   }
 
-  // ===============================
-  // EDIT EXISTING VALUE
-  // ===============================
+  // ------------------------------
+  // EDIT
+  // ------------------------------
   startEdit(v: any) {
     this.editingId = v.id;
     v._edit = {
@@ -187,36 +185,48 @@ export class MetadataAssignValueComponent implements OnInit {
   saveEdit(v: any) {
     this.loading = true;
     this.valuesService.update(v.id, v._edit).subscribe({
-      next: () => {
+      next: res => {
+        if (!res.success) {
+          this.toast.show(res.message, 'error');
+          this.loading = false;
+          return;
+        }
+
         Object.assign(v, v._edit);
         delete v._edit;
         this.editingId = null;
+        this.toast.show(res.message, 'success');
         this.loading = false;
       },
-      error: err => {
-        this.errorMessage = err?.error?.message || 'Update failed';
+      error: () => {
+        this.toast.show('Update failed', 'error');
         this.loading = false;
       }
     });
   }
 
-  // ===============================
+  // ------------------------------
   // DELETE
-  // ===============================
+  // ------------------------------
   deleteValue(v: any) {
     if (!confirm('Delete this value?')) return;
 
     this.valuesService.delete(v.id).subscribe({
-      next: () => this.loadValues(),
-      error: err => {
-        this.errorMessage = err?.error?.message || 'Delete failed';
+      next: res => {
+        if (!res.success) {
+          this.toast.show(res.message, 'error');
+          return;
+        }
+
+        this.toast.show(res.message, 'success');
+        this.loadValues();
+      },
+      error: () => {
+        this.toast.show('Delete failed', 'error');
       }
     });
   }
 
-  // ===============================
-  // NAVIGATION
-  // ===============================
   cancel() {
     this.router.navigate(['/admin/dashboard/metadata']);
   }

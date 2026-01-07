@@ -3,11 +3,10 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 
 import { Part } from '../../../Models/Part.Models';
-import { PartOption, createUpdatePartOption } from '../../../Models/PartOption.Model';
+import { PartOption } from '../../../Models/PartOption.Model';
 import { Category } from '../../../Models/Category';
 import { CategoryType } from '../../../Models/CategoryType';
 import { Structure } from '../../../Models/Structure.Model';
-import { MetadataTargetType } from '../../../Models/MetadataTargetType';
 
 import { PartOptionService } from '../../Services/part-option-service.service';
 import { PartService } from '../../Services/part-service.service';
@@ -15,6 +14,7 @@ import { CategoryService } from '../../Services/CategoryService';
 import { CategoryTypeService } from '../../Services/categoryTypeService.service';
 import { StructureService } from '../../Services/structure-service.service';
 import { EditPartOptionDialogComponent } from '../../../../shared/Dialogs/edit-part-option-dialog/edit-part-option-dialog.component';
+import { ToastService } from '../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-part-option-list',
@@ -23,27 +23,33 @@ import { EditPartOptionDialogComponent } from '../../../../shared/Dialogs/edit-p
 })
 export class PartOptionListComponent implements OnInit {
 
-  // ================= METADATA =================
-  selectedPartOptionForMetadata: PartOption | null = null;
-  MetadataTargetType = MetadataTargetType;
-
-  // ================= TABLE =================
+  /* ================= DATA ================= */
+  allPartOptions: PartOption[] = [];
+  filteredPartOptions: PartOption[] = [];
   PartOptions: PartOption[] = [];
+
+  categories: Category[] = [];
+  categoryTypes: CategoryType[] = [];
+  Structures: Structure[] = [];
+  Parts: Part[] = [];
+
+  /* ================= FILTER STATE ================= */
+  selectedCategoryId?: number;
+  selectedCategoryTypeId?: number;
+  selectedStructureId?: number;
+  selectedPartId?: number;
+
+  /* ================= PAGINATION ================= */
   pageIndex = 1;
   pageSize = 5;
   pageSizes = [5, 10, 25];
   totalCount = 0;
 
-  // ================= FORM =================
+  /* ================= FORM ================= */
   crateForm = new FormGroup({
     name: new FormControl('', Validators.required),
-    mainPartId: new FormControl('')
+    mainPartId: new FormControl('', Validators.required)
   });
-
-  Parts: Part[] = [];
-  Structures: Structure[] = [];
-  categories: Category[] = [];
-  categoryTypes: CategoryType[] = [];
 
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
@@ -54,7 +60,8 @@ export class PartOptionListComponent implements OnInit {
     private structureService: StructureService,
     private categoryService: CategoryService,
     private categoryTypeService: CategoryTypeService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -62,85 +69,151 @@ export class PartOptionListComponent implements OnInit {
     this.loadCategories();
   }
 
-  // ================= METADATA =================
-  openMetadata(option: PartOption): void {
-    this.selectedPartOptionForMetadata = option;
-  }
+  /* ================= LOADERS ================= */
 
-  closeMetadata(): void {
-    this.selectedPartOptionForMetadata = null;
-  }
-
-  // ================= LOADERS =================
   loadPartOptions(): void {
-    this.partOptionService
-      .getAllPartOptions(false, this.pageIndex, this.pageSize)
-      .subscribe(res => {
-        this.PartOptions = res.data.partOptions;
-        this.totalCount = res.data.totalCount;
-      });
+    this.partOptionService.getAllPartOptions(true, 1, 1000).subscribe({
+      next: res => {
+        if (!res.success) {
+          this.toast.show(res.message, 'error');
+          return;
+        }
+        this.allPartOptions = res.data.partOptions;
+        this.applyFilters();
+      },
+      error: () => this.toast.show('Failed to load Part Options', 'error')
+    });
   }
 
   loadCategories(): void {
     this.categoryService.getAllCategories(true).subscribe(res => {
-      this.categories = res.data.categories;
+      if (res.success) this.categories = res.data.categories;
     });
   }
 
-  onCategoryChange(event: Event): void {
-    const categoryId = +(event.target as HTMLSelectElement).value;
-    if (!categoryId) return;
+  /* ================= FILTER HANDLERS ================= */
 
-    this.categoryTypeService.getTypesByCategory(categoryId).subscribe(res => {
-      this.categoryTypes = res.data.categoryTypes;
-    });
+  onCategoryChange(event: Event): void {
+    this.selectedCategoryId = +(event.target as HTMLSelectElement).value || undefined;
+    this.selectedCategoryTypeId = undefined;
+    this.selectedStructureId = undefined;
+    this.selectedPartId = undefined;
+
+    this.categoryTypes = [];
+    this.Structures = [];
+    this.Parts = [];
+
+    if (this.selectedCategoryId) {
+      this.categoryTypeService.getTypesByCategory(this.selectedCategoryId).subscribe(res => {
+        if (res.success) this.categoryTypes = res.data.categoryTypes;
+      });
+    }
+
+    this.applyFilters();
   }
 
   onCategoryTypeChange(event: Event): void {
-    const typeId = +(event.target as HTMLSelectElement).value;
-    if (!typeId) return;
+    this.selectedCategoryTypeId = +(event.target as HTMLSelectElement).value || undefined;
+    this.selectedStructureId = undefined;
+    this.selectedPartId = undefined;
 
-    this.structureService.getStructuresByType(typeId).subscribe(res => {
-      this.Structures = res.data.structures;
-    });
+    this.Structures = [];
+    this.Parts = [];
+
+    if (this.selectedCategoryTypeId) {
+      this.structureService.getStructuresByType(this.selectedCategoryTypeId).subscribe(res => {
+        if (res.success) this.Structures = res.data.structures;
+      });
+    }
+
+    this.applyFilters();
   }
 
   onStructureChange(event: Event): void {
-    const structureId = +(event.target as HTMLSelectElement).value;
-    if (!structureId) return;
+    this.selectedStructureId = +(event.target as HTMLSelectElement).value || undefined;
+    this.selectedPartId = undefined;
 
-    this.partService.getPartsByStructure(structureId).subscribe(res => {
-      this.Parts = res.data.parts;
-    });
+    this.Parts = [];
+
+    if (this.selectedStructureId) {
+      this.partService.getPartsByStructure(this.selectedStructureId).subscribe(res => {
+        if (res.success) this.Parts = res.data.parts;
+      });
+    }
+
+    this.applyFilters();
   }
 
-  // ================= CRUD =================
+  onPartFilterChange(event: Event): void {
+    this.selectedPartId = +(event.target as HTMLSelectElement).value || undefined;
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    this.filteredPartOptions = this.allPartOptions.filter(o => {
+      if (this.selectedCategoryId && o.categoryId !== this.selectedCategoryId) return false;
+      if (this.selectedCategoryTypeId && o.categoryTypeId !== this.selectedCategoryTypeId) return false;
+      if (this.selectedStructureId && o.structureId !== this.selectedStructureId) return false;
+      if (this.selectedPartId && o.mainPartId !== this.selectedPartId) return false;
+      return true;
+    });
+
+    this.totalCount = this.filteredPartOptions.length;
+    this.pageIndex = 1;
+    this.updatePagedData();
+  }
+
+  /* ================= PAGINATION ================= */
+
+  updatePagedData(): void {
+    const start = (this.pageIndex - 1) * this.pageSize;
+    this.PartOptions = this.filteredPartOptions.slice(start, start + this.pageSize);
+  }
+
+  onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPage) return;
+    this.pageIndex = page;
+    this.updatePagedData();
+  }
+
+  onPageSizeChange(event: Event): void {
+    this.pageSize = +(event.target as HTMLSelectElement).value;
+    this.pageIndex = 1;
+    this.updatePagedData();
+  }
+
+  get totalPage(): number {
+    return Math.ceil(this.totalCount / this.pageSize) || 1;
+  }
+
+  /* ================= CRUD ================= */
+
   onSave(): void {
-    if (!this.crateForm.valid) return;
+    if (!this.crateForm.valid) {
+      this.toast.show('Please fill required fields', 'error');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('name', this.crateForm.value.name!);
     formData.append('mainPartId', this.crateForm.value.mainPartId!);
     if (this.selectedFile) formData.append('file', this.selectedFile);
 
-    this.partOptionService.CreatePartOption(formData).subscribe(() => {
-      this.loadPartOptions();
-      this.crateForm.reset();
-      this.previewUrl = null;
-      this.selectedFile = null;
-    });
-  }
-
-  onDelete(id: number): void {
-    this.partOptionService.deletePartOption(id).subscribe(() => {
-      this.loadPartOptions();
+    this.partOptionService.createPartOption(formData).subscribe(res => {
+      if (res.success) {
+        this.toast.show(res.message, 'success');
+        this.loadPartOptions();
+        this.crateForm.reset();
+        this.previewUrl = null;
+        this.selectedFile = null;
+      } else {
+        this.toast.show(res.message, 'error');
+      }
     });
   }
 
   onEdit(option: PartOption): void {
-    const dialogRef = this.dialog.open(EditPartOptionDialogComponent, {
-      data: option
-    });
+    const dialogRef = this.dialog.open(EditPartOptionDialogComponent, { data: option });
 
     dialogRef.afterClosed().subscribe(result => {
       if (!result) return;
@@ -150,34 +223,30 @@ export class PartOptionListComponent implements OnInit {
       formData.append('mainPartId', result.mainPartId);
       if (result.file) formData.append('file', result.file);
 
-      this.partOptionService.updatePartOption(result.id, formData)
-        .subscribe(() => this.loadPartOptions());
+      this.partOptionService.updatePartOption(result.id, formData).subscribe(res => {
+        if (res.success) {
+          this.toast.show(res.message, 'success');
+          this.loadPartOptions();
+        }
+      });
     });
   }
 
-  // ================= UI =================
+  onDelete(id: number): void {
+    this.partOptionService.deletePartOption(id).subscribe(res => {
+      if (res.success) {
+        this.toast.show(res.message, 'success');
+        this.loadPartOptions();
+      }
+    });
+  }
+
   onFileSelected(event: any): void {
     this.selectedFile = event.target.files[0];
     if (!this.selectedFile) return;
 
     const reader = new FileReader();
-    reader.onload = () => this.previewUrl = reader.result;
+    reader.onload = () => (this.previewUrl = reader.result);
     reader.readAsDataURL(this.selectedFile);
-  }
-
-  onPageChange(page: number): void {
-    if (page < 1 || page > this.totalPage) return;
-    this.pageIndex = page;
-    this.loadPartOptions();
-  }
-
-  onPageSizeChange(event: Event): void {
-    this.pageSize = +(event.target as HTMLSelectElement).value;
-    this.pageIndex = 1;
-    this.loadPartOptions();
-  }
-
-  get totalPage(): number {
-    return Math.ceil(this.totalCount / this.pageSize) || 1;
   }
 }

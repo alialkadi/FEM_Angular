@@ -112,9 +112,13 @@ export interface ServiceResponse {
   partName?: string;
   labors?: number,
   structureName?: string;
+  categoryTypeName?: string;
+  categoryName?: string;
   partOptionName?: string;
   calculatedTotal?: number; // added dynamically after cost calculation
   metadata?: ServiceSelectedMetadataDto[];
+  categoryTypeId?: number,
+  categoryId?: number
 }
 
 export interface ServiceListResponse {

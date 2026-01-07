@@ -1,170 +1,83 @@
-<div class="create-service-container">
+<div class="update-service-container">
     <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()">
-        <div class="form-grid">
-            <!-- =========================================== -->
-            <!-- LEFT: SERVICE LINKAGE -->
-            <!-- =========================================== -->
-            <div class="linkage-card d-none">
-                <h3>Service Linkage</h3>
-                <p>Update where this service applies in the hierarchy.</p>
-                <!-- Linkage Tabs -->
-                <div class="tab-buttons">
-                    <button type="button" [class.active]="activeLinkage === 'Structure'"
-                        (click)="setLinkage('Structure')"> Structure </button>
-                    <button type="button" [class.active]="activeLinkage === 'Part'" (click)="setLinkage('Part')"> Part
-                    </button>
-                    <button type="button" [class.active]="activeLinkage === 'PartOption'"
-                        (click)="setLinkage('PartOption')"> Part Option </button>
-                </div>
-                <!-- CATEGORY -->
-                <div class="select-group">
-                    <label>Category</label>
-                    <select formControlName="categoryId" (change)="onCategoryChange($event)">
-                        <option value="">Select Category</option>
-                        <option *ngFor="let c of categories" [value]="c.id"> {{ c.name }} </option>
-                    </select>
-                </div>
-                <!-- CATEGORY TYPE -->
-                <div class="select-group" *ngIf="categoryTypes.length">
-                    <label>Category Type</label>
-                    <select formControlName="categoryTypeId" (change)="onCategoryTypeChange($event)">
-                        <option value="">Select Category Type</option>
-                        <option *ngFor="let t of categoryTypes" [value]="t.id"> {{ t.name }} </option>
-                    </select>
-                </div>
-                <!-- STRUCTURE -->
-                <ng-container *ngIf="activeLinkage === 'Structure'">
-                    <div class="select-group" *ngIf="structures.length">
-                        <label>Structure</label>
-                        <select formControlName="structureId">
-                            <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
-                        </select>
-                    </div>
-                </ng-container>
-                <!-- PART -->
-                <ng-container *ngIf="activeLinkage === 'Part'">
-                    <div class="select-group" *ngIf="structures.length">
-                        <label>Structure</label>
-                        <select formControlName="structureId" (change)="onStructureChange($event)">
-                            <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
-                        </select>
-                    </div>
-                    <div class="select-group" *ngIf="parts.length">
-                        <label>Part</label>
-                        <select formControlName="partId">
-                            <option value="">Select Part</option>
-                            <option *ngFor="let p of parts" [value]="p.id"> {{ p.name }} </option>
-                        </select>
-                    </div>
-                </ng-container>
-                <!-- PART OPTION -->
-                <ng-container *ngIf="activeLinkage === 'PartOption'">
-                    <div class="select-group" *ngIf="structures.length">
-                        <label>Structure</label>
-                        <select formControlName="structureId" (change)="onStructureChange($event)">
-                            <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
-                        </select>
-                    </div>
-                    <div class="select-group" *ngIf="parts.length">
-                        <label>Part</label>
-                        <select formControlName="partId" (change)="onPartChange($event)">
-                            <option value="">Select Part</option>
-                            <option *ngFor="let p of parts" [value]="p.id"> {{ p.name }} </option>
-                        </select>
-                    </div>
-                    <div class="select-group" *ngIf="partOptions.length">
-                        <label>Part Option</label>
-                        <select formControlName="partOptionId">
-                            <option value="">Select Part Option</option>
-                            <option *ngFor="let o of partOptions" [value]="o.id"> {{ o.name }} </option>
-                        </select>
-                    </div>
-                </ng-container>
+        <!-- ================= HIERARCHY ================= -->
+        <div class="service-card">
+            <h3>Service Hierarchy</h3>
+            <p class="hint">Read-only – reflects backend assignment</p>
+            <div class="form-group">
+                <label>Category</label>
+                <select formControlName="categoryId" [disabled]="true">
+                    <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+                </select>
             </div>
-            <!-- =========================================== -->
-            <!-- RIGHT: SERVICE DATA -->
-            <!-- =========================================== -->
-            <div class="service-card">
-                <h3>Service Data</h3>
-                <p>Update service information below.</p>
-                <div class="form-group">
-                    <label>Service Name <span class="required">*</span></label>
-                    <input type="text" formControlName="name" />
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea formControlName="description"></textarea>
-                </div>
-                <!-- Hidden technical fields -->
-                <div class="form-group d-none">
-                    <label>Series</label>
-                    <input formControlName="series" />
-                </div>
-                <div class="form-group d-none">
-                    <label>Locking Point</label>
-                    <input formControlName="lockingPoint" />
-                </div>
-                <div class="form-group d-none">
-                    <label>Point Number</label>
-                    <input formControlName="pointNumber" />
-                </div>
-                <div class="form-group">
-                    <label>Labors</label>
-                    <input type="number" formControlName="labors" />
-                </div>
-                <!-- FILE -->
-                <div class="form-group">
-                    <label>Replace Image (optional)</label>
-                    <input type="file" (change)="onFileSelected($event)" />
-                    <div *ngIf="previewUrl" class="preview">
-                        <img [src]="previewUrl" class="preview-img" />
-                    </div>
-                </div>
-                <!-- INLINE FIELDS -->
-                <div class="inline-fields">
-                    <div>
-                        <label>Base Cost</label>
-                        <input type="number" formControlName="baseCost" />
-                    </div>
-                    <div>
-                        <label>Warranty Duration</label>
-                        <input type="number" formControlName="warrantyDuration" />
-                    </div>
-                    <div>
-                        <label>Warranty Unit</label>
-                        <select formControlName="warrantyUnit">
-                            <option value="Days">Days</option>
-                            <option value="Weeks">Weeks</option>
-                            <option value="Months">Months</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Delivery Days</label>
-                        <input type="number" formControlName="deliveryDays" />
-                    </div>
-                </div>
+            <div class="form-group" *ngIf="categoryTypes.length">
+                <label>Category Type</label>
+                <select formControlName="categoryTypeId" [disabled]="true">
+                    <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
+                </select>
+            </div>
+            <div class="form-group" *ngIf="structures.length">
+                <label>Structure</label>
+                <select formControlName="structureId" [disabled]="true">
+                    <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                </select>
+            </div>
+            <div class="form-group" *ngIf="parts.length">
+                <label>Part</label>
+                <select formControlName="partId" [disabled]="true">
+                    <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+                </select>
+            </div>
+            <div class="form-group" *ngIf="partOptions.length">
+                <label>Part Option</label>
+                <select formControlName="partOptionId" [disabled]="true">
+                    <option *ngFor="let o of partOptions" [value]="o.id">{{ o.name }}</option>
+                </select>
             </div>
         </div>
-        <!-- =========================================== -->
-        <!-- METADATA -->
-        <!-- =========================================== -->
+        <!-- ================= SERVICE DATA ================= -->
+        <div class="service-card">
+            <h3>Service Data</h3>
+            <div class="form-group">
+                <label>Service Name</label>
+                <input type="text" formControlName="name" />
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea formControlName="description"></textarea>
+            </div>
+            <div class="inline-fields">
+                <input type="number" placeholder="Base Cost" formControlName="baseCost" />
+                <input type="number" placeholder="Labors" formControlName="labors" />
+                <input type="number" placeholder="Delivery Days" formControlName="deliveryDays" />
+            </div>
+            <div class="inline-fields">
+                <input type="number" placeholder="Warranty Duration" formControlName="warrantyDuration" />
+                <select formControlName="warrantyUnit">
+                    <option value="Days">Days</option>
+                    <option value="Weeks">Weeks</option>
+                    <option value="Months">Months</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Replace Image</label>
+                <input type="file" (change)="onFileSelected($event)" />
+                <img *ngIf="previewUrl" [src]="previewUrl" class="preview-img" />
+            </div>
+        </div>
+        <!-- ================= METADATA ================= -->
         <div class="service-card metadata-card">
             <div class="metadata-header" (click)="toggleMetadata()">
                 <h3>Metadata Attributes</h3>
-                <span class="arrow" [class.open]="showMetadata">▼</span>
+                <span>{{ showMetadata ? '▼' : '▶' }}</span>
             </div>
-            <div class="metadata-body" *ngIf="showMetadata">
+            <div *ngIf="showMetadata">
                 <app-attribute-assignment [targetType]="metadataTargetType" [targetId]="metadataTargetId"
                     (metadataChange)="onMetadataChange($event)">
                 </app-attribute-assignment>
             </div>
         </div>
-        <!-- =========================================== -->
-        <!-- ACTIONS -->
-        <!-- =========================================== -->
+        <!-- ================= ACTIONS ================= -->
         <div class="actions">
             <button type="submit" [disabled]="isSubmitting"> {{ isSubmitting ? 'Updating…' : 'Update Service' }}
             </button>

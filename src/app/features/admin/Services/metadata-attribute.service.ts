@@ -2,9 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { MetadataAttribute } from '../../Models/MetadataAttribute';
-import { MetadataAttributeCreate } from '../../Models/MetadataAttributeCreate';
-import { MetadataAttributeListResponse } from '../../Models/MetadataAttributeListResponse';
 import { MetadataAttributeUpdate } from '../../Models/MetadataAttributeUpdate';
+import { MetadataAttributeListResponse } from '../../Models/MetadataAttributeListResponse';
 import { environment } from '../../../environment.prod';
 import { ApiResponse } from '../../Models/ApiResponse';
 
@@ -13,16 +12,16 @@ import { ApiResponse } from '../../Models/ApiResponse';
 })
 export class MetadataAttributeService {
 
-  private readonly baseUrl = environment.apiUrl+'/MetadataAttributes';
+  private readonly baseUrl = environment.apiUrl + '/MetadataAttributes';
 
   constructor(private http: HttpClient) {}
 
-  // LIST
+  // ================= LIST =================
   getAll(
     page = 1,
     pageSize = 20,
     search?: string
-  ): Observable<MetadataAttributeListResponse> {
+  ): Observable<ApiResponse<MetadataAttributeListResponse>> {
 
     let params = new HttpParams()
       .set('page', page)
@@ -32,34 +31,47 @@ export class MetadataAttributeService {
       params = params.set('search', search);
     }
 
-    return this.http.get<MetadataAttributeListResponse>(this.baseUrl);
+    return this.http.get<ApiResponse<MetadataAttributeListResponse>>(
+      this.baseUrl
+    );
   }
 
-  // DETAILS
+  // ================= DETAILS =================
   getById(id: number): Observable<MetadataAttribute> {
-  return this.http
-    .get<ApiResponse<MetadataAttribute>>(`${this.baseUrl}/${id}`)
-    .pipe(map(res => res.data));
-}
-
-
-  create(model: any) {
-    return this.http.post<number>(this.baseUrl, model);
+    return this.http
+      .get<ApiResponse<MetadataAttribute>>(`${this.baseUrl}/${id}`)
+      .pipe(map(res => res.data));
   }
 
- update(id: number, model: MetadataAttributeUpdate): Observable<any> {
-  return this.http.put<any>(`${this.baseUrl}/${id}`, model);
-}
-
-
-  // DELETE (SOFT + GUARDED)
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  // ================= CREATE =================
+  create(model: any): Observable<ApiResponse<number>> {
+    return this.http.post<ApiResponse<number>>(this.baseUrl, model);
   }
 
-  // ACTIVATE / DEACTIVATE (OPTIONAL BUT RECOMMENDED)
-  toggleActive(id: number, isActive: boolean): Observable<void> {
-    return this.http.patch<void>(
+  // ================= UPDATE =================
+  update(
+    id: number,
+    model: MetadataAttributeUpdate
+  ): Observable<ApiResponse<object>> {
+    return this.http.put<ApiResponse<object>>(
+      `${this.baseUrl}/${id}`,
+      model
+    );
+  }
+
+  // ================= DELETE =================
+  delete(id: number): Observable<ApiResponse<object>> {
+    return this.http.delete<ApiResponse<object>>(
+      `${this.baseUrl}/${id}`
+    );
+  }
+
+  // ================= TOGGLE ACTIVE =================
+  toggleActive(
+    id: number,
+    isActive: boolean
+  ): Observable<ApiResponse<object>> {
+    return this.http.patch<ApiResponse<object>>(
       `${this.baseUrl}/${id}/status`,
       { isActive }
     );
