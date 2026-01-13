@@ -3,6 +3,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RequestedService } from '../../../Models/service.Model';
 import { ServiceService } from '../../../admin/Services/service-service.service';
+import { WishlistService } from '../../Services/wishlist.service';
 
 @Component({
   selector: 'app-service-user-form',
@@ -17,7 +18,8 @@ export class ServiceUserFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private serviceRequestApi: ServiceService
+    private serviceRequestApi: ServiceService,
+    private wishlist: WishlistService
   ) {}
 
   userForm = this.fb.group({
@@ -79,6 +81,7 @@ export class ServiceUserFormComponent implements OnInit {
     this.serviceRequestApi.submitServiceRequest(payload).subscribe({
       next: _ => {
         this.submitting = false;
+        this.wishlist.clear(); 
         alert('✅ Request submitted successfully!');
         this.router.navigate(['/FenetrationMaintainence/Home/success']);
       },

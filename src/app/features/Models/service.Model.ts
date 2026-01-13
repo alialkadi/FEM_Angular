@@ -107,6 +107,7 @@ export interface ServiceResponse {
   warrantyUnit?: string;
   deliveryDays?: number;
   structureId?: number;
+  fileUrl?: string;
   partId?: number;
   partOptionId?: number;
   partName?: string;
@@ -244,6 +245,7 @@ export interface ServiceSelectedMetadataDto {
   attributeCode: string;
   attributeName: string;
   value: string;
+  valueName: string;
   dataType: number;
   affectsPricing: boolean;
   metadataAttributeId?: number,

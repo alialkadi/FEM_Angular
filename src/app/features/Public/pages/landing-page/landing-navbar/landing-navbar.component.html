@@ -6,6 +6,9 @@
         </div>
         <!-- Navigation Links -->
         <nav class="nav-links">
+            <a [routerLink]="['/Home/Wishlist']" class="nav-wishlist"> ❤️ Wishlist <span *ngIf="wishlistCount"
+                    class="badge">{{ wishlistCount }}</span>
+            </a>
             <a *ngFor="let section of sections" [routerLink]="section.route" routerLinkActive="active-link"
                 [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
                 <i class="material-icons nav-icon">{{ section.icon }}</i>

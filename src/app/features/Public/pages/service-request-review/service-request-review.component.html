@@ -43,6 +43,12 @@
                         <span>{{ item.calculation?.total | currency }}</span>
                     </div>
                 </div>
+                <button class="wishlist-btn" (click)="toggleWishlist(item); $event.stopPropagation()">
+                    <span *ngIf="!isWishlisted(item.service.id)">♡ Save</span>
+                    <span *ngIf="isWishlisted(item.service.id)">❤️ Saved</span>
+                </button>
+                <button class="remove-btn" (click)="removeFromReview(item); $event.stopPropagation()"> ❌ Remove
+                </button>
             </section>
             <!-- Steps Section -->
             <section class="card-section steps-section">

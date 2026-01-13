@@ -1,0 +1,39 @@
+<section class="wishlist-wrapper">
+    <header class="wishlist-header">
+        <h2>❤️ Saved Services</h2>
+        <p>Your bookmarked services. You can add them to your request anytime.</p>
+    </header>
+    <div class="wishlist-grid" *ngIf="items.length; else emptyState">
+        <article class="wishlist-card" *ngFor="let s of items">
+            <!-- IMAGE -->
+            <div class="image-wrapper">
+                <img *ngIf="s.fileUrl; else noImg" [src]="s.fileUrl" />
+                <ng-template #noImg>
+                    <div class="image-placeholder">Service</div>
+                </ng-template>
+            </div>
+            <!-- CONTENT -->
+            <div class="card-content">
+                <h3 class="service-name">{{ s.name }}</h3>
+                <p class="service-desc"> {{ s.description || 'No description provided.' }} </p>
+                <!-- METADATA -->
+                <div class="meta" *ngIf="s.metadata?.length">
+                    <span class="chip" *ngFor="let m of s.metadata"> {{ m.valueText || m.value }} </span>
+                </div>
+            </div>
+            <!-- ACTIONS -->
+            <footer class="card-actions">
+                <button class="remove-btn" (click)="remove(s.serviceId)"> ❌ Remove </button>
+            </footer>
+        </article>
+    </div>
+    <!-- EMPTY STATE -->
+    <ng-template #emptyState>
+        <div class="empty-state">
+            <span class="icon">💔</span>
+            <h3>No saved services yet</h3>
+            <p>Browse services and save them to your wishlist for later.</p>
+            <button (click)="backToExplorer()">Browse Services</button>
+        </div>
+    </ng-template>
+</section>

@@ -63,12 +63,18 @@ export class AttributeAssignmentComponent
 
   // ================= INIT =================
   ngOnInit(): void {
-    this.form = this.fb.group({
-      attributes: this.fb.array([])
-    });
+  this.form = this.fb.group({
+    attributes: this.fb.array([])
+  });
 
-    this.loadData();
-  }
+  // 🔥 THIS IS THE MISSING PIECE
+  this.form.valueChanges.subscribe(() => {
+    this.emitMetadata();
+  });
+
+  this.loadData();
+}
+
 
   // ================= INPUT CHANGES =================
   ngOnChanges(changes: SimpleChanges): void {
@@ -155,14 +161,14 @@ export class AttributeAssignmentComponent
         ];
         group.valueText = [null];
       } else {
-        group.valueText = [assigned?.valueText ?? ''];
+        group.valueText = [assigned?.valueText ?? null];
         group.valueIds = [null];
       }
 
       this.attributesForm.push(this.fb.group(group));
     }
 
-    this.emitMetadata();
+    // this.emitMetadata();
   }
 
   // ================= CHECKBOX HANDLING =================
@@ -188,7 +194,7 @@ export class AttributeAssignmentComponent
       });
     }
 
-    this.emitMetadata();
+    // this.emitMetadata();
   }
 
   isChecked(index: number, valueId: number, isMulti: boolean): boolean {
@@ -201,18 +207,22 @@ export class AttributeAssignmentComponent
   // ================= EMIT METADATA =================
   private emitMetadata(): void {
     const normalized: MetadataAssignmentItemRequest[] =
-      this.form.value.attributes
-        .filter((x: any) => this.hasValue(x))
+    this.form.value.attributes
+      .filter((x: any) => this.hasValue(x))
         .map((x: any) => ({
           metadataAttributeId: x.metadataAttributeId,
           valueIds: Array.isArray(x.valueIds) ? x.valueIds : null,
           valueText:
-            x.valueText !== null && x.valueText !== undefined
-              ? String(x.valueText)
-              : null
+            x.valueText === null || x.valueText === undefined
+              ? ''
+              : String(x.valueText).trim()
+
+
         }));
 
-    this.metadataChange.emit(normalized);
+  this.metadataChange.emit(normalized);
+console.log('EMITTED METADATA', normalized);
+
   }
 
   // ================= SAVE =================
@@ -224,15 +234,13 @@ export class AttributeAssignmentComponent
       targetType: this.targetType,
       targetId: this.targetId,
       attributes: this.form.value.attributes
-        .filter((x: any) => this.hasValue(x))
-        .map((x: any) => ({
-          metadataAttributeId: x.metadataAttributeId,
-          valueIds: Array.isArray(x.valueIds) ? x.valueIds : null,
-          valueText:
-            x.valueText !== null && x.valueText !== undefined
-              ? String(x.valueText)
-              : null
-        }))
+  .filter((x: any) => this.hasValue(x))
+  .map((x: any) => ({
+    metadataAttributeId: x.metadataAttributeId,
+    valueIds: Array.isArray(x.valueIds) ? x.valueIds : null,
+    valueText: String(x.valueText ?? '')
+  }))
+
     };
 
     this.saving = true;
@@ -251,12 +259,21 @@ export class AttributeAssignmentComponent
 
   // ================= HELPERS =================
   private hasValue(item: any): boolean {
-    return (
-      (Array.isArray(item.valueIds) && item.valueIds.length > 0) ||
-      (!Array.isArray(item.valueIds) && item.valueIds !== null) ||
-      (item.valueText && item.valueText.toString().trim() !== '')
-    );
+  // SELECT
+  if (Array.isArray(item.valueIds)) {
+    return item.valueIds.length > 0;
   }
+
+  // SINGLE SELECT
+  if (item.valueIds !== null && item.valueIds !== undefined) {
+    return true;
+  }
+
+  // TEXT / NUMBER / BOOLEAN
+  return item.valueText !== null && item.valueText !== undefined && item.valueText !== '';
+
+}
+
 
   trackByAttrId(_: number, attr: MetadataAttribute) {
     return attr.id;

@@ -96,6 +96,7 @@ export class CreateServiceComponent implements OnInit {
 
   onMetadataChange(items: MetadataAssignmentItemRequest[]): void {
     this.metadataPayload = items;
+    console.log(this.metadataPayload)
   }
 
   // ================= FILE =================
@@ -266,8 +267,9 @@ export class CreateServiceComponent implements OnInit {
       if (m.valueText !== null && m.valueText !== undefined) {
         formData.append(
           `Metadata[${i}].ValueText`,
-          m.valueText
+          m.valueText === '' ? ' ' : m.valueText
         );
+
       }
     });
 

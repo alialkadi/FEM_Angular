@@ -1,124 +1,98 @@
 <div class="service-list-container">
+    <!-- ================= HEADER ================= -->
     <div class="header">
-        <h2>Services Management</h2>
+        <div>
+            <h2>Services Management</h2>
+            <p class="subtitle">Manage services, pricing, hierarchy and metadata</p>
+        </div>
         <div class="actions">
-            <input type="text" [(ngModel)]="searchTerm" placeholder="Search services..." (keyup.enter)="onSearch()">
-            <button class="create-btn" [routerLink]="['/admin/dashboard/createservice']">+ Create New Service</button>
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Search services..." (keyup)="onSearch()" />
+            <button class="primary-btn" [routerLink]="['/admin/dashboard/createservice']"> + New Service </button>
         </div>
     </div>
-    <select (change)="onCategoryChange($event)">
-        <option value="">All Categories</option>
-        <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
-    </select>
-    <select (change)="onCategoryTypeChange($event)">
-        <option value="">All Types</option>
-        <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
-    </select>
-    <select (change)="onStructureChange($event)">
-        <option value="">All Structures</option>
-        <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
-    </select>
-    <select (change)="onPartChange($event)">
-        <option value="">All Parts</option>
-        <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
-    </select>
-    <select (change)="onPartOptionChange($event)">
-        <option value="">All Options</option>
-        <option *ngFor="let o of partOptions" [value]="o.id">{{ o.name }}</option>
-    </select>
-    <!-- ==================== Service Table ==================== -->
+    <!-- ================= FILTER BAR ================= -->
+    <div class="filters">
+        <select (change)="onCategoryChange($event)">
+            <option value="">Category</option>
+            <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+        </select>
+        <select (change)="onCategoryTypeChange($event)">
+            <option value="">Type</option>
+            <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
+        </select>
+        <select (change)="onStructureChange($event)">
+            <option value="">Structure</option>
+            <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+        </select>
+        <select (change)="onPartChange($event)">
+            <option value="">Part</option>
+            <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+        </select>
+        <select (change)="onPartOptionChange($event)">
+            <option value="">Option</option>
+            <option *ngFor="let o of partOptions" [value]="o.id">{{ o.name }}</option>
+        </select>
+        <button class="clear-btn" (click)="clearFilters()">Clear</button>
+    </div>
+    <!-- ================= TABLE ================= -->
     <table class="service-table" *ngIf="!isLoading; else loading">
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Description</th>
-                <th>Base Cost</th>
+                <th>Hierarchy</th>
+                <th>Pricing</th>
                 <th>Warranty</th>
-                <th>Delivery Days</th>
-                <th>Linked To</th>
-                <th>Actions</th>
+                <th>Metadata</th>
+                <th class="actions-col">Actions</th>
             </tr>
         </thead>
         <tbody>
             <tr *ngFor="let service of services">
-                <td>{{service.name}}</td>
-                <td>{{service.description}}</td>
-                <td>{{service.baseCost | currency}}</td>
-                <td>{{service.warrantyDuration}} {{service.warrantyUnit}}</td>
-                <td>{{service.deliveryDays}}</td>
+                <!-- NAME -->
                 <td>
-                    <span *ngIf="service.structureName">Structure: {{service.structureName}}</span>
-                    <span *ngIf="service.partName">Part: {{service.partName}}</span>
-                    <span *ngIf="service.partOptionName">Option: {{service.partOptionName}}</span>
+                    <strong>{{ service.name }}</strong>
+                    <div class="description">{{ service.description }}</div>
                 </td>
+                <!-- HIERARCHY -->
+                <td>
+                    <div class="hierarchy">
+                        <span *ngIf="service.structureName">📐 {{ service.structureName }}</span>
+                        <span *ngIf="service.partName">🧩 {{ service.partName }}</span>
+                        <span *ngIf="service.partOptionName">⚙️ {{ service.partOptionName }}</span>
+                    </div>
+                </td>
+                <!-- PRICING -->
+                <td>
+                    <div class="price">{{ service.baseCost | currency }}</div>
+                    <div class="meta">Delivery: {{ service.deliveryDays }} days</div>
+                </td>
+                <!-- WARRANTY -->
+                <td> {{ service.warrantyDuration }} {{ service.warrantyUnit }} </td>
+                <!-- METADATA -->
+                <td>
+                    <div class="metadata">
+                        <span class="chip" *ngFor="let m of service.metadata">
+                            <strong>{{ m.attributeName }}:</strong> {{ m.valueText || m.valueName }} </span>
+                        <span *ngIf="!service.metadata?.length" class="muted"> — </span>
+                    </div>
+                </td>
+                <!-- ACTIONS -->
                 <td class="actions-cell">
-                    <button class="steps-btn" (click)="openStepsModal(service)">Steps</button>
-                    <button class="edit-btn" [routerLink]="['/admin/dashboard/editservice', service.id]"> Edit </button>
-                    <button class="delete-btn" (click)="onDelete(service.id!)">Delete</button>
+                    <button class="ghost-btn" (click)="openStepsModal(service)">Steps</button>
+                    <button class="ghost-btn" [routerLink]="['/admin/dashboard/editservice', service.id]"> Edit
+                    </button>
+                    <button class="danger-btn" (click)="onDelete(service.id!)"> Delete </button>
                 </td>
             </tr>
         </tbody>
     </table>
-    <!-- ==================== Service Steps Modal ==================== -->
-    <div class="steps-modal-backdrop" *ngIf="selectedService && showStepsModal">
-        <div class="steps-modal">
-            <div class="steps-header">
-                <h3>{{ selectedService.name }} — Steps</h3>
-                <button class="close-btn" (click)="closeStepsModal()">&times;</button>
-            </div>
-            <div class="steps-body">
-                <div class="steps-table-container" *ngIf="serviceSteps.length > 0; else noSteps">
-                    <table class="steps-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let step of serviceSteps">
-                                <td>{{ step.stepOrder }}</td>
-                                <td>{{ step.description }}</td>
-                                <td class="actions-cell">
-                                    <button class="edit-btn">Edit</button>
-                                    <button class="delete-btn"
-                                        (click)="deleteStep(step.id!,step.serviceId!)">Delete</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <ng-template #noSteps>
-                    <p class="no-steps">No steps defined for this service yet.</p>
-                </ng-template>
-                <div class="add-step-card">
-                    <h4>Add New Step</h4>
-                    <!-- ✅ Reactive Form -->
-                    <form [formGroup]="CreateStepForm" (ngSubmit)="onAddStep(CreateStepForm)">
-                        <div class="form-grid">
-                            <!-- Step Description -->
-                            <input type="text" formControlName="description" placeholder="Step Description"
-                                [class.invalid]="CreateStepForm.get('description')?.invalid && CreateStepForm.get('description')?.touched" />
-                            <!-- Hidden or dynamic serviceId (set automatically in TS when opening modal) -->
-                            <input type="hidden" formControlName="serviceId" />
-                            <button type="submit" class="add-btn" [disabled]="CreateStepForm.invalid"> + Add Step
-                            </button>
-                        </div>
-                        <!-- Optional inline validation feedback -->
-                        <div *ngIf="CreateStepForm.get('description')?.invalid && CreateStepForm.get('description')?.touched"
-                            class="error-msg"> Step description is required. </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
     <ng-template #loading>
         <div class="loading">Loading services...</div>
     </ng-template>
+    <!-- ================= PAGINATION ================= -->
     <div class="pagination">
-        <button [disabled]="page === 1" (click)="onPageChange(page - 1)">Prev</button>
-        <span>Page {{page}}</span>
-        <button [disabled]="services.length < pageSize" (click)="onPageChange(page + 1)">Next</button>
+        <button (click)="onPageChange(page - 1)" [disabled]="page === 1">Prev</button>
+        <span>Page {{ page }}</span>
+        <button (click)="onPageChange(page + 1)" [disabled]="services.length < pageSize"> Next </button>
     </div>
 </div>

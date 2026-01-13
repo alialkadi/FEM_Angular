@@ -48,7 +48,9 @@ loadServices(): void {
     next: (res: ApiResponse<any>) => {
       if (res.success) {
         this.services = res.data.services;
+        this.allServices = res.data.services;
         this.totalCount = res.data.totalNumber;
+        console.log(res)
         console.log(this.totalCount)
       }
       this.isLoading = false;
@@ -72,15 +74,39 @@ loadServices(): void {
     this.loadServices();
   }
 
-  onSearch(): void {
-    if (this.searchTerm.trim() === '') {
-      this.loadServices();
-      return;
-    }
-    const filtered = this.services.filter(s => s.name?.toLowerCase().includes(this.searchTerm.toLowerCase()));
-    this.services = filtered;
+  allServices: ServiceResponse[] = [];
+
+onSearch(): void {
+  const term = this.searchTerm.trim().toLowerCase();
+
+  if (!term) {
+    this.services = [...this.allServices];
+    return;
   }
 
+  this.services = this.allServices.filter(s =>
+    s.name?.toLowerCase().includes(term) ||
+    s.description?.toLowerCase().includes(term) ||
+    s.structureName?.toLowerCase().includes(term) ||
+    s.partName?.toLowerCase().includes(term) ||
+    s.partOptionName?.toLowerCase().includes(term)
+  );
+}
+clearFilters(): void {
+    this.selectedCategoryId =
+    this.selectedCategoryTypeId =
+    this.selectedStructureId =
+    this.selectedPartId =
+    this.selectedPartOptionId = undefined;
+
+    this.categoryTypes = [];
+    this.structures = [];
+    this.parts = [];
+    this.partOptions = [];
+
+    this.page = 1;
+    this.loadServices();
+  }
 
 // ===============================================
 // Load Steps (Reusable Function)

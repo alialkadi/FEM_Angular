@@ -1,8 +1,10 @@
+import { fileURLToPath } from 'node:url';
 import { Router } from '@angular/router';
 import { Component } from '@angular/core';
 import { ServiceService } from '../../../admin/Services/service-service.service';
 import { RequestedService, ServiceCalculationResult, ServiceResponse, ServiceStep } from '../../../Models/service.Model';
 import { CommonModule } from '@angular/common';
+import { WishlistItem, WishlistService } from '../../Services/wishlist.service';
 
 @Component({
   selector: 'app-service-request-review',
@@ -16,7 +18,9 @@ export class ServiceRequestReviewComponent {
   overallTotal: number = 0;
   loading = false;
   metadate: any;
-  constructor(private serviceService: ServiceService,private router: Router) {}
+  constructor(private serviceService: ServiceService,
+    private router: Router,
+    private wishlist: WishlistService) { }
 
   ngOnInit(): void {
     const selected: ServiceResponse[] = history.state.selectedServices || [];
@@ -24,6 +28,35 @@ export class ServiceRequestReviewComponent {
     if (selected.length) {
       this.loadServiceDetails(selected);
     }
+    const fromExplorer: ServiceResponse[] = history.state.selectedServices || [];
+    const wishlisted = this.wishlist.getAll();
+
+    const uniqueServiceIds = new Set<number>();
+
+    fromExplorer.forEach(s => uniqueServiceIds.add(s.id));
+    wishlisted.forEach(w => uniqueServiceIds.add(w.serviceId));
+
+    if (!uniqueServiceIds.size) return;
+
+    const mergedServices: ServiceResponse[] = [];
+
+    uniqueServiceIds.forEach(id => {
+      const fromNav = fromExplorer.find(s => s.id === id);
+      if (fromNav) {
+        mergedServices.push(fromNav);
+      } else {
+        // Minimal ServiceResponse placeholder
+        mergedServices.push({
+          id: id,
+          name: wishlisted.find(w => w.serviceId === id)?.name || '',
+          description: wishlisted.find(w => w.serviceId === id)?.description,
+          baseCost: 0,
+          metadata: []
+        } as ServiceResponse);
+      }
+    });
+
+    this.loadServiceDetails(mergedServices);
   }
 
   private loadServiceDetails(services: ServiceResponse[]) {
@@ -107,10 +140,54 @@ export class ServiceRequestReviewComponent {
   }
 
   confirmRequest() {
-    console.log("Befor form request",this.requestedServices)
-  this.router.navigate(['/FenetrationMaintainence/Home/service-user-form'], {
-    state: { requestedServices: this.requestedServices }
-  });
+    console.log("Befor form request", this.requestedServices)
+    this.router.navigate(['/FenetrationMaintainence/Home/service-user-form'], {
+      state: { requestedServices: this.requestedServices }
+    });
+  }
+
+  
+  // WISHLIST
+
+  isWishlisted(serviceId: number): boolean {
+    return this.wishlist.isWishlisted(serviceId);
+  }
+
+  toggleWishlist(item: RequestedService) {
+  const s = item.service;
+
+  if (this.isWishlisted(s.id)) {
+    this.wishlist.remove(s.id);
+  } else {
+    this.wishlist.add({
+      serviceId: s.id,
+      name: s.name,
+      description: s.description,
+      fileUrl: s.fileUrl,
+
+      // ✅ Store metadata ONLY
+      metadata: s.metadata?.map(m => ({
+        attributeCode: m.attributeCode,
+        name: m.value || m.valueText || m.valueName,
+        value: m.value,
+        valueText: m.valueText
+      }))
+    });
+  }
 }
+
+  removeFromReview(item: RequestedService) {
+    this.requestedServices = this.requestedServices.filter(
+      r => r.service.id !== item.service.id
+    );
+
+    // Optional: also remove from wishlist
+    this.wishlist.remove(item.service.id);
+
+    this.overallTotal = this.requestedServices.reduce(
+      (sum, r) => sum + (r.calculation.total ?? 0),
+      0
+    );
+  }
 
 }
