@@ -16,6 +16,7 @@ import {
 
 import { AuthService } from '../../../../../core/Auth/auth.service';
 import { WorkersResponseModel } from '../../../Services/workers.model';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-admin-service-request',
@@ -37,9 +38,10 @@ export class AdminServiceRequestComponent implements OnInit {
   /* ------------------------------------------------------
    *  STATUS DROPDOWN
    * ------------------------------------------------------ */
-  allowedStatuses: Record<number, AllowedStatusDto[]> = {};
+allowedStatusesByRequestId: Record<number, AllowedStatusDto[]> = {};
   selectedStatus: Record<number, number | null> = {};
   openDropdownId: number | null = null;
+allStatuses: AllowedStatusDto[] = [];
 
   /* ------------------------------------------------------
    *  REQUEST DETAILS POPUP
@@ -63,11 +65,18 @@ export class AdminServiceRequestComponent implements OnInit {
   selectedWorkers: number[] = [];
   allowUnassign = false;
 
+
+  filterStatus: string | null = null;
+filterFromDate: string | null = null;
+filterToDate: string | null = null;
+
   constructor(
     private adminService: AdminServiceRequestService,
     private statusService: ServiceRequestStatusService,
     private auth: AuthService,
-    private workerService: CreateWorkerService
+    private workerService: CreateWorkerService,
+    private toast: ToastService
+    
   ) {}
 
   /* ------------------------------------------------------
@@ -75,44 +84,62 @@ export class AdminServiceRequestComponent implements OnInit {
    * ------------------------------------------------------ */
   ngOnInit(): void {
     this.loadRequests();
+      this.loadAllStatuses();
+
   }
 
   /* ------------------------------------------------------
    *  LOAD REQUESTS + STATUSES
    * ------------------------------------------------------ */
   loadRequests() {
-    this.loading = true;
+  this.loading = true;
 
-    this.adminService.getAll(this.page, this.pageSize).subscribe({
-      next: (res: PagedServiceRequestListResponse) => {
-        this.requests = res.requests;
-        this.totalCount = res.totalCount;
-        this.loading = false;
-        this.loadAllowedStatuses();
-      },
-      error: () => {
-        this.errorMessage = 'Failed to load service requests.';
-        this.loading = false;
+  this.adminService.getAll(
+    this.page,
+    this.pageSize,
+    this.filterStatus ?? undefined,
+    this.filterFromDate ?? undefined,
+    this.filterToDate ?? undefined
+  ).subscribe({
+    next: (res: PagedServiceRequestListResponse) => {
+      this.requests = res.requests;
+      this.totalCount = res.totalCount;
+      this.loading = false;
+      this.loadAllowedStatuses();
+    },
+    error: () => {
+      this.errorMessage = 'Failed to load service requests.';
+      this.loading = false;
+    }
+  });
+}
+loadAllStatuses() {
+  this.statusService.getAllowedStatuses().subscribe({
+    next: (res) => {
+      if (res.success) {
+        this.allStatuses = res.data;
       }
-    });
-  }
+    }
+  });
+}
+
   getStatusClass(name: string): string {
     if (!name) return '';
     return name.toLowerCase().replace(/\s+/g, '-');
   }
   loadAllowedStatuses() {
-    this.statusService.getAllowedStatuses().subscribe({
-      next: (res) => {
-        if (res.isSuccessful) {
-          for (const r of this.requests) {
-            this.allowedStatuses[r.id] = res.response.filter(
-              (s) => s.name !== r.statusName
-            );
-          }
+  this.statusService.getAllowedStatuses().subscribe({
+    next: (res) => {
+      if (res.success) {
+        for (const r of this.requests) {
+          this.allowedStatusesByRequestId[r.id] =
+            res.data.filter(s => s.name !== r.statusName);
         }
       }
-    });
-  }
+    }
+  });
+}
+
 
   /* ------------------------------------------------------
    *  STATUS DROPDOWN LOGIC
@@ -130,8 +157,8 @@ export class AdminServiceRequestComponent implements OnInit {
     console.log(dto)
     this.statusService.updateStatus(dto).subscribe({
       next: (res) => {
-        if (res.isSuccessful) {
-          const updated = res.response;
+        if (res.success) {
+          const updated = res.data;
           const req = this.requests.find(r => r.id === requestId);
     console.log(res)
 
@@ -139,6 +166,8 @@ export class AdminServiceRequestComponent implements OnInit {
             req.statusId = updated.statusId;
             req.statusName = updated.statusName;
           }
+          this.toast.show(res.message, 'success');
+
           this.closeDropdown();
         }
       }
@@ -200,7 +229,7 @@ export class AdminServiceRequestComponent implements OnInit {
 
     this.workerService.getAllWorkers().subscribe({
       next: (res) => {
-        this.workers = res.data.response;
+        this.workers = res.data;
         this.filteredWorkers = [...this.workers];
         this.assignLoading = false;
       },
@@ -268,7 +297,10 @@ export class AdminServiceRequestComponent implements OnInit {
         this.assignMessage = res.message || 'Workers assigned successfully.';
         this.alreadyAssignedIds = [...this.alreadyAssignedIds, ...newWorkerIds];
         this.loadRequests();
+        if (res.success) {
+          this.toast.show(res.message, 'success');
 
+        }
         setTimeout(() => this.closeAssignPopup(), 1200);
       },
       error: () => {
@@ -284,4 +316,26 @@ export class AdminServiceRequestComponent implements OnInit {
     this.page = newPage;
     this.loadRequests();
   }
+/* ------------------------------------------------------
+   *  FILTERS
+   * ------------------------------------------------------ */
+  applyFilters() {
+  this.page = 1;
+    this.loadRequests();
+    console.log('Filters:', {
+  status: this.filterStatus,
+  from: this.filterFromDate,
+  to: this.filterToDate
+});
+
+}
+
+clearFilters() {
+  this.filterStatus = null;
+  this.filterFromDate = null;
+  this.filterToDate = null;
+  this.page = 1;
+  this.loadRequests();
+}
+
 }

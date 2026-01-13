@@ -12,7 +12,7 @@
                 <span class="status" [ngClass]="req.statusName | lowercase"> {{ req.statusName }} </span>
             </div>
             <p><strong>Date:</strong> {{ req.requestedDate | date:'medium' }}</p>
-            <p><strong>Total:</strong> {{ req.totalCost | currency }}</p>
+            <p><strong>Total:</strong> {{ getServiceTotal(req.requestedServices) | currency }}</p>
             <button class="view-btn" (click)="openRequest(req); $event.stopPropagation()">View Details</button>
         </div>
     </div>

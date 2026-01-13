@@ -53,4 +53,11 @@ export class UserServiceRequestsComponent {
       req.statusName = status;
     });
   }
+
+  getServiceTotal(services: any[]) {
+    if (!services || services.length === 0) {
+      return 0;
+    }
+    return services.reduce((sum, s) => sum + (s.calculatedTotal ?? 0), 0);
+  }
 }

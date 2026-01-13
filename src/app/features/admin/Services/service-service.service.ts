@@ -13,20 +13,54 @@ export class ServiceService {
   constructor(private _http: HttpClient) { }
 
 
-  
-  getAllServices(all: boolean = false, page?: number, pageSize?: number): Observable<ApiResponse<ServiceListResponse>> {
-    let params = new HttpParams().set('all', all);
-    if (page != undefined) {
-      params = params.set('page', page);
-    }
-    if (pageSize != undefined) {
-      params = params.set('pageSize', pageSize);
-    }
-  
-    return this._http.get<ApiResponse<ServiceListResponse>>(
-      `${this.baseurl}/Service`, { params }
-    );
+  getAllServices(
+  all: boolean = false,
+  page?: number,
+  pageSize?: number,
+  categoryId?: number,
+  categoryTypeId?: number,
+  structureId?: number,
+  partId?: number,
+  partOptionId?: number
+): Observable<ApiResponse<ServiceListResponse>> {
+
+  let params = new HttpParams().set('all', all);
+
+  if (page !== undefined) {
+    params = params.set('page', page);
   }
+
+  if (pageSize !== undefined) {
+    params = params.set('pageSize', pageSize);
+  }
+
+  if (categoryId !== undefined) {
+    params = params.set('categoryId', categoryId);
+  }
+
+  if (categoryTypeId !== undefined) {
+    params = params.set('categoryTypeId', categoryTypeId);
+  }
+
+  if (structureId !== undefined) {
+    params = params.set('structureId', structureId);
+  }
+
+  if (partId !== undefined) {
+    params = params.set('partId', partId);
+  }
+
+  if (partOptionId !== undefined) {
+    params = params.set('partOptionId', partOptionId);
+  }
+
+  return this._http.get<ApiResponse<ServiceListResponse>>(
+    `${this.baseurl}/Service`,
+    { params }
+  );
+}
+
+
   
   CreateService(data: FormData ): Observable<ApiResponse<ServiceResponse>> {
     return this._http.post<ApiResponse<ServiceResponse>>(`${this.baseurl}/Service`, data)
@@ -97,4 +131,11 @@ submitServiceRequest(payload: any): Observable<any> {
   DeleteStep(id: number) : Observable<ApiResponse<boolean>> {
     return this._http.delete<ApiResponse<boolean>>(`${this.baseurl}/ServiceStep/${id}`)
   }
+
+  getServiceFilterHierarchy(): Observable<any> {
+  return this._http.get<any>(
+    `${this.baseurl}/Service/filter-hierarchy`
+  );
+}
+
 }

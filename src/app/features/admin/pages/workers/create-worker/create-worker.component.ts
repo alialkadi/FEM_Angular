@@ -47,14 +47,14 @@ form!: FormGroup;
     this.successMessage = '';
 
     this.workerService.createWorker(payload as any).subscribe({
-      next: (res: ApiResponse<GeneralResponse<CreateWorkerResponse>>) => {
+      next: (res) => {
         this.loading = false;
 
-        if (res.success && res.data.isSuccessful) {
-          this.successMessage = `Worker ${res.data.response.fullName} created successfully!`;
+        if (res.success && res.data) {
+          this.successMessage = `Worker ${res.data.fullName} created successfully!`;
           this.form.reset();
         } else {
-          this.errorMessage = res.data.errors?.join(', ') || 'Failed to create worker.';
+          this.errorMessage = res.message?? 'Failed to create worker.';
         }
       },
       error: (err) => {

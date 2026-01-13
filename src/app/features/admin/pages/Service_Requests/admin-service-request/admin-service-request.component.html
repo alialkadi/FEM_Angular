@@ -7,6 +7,30 @@
         <div class="spinner"></div>
         <p>Loading requests...</p>
     </div>
+    <div class="filters">
+        <!-- Status -->
+        <div class="filter-item">
+            <label>Status</label>
+            <select [(ngModel)]="filterStatus" (change)="applyFilters()">
+                <option [ngValue]="null" disabled class="text-muted"> Filter by status</option>
+                <option *ngFor="let s of allStatuses" [ngValue]="s.name"> {{ s.name }} </option>
+            </select>
+        </div>
+        <!-- From Date -->
+        <div class="filter-item">
+            <label>From</label>
+            <input type="date" [(ngModel)]="filterFromDate" (change)="applyFilters()" />
+        </div>
+        <!-- To Date -->
+        <div class="filter-item">
+            <label>To</label>
+            <input type="date" [(ngModel)]="filterToDate" (change)="applyFilters()" />
+        </div>
+        <!-- Actions -->
+        <div class="filter-actions">
+            <button class="clear-btn" (click)="clearFilters()">Clear</button>
+        </div>
+    </div>
     <div *ngIf="!loading && requests.length > 0" class="table-wrapper">
         <table class="requests-table">
             <thead>
@@ -34,7 +58,7 @@
                         </div>
                         <!-- Inline Dropdown for selecting new status -->
                         <div class="status-dropdown" *ngIf="openDropdownId === r.id" (mouseleave)="closeDropdown()">
-                            <div *ngFor="let s of allowedStatuses[r.id]" class="status-option"
+                            <div *ngFor="let s of allowedStatusesByRequestId[r.id]" class="status-option"
                                 [class.selected]="s.name === r.statusName" (click)="onSelectStatus(r.id, s.id)"> {{
                                 s.name }} </div>
                         </div>

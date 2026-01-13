@@ -27,12 +27,12 @@ export class WorkersListComponent implements OnInit {
     this.errorMessage = '';
 
     this.workerService.getAllWorkers().subscribe({
-      next: (res: ApiResponse<GeneralResponse<WorkersResponseModel>>) => {
+      next: (res) => {
         this.loading = false;
 
-        if (res.success && res.data.isSuccessful) {
+        if (res.success && res.data) {
           // If backend returns a LIST, ensure correct shape
-          const response = res.data.response as any;
+          const response = res.data as any;
 
           this.workers = Array.isArray(response)
             ? response
