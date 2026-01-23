@@ -1,0 +1,145 @@
+<!-- ================= CREATE INPUT DEFINITION ================= -->
+<div class="admin-card">
+    <div class="card-header">
+        <h3>Create Input Definition</h3>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="card-body">
+        <div class="grid two">
+            <div class="field">
+                <label>Code</label>
+                <input formControlName="code" placeholder="width, height" />
+            </div>
+            <div class="field">
+                <label>Label</label>
+                <input formControlName="label" placeholder="Width (cm)" />
+            </div>
+        </div>
+        <div class="grid two">
+            <div class="field">
+                <label>Data Type</label>
+                <select formControlName="dataType">
+                    <option [ngValue]="null" disabled>Select type</option>
+                    <option *ngFor="let t of dataTypeOptions" [ngValue]="t.value"> {{ t.label }} </option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Pricing Behavior</label>
+                <select formControlName="pricingBehavior">
+                    <option *ngFor="let b of [0,1,2,3]" [ngValue]="b"> {{ PricingInputBehavior[b] }} </option>
+                </select>
+            </div>
+        </div>
+        <div class="grid three" *ngIf="form.value.dataType === MetadataDataType.Number">
+            <div class="field checkbox">
+                <label>
+                    <input type="checkbox" formControlName="allowDecimal" /> Allow Decimal </label>
+            </div>
+            <div class="field">
+                <label>Min</label>
+                <input type="number" formControlName="min" />
+            </div>
+            <div class="field">
+                <label>Max</label>
+                <input type="number" formControlName="max" />
+            </div>
+        </div>
+        <div class="actions">
+            <button class="primary" [disabled]="submitting"> Create Input </button>
+        </div>
+    </form>
+</div>
+<!-- ================= INPUT DEFINITIONS LIST ================= -->
+<div class="admin-card">
+    <div class="card-header">
+        <h3>Input Definitions</h3>
+    </div>
+    <div class="card-body">
+        <div *ngIf="loading" class="muted">Loading…</div>
+        <table *ngIf="!loading && definitions.length">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Label</th>
+                    <th>Type</th>
+                    <th>Behavior</th>
+                    <th>Values</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let d of definitions">
+                    <td class="mono">{{ d.code }}</td>
+                    <td>{{ d.label }}</td>
+                    <td>{{ MetadataDataType[d.dataType] }}</td>
+                    <td>{{ PricingInputBehavior[d.pricingBehavior] }}</td>
+                    <td>
+                        <button *ngIf="d.dataType === MetadataDataType.Select" class="secondary"
+                            (click)="openValues(d)"> Manage </button>
+                        <span *ngIf="d.dataType !== MetadataDataType.Select" class="muted"> — </span>
+                    </td>
+                    <td>
+                        <button class="danger" (click)="delete(d)">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div *ngIf="!loading && !definitions.length" class="muted"> No input definitions created yet. </div>
+    </div>
+</div>
+<!-- ================= VALUES MODAL ================= -->
+<div class="modal-backdrop" *ngIf="showValues">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Values — {{ selectedDefinition?.label }}</h3>
+            <button class="close" (click)="closeValues()">×</button>
+        </div>
+        <div class="modal-body">
+            <!-- CREATE VALUE -->
+            <form [formGroup]="valueForm" (ngSubmit)="createValue()" class="grid four">
+                <div class="field">
+                    <label>Code</label>
+                    <input formControlName="code" />
+                </div>
+                <div class="field">
+                    <label>Display Name</label>
+                    <input formControlName="displayName" />
+                </div>
+                <div class="field">
+                    <label>Order</label>
+                    <input type="number" formControlName="sortOrder" />
+                </div>
+                <div class="field actions">
+                    <button class="primary" [disabled]="creatingValue"> Add </button>
+                </div>
+            </form>
+            <div *ngIf="loadingValues" class="muted">Loading values…</div>
+            <!-- VALUES TABLE -->
+            <table *ngIf="!loadingValues && values.length">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Label</th>
+                        <th>Order</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let v of values">
+                        <td class="mono">{{ v.code }}</td>
+                        <td>{{ v.displayName }}</td>
+                        <td>{{ v.sortOrder }}</td>
+                        <td>
+                            <span [class.active]="v.isActive"> {{ v.isActive ? 'Active' : 'Disabled' }} </span>
+                        </td>
+                        <td>
+                            <button (click)="toggleActive(v)">Toggle</button>
+                            <button class="danger" (click)="deleteValue(v)"> Delete </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div *ngIf="!loadingValues && !values.length" class="muted"> No values defined yet. </div>
+        </div>
+    </div>
+</div>

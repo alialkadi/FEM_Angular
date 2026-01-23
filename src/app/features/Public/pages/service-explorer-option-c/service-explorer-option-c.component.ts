@@ -1,10 +1,16 @@
 import { Router } from '@angular/router';
-import { Component, OnInit } from "@angular/core";
-import { CategoryService } from "../../../admin/Services/CategoryService";
-import { CategoryTypeService } from "../../../admin/Services/categoryTypeService.service";
-import { ExplorerItem, MetadataFilter, ExplorerItemType, MetadataExplorerService, ServiceExplorerRequest } from "../../../admin/Services/MetadataExplorerService.service";
-import { Category } from "../../../Models/Category";
-import { CategoryType } from "../../../Models/CategoryType";
+import { Component, OnInit } from '@angular/core';
+import { CategoryService } from '../../../admin/Services/CategoryService';
+import { CategoryTypeService } from '../../../admin/Services/categoryTypeService.service';
+import {
+  ExplorerItem,
+  MetadataFilter,
+  ExplorerItemType,
+  MetadataExplorerService,
+  ServiceExplorerRequest,
+} from '../../../admin/Services/MetadataExplorerService.service';
+import { Category } from '../../../Models/Category';
+import { CategoryType } from '../../../Models/CategoryType';
 interface ExplorerCrumb {
   label: string;
   level: 'category' | 'type' | 'structure' | 'part' | 'option';
@@ -13,10 +19,9 @@ interface ExplorerCrumb {
 @Component({
   selector: 'app-service-explorer-option-c',
   templateUrl: './service-explorer-option-c.component.html',
-  styleUrls: ['./service-explorer-option-c.component.scss']
+  styleUrls: ['./service-explorer-option-c.component.scss'],
 })
 export class ServiceExplorerOptionCComponent implements OnInit {
-
   categories: Category[] = [];
   types: CategoryType[] = [];
 
@@ -39,12 +44,13 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     private categoryService: CategoryService,
     private typeService: CategoryTypeService,
     private explorerService: MetadataExplorerService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
-    this.categoryService.getAllCategories(true).subscribe(r => {
+    this.categoryService.getAllCategories(true).subscribe((r) => {
       this.categories = r.data?.categories ?? [];
+      console.log('explorer : ', r);
     });
   }
 
@@ -52,10 +58,9 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.resetAll();
     this.selectedCategory = c;
 
-    this.typeService.getTypesByCategory(c.id!)
-      .subscribe(r => {
-        this.types = r.data?.categoryTypes ?? [];
-      });
+    this.typeService.getTypesByCategory(c.id!).subscribe((r) => {
+      this.types = r.data?.categoryTypes ?? [];
+    });
   }
 
   selectType(t: CategoryType) {
@@ -66,7 +71,6 @@ export class ServiceExplorerOptionCComponent implements OnInit {
 
   selectItem(item: ExplorerItem) {
     switch (item.itemType) {
-
       case ExplorerItemType.Structure:
         this.resetBelow('structure');
         this.structureId = item.id;
@@ -98,19 +102,19 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       structureId: this.structureId,
       partId: this.partId,
       partOptionId: this.optionId,
-      metadataFilters: this.buildMetadataFilters()
+      metadataFilters: this.buildMetadataFilters(),
     };
 
     this.explorerService.explore(request).subscribe({
-      next: res => {
+      next: (res) => {
         this.explorerItems = res?.items ?? [];
         this.filters = res?.filters ?? [];
-        console.log(res)
+        console.log(res);
       },
-      error: _ => {
+      error: (_) => {
         this.explorerItems = [];
         this.filters = [];
-      }
+      },
     });
   }
 
@@ -119,7 +123,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       .filter(([_, values]) => values.length)
       .map(([code, values]) => ({
         attributeCode: code,
-        valueIds: values
+        valueIds: values,
       }));
   }
 
@@ -135,30 +139,39 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   get structures() {
-    return this.explorerItems.filter(i => i.itemType === ExplorerItemType.Structure);
+    return this.explorerItems.filter(
+      (i) => i.itemType === ExplorerItemType.Structure,
+    );
   }
 
   get parts() {
-    return this.explorerItems.filter(i => i.itemType === ExplorerItemType.Part);
+    return this.explorerItems.filter(
+      (i) => i.itemType === ExplorerItemType.Part,
+    );
   }
 
   get options() {
-    return this.explorerItems.filter(i => i.itemType === ExplorerItemType.PartOption);
+    return this.explorerItems.filter(
+      (i) => i.itemType === ExplorerItemType.PartOption,
+    );
   }
 
   get services() {
-    return this.explorerItems.filter(i => i.itemType === ExplorerItemType.Service);
+    return this.explorerItems.filter(
+      (i) => i.itemType === ExplorerItemType.Service,
+      console.log(this.explorerItems),
+    );
   }
 
   toggleService(service: ExplorerItem) {
-    const idx = this.selectedServices.findIndex(s => s.id === service.id);
+    const idx = this.selectedServices.findIndex((s) => s.id === service.id);
     idx >= 0
       ? this.selectedServices.splice(idx, 1)
       : this.selectedServices.push(service);
   }
 
   isServiceSelected(service: ExplorerItem): boolean {
-    return this.selectedServices.some(s => s.id === service.id);
+    return this.selectedServices.some((s) => s.id === service.id);
   }
 
   resetAll() {
@@ -180,91 +193,90 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   requestServices() {
-    console.log("before route ",this.selectedServices)
-    this.router.navigate(
-      ['/FenetrationMaintainence/Home/service-review'],
-      { state: { selectedServices: this.selectedServices } }
-    );
-
+    console.log('before route ', this.selectedServices);
+    this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
+      state: { selectedServices: this.selectedServices },
+    });
   }
 
   get breadcrumbs(): ExplorerCrumb[] {
-  const crumbs: ExplorerCrumb[] = [];
+    const crumbs: ExplorerCrumb[] = [];
 
-  if (this.selectedCategory) {
-    crumbs.push({ label: this.selectedCategory.name, level: 'category' });
+    if (this.selectedCategory) {
+      crumbs.push({ label: this.selectedCategory.name, level: 'category' });
+    }
+
+    if (this.selectedType) {
+      crumbs.push({ label: this.selectedType.name, level: 'type' });
+    }
+
+    const structure = this.explorerItems.find(
+      (i) =>
+        i.itemType === ExplorerItemType.Structure && i.id === this.structureId,
+    );
+    if (structure) {
+      crumbs.push({ label: structure.name, level: 'structure' });
+    }
+
+    const part = this.explorerItems.find(
+      (i) => i.itemType === ExplorerItemType.Part && i.id === this.partId,
+    );
+    if (part) {
+      crumbs.push({ label: part.name, level: 'part' });
+    }
+
+    const option = this.explorerItems.find(
+      (i) =>
+        i.itemType === ExplorerItemType.PartOption && i.id === this.optionId,
+    );
+    if (option) {
+      crumbs.push({ label: option.name, level: 'option' });
+    }
+
+    return crumbs;
   }
+  goToCrumb(level: ExplorerCrumb['level']) {
+    switch (level) {
+      case 'category':
+        this.resetAll();
+        break;
 
-  if (this.selectedType) {
-    crumbs.push({ label: this.selectedType.name, level: 'type' });
+      case 'type':
+        this.resetBelow('type');
+        this.loadExplorer();
+        break;
+
+      case 'structure':
+        this.resetBelow('structure');
+        this.loadExplorer();
+        break;
+
+      case 'part':
+        this.resetBelow('part');
+        this.loadExplorer();
+        break;
+
+      case 'option':
+        this.optionId = undefined;
+        this.selectedFilters = {};
+        this.loadExplorer();
+        break;
+    }
   }
-
-  const structure = this.explorerItems.find(
-    i => i.itemType === ExplorerItemType.Structure && i.id === this.structureId
-  );
-  if (structure) {
-    crumbs.push({ label: structure.name, level: 'structure' });
-  }
-
-  const part = this.explorerItems.find(
-    i => i.itemType === ExplorerItemType.Part && i.id === this.partId
-  );
-  if (part) {
-    crumbs.push({ label: part.name, level: 'part' });
-  }
-
-  const option = this.explorerItems.find(
-    i => i.itemType === ExplorerItemType.PartOption && i.id === this.optionId
-  );
-  if (option) {
-    crumbs.push({ label: option.name, level: 'option' });
-  }
-
-  return crumbs;
-}
-goToCrumb(level: ExplorerCrumb['level']) {
-  switch (level) {
-    case 'category':
-      this.resetAll();
-      break;
-
-    case 'type':
-      this.resetBelow('type');
-      this.loadExplorer();
-      break;
-
-    case 'structure':
-      this.resetBelow('structure');
-      this.loadExplorer();
-      break;
-
-    case 'part':
-      this.resetBelow('part');
-      this.loadExplorer();
-      break;
-
-    case 'option':
+  goBack() {
+    if (this.optionId) {
       this.optionId = undefined;
-      this.selectedFilters = {};
-      this.loadExplorer();
-      break;
-  }
-}
-goBack() {
-  if (this.optionId) {
-    this.optionId = undefined;
-  } else if (this.partId) {
-    this.partId = undefined;
-  } else if (this.structureId) {
-    this.structureId = undefined;
-  } else if (this.selectedType) {
-    this.selectedType = undefined;
-  } else if (this.selectedCategory) {
-    this.selectedCategory = undefined;
-  }
+    } else if (this.partId) {
+      this.partId = undefined;
+    } else if (this.structureId) {
+      this.structureId = undefined;
+    } else if (this.selectedType) {
+      this.selectedType = undefined;
+    } else if (this.selectedCategory) {
+      this.selectedCategory = undefined;
+    }
 
-  this.selectedFilters = {};
-  this.loadExplorer();
-}
-
+    this.selectedFilters = {};
+    this.loadExplorer();
+  }
 }

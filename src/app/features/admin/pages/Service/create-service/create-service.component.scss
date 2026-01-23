@@ -30,7 +30,9 @@
     border-radius: 16px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
     padding: 2rem;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition:
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
 
     &:hover {
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
@@ -243,3 +245,58 @@
   margin-top: 8px;
 }
 
+.service-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.hint {
+  color: #6b7280;
+  font-size: 13px;
+}
+.pricing-mode-toggle {
+  display: flex;
+  gap: 20px;
+}
+.mode-option {
+  display: flex;
+  gap: 8px;
+  cursor: pointer;
+}
+.add-input-section {
+  margin-top: 16px;
+}
+.pricing-rule-card {
+  border: 1px solid #d1d5db;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+.rule-header {
+  display: flex;
+  justify-content: space-between;
+}
+.badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.badge.rate {
+  background: #ecfeff;
+}
+.badge.dimension {
+  background: #fef3c7;
+}
+.badge.fixed {
+  background: #ecfdf5;
+}
+.preview-card {
+  background: #f9fafb;
+}
+.primary-btn {
+  background: #2563eb;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+}

@@ -13,7 +13,9 @@
 //     partName?: string,
 //     structureName?: string,
 //     partOptionName?: string
-    
+
+import { MetadataDataType } from './MetadataTargetType';
+
 // }
 
 // export interface ServiceListResponse{
@@ -52,7 +54,6 @@
 //     serviceId?: number,
 //     description?: string
 // }
-
 
 // export interface ServiceStepListResponse{
 //     totalCount?: number,
@@ -93,7 +94,6 @@
 //   message: string;
 // }
 
-
 // ========================================================
 //  CORE SERVICE MODELS — already in your system
 // ========================================================
@@ -111,7 +111,7 @@ export interface ServiceResponse {
   partId?: number;
   partOptionId?: number;
   partName?: string;
-  labors?: number,
+  labors?: number;
   structureName?: string;
   partOptionName?: string;
   calculatedTotal?: number; // added dynamically after cost calculation
@@ -138,8 +138,7 @@ export interface CreateUpdateServiceRequest {
   structureId?: number;
   partId?: number;
   partOptionId?: number;
-  labors?: number,
-
+  labors?: number;
 }
 
 // ========================================================
@@ -209,7 +208,6 @@ export interface RequestedService {
   service: ServiceResponse;
   calculation: ServiceCalculationResult;
   steps: ServiceStep[];
-  
 }
 
 // ========================================================
@@ -248,7 +246,20 @@ export interface ServiceSelectedMetadataDto {
   valueName: string;
   dataType: number;
   affectsPricing: boolean;
-  metadataAttributeId?: number,
-  metadataAttributeValueId: number,
-  valueText? : string
+  metadataAttributeId?: number;
+  metadataAttributeValueId: number;
+  valueText?: string;
+}
+export enum PricingInputBehavior {
+  Rate = 1,
+  Dimensional = 2,
+  Fixed = 3,
+}
+
+export interface InputDefinitionDto {
+  id: number;
+  code: string;
+  label: string;
+  dataType: MetadataDataType;
+  pricingBehavior: PricingInputBehavior;
 }

@@ -29,6 +29,8 @@ import { MetadataAssignValueComponent } from './pages/Metadata-values/metadata-a
 import { AttributeAssignmentComponent } from './pages/Metadata-values/attribute-assignment/attribute-assignment.component';
 import { UpdateServiceComponent } from './pages/Service/update-service/update-service.component';
 import { MetadataUpdateAttributeComponent } from './pages/Metadata/metadata-update-attribute/metadata-update-attribute.component';
+import { InputDefinitionComponent } from './pages/input-definition/input-definition.component';
+import { InputValueComponent } from './pages/input-value/input-value.component';
 
 @NgModule({
   declarations: [DashboardComponent,
@@ -52,7 +54,9 @@ import { MetadataUpdateAttributeComponent } from './pages/Metadata/metadata-upda
     MetadataAssignValueComponent,
     AttributeAssignmentComponent,
     UpdateServiceComponent,
-    MetadataUpdateAttributeComponent],
+    MetadataUpdateAttributeComponent,
+    InputDefinitionComponent,
+    InputValueComponent],
   imports: [SharedModule,
             AdminRoutingModule,
             MatIcon,CommonModule ,
