@@ -251,8 +251,9 @@ export interface ServiceSelectedMetadataDto {
   valueText?: string;
 }
 export enum PricingInputBehavior {
-  Rate = 1,
-  Dimensional = 2,
+  None = 0,
+  Dimensional = 1,
+  Rate = 2,
   Fixed = 3,
 }
 

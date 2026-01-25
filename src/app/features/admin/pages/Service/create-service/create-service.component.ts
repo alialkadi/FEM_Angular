@@ -23,7 +23,10 @@ import { ToastService } from '../../../../../shared/Services/toast.service';
 import { InputDefinitionService } from '../../../Services/input-definition.service';
 import { InputValueService } from '../../../Services/input-value.service';
 import { PricingInputUI } from '../../../../Models/InputValueDto.model';
-import { PricingInputBehavior } from '../../../../Models/service.Model';
+import {
+  InputDefinitionDto,
+  PricingInputBehavior,
+} from '../../../../Models/service.Model';
 
 @Component({
   selector: 'app-create-service',
@@ -31,6 +34,7 @@ import { PricingInputBehavior } from '../../../../Models/service.Model';
   styleUrls: ['./create-service.component.scss'],
 })
 export class CreateServiceComponent implements OnInit {
+  [x: string]: any;
   // ================= FORM =================
   serviceForm!: FormGroup;
   isSubmitting = false;
@@ -273,6 +277,7 @@ export class CreateServiceComponent implements OnInit {
     if (this.selectedFile) {
       formData.append('file', this.selectedFile);
     }
+    formData.append('PricingMode', this.pricingMode);
 
     // ✅ METADATA (CORRECT FORM-DATA BINDING)
     this.metadataPayload.forEach((m, i) => {
@@ -315,6 +320,13 @@ export class CreateServiceComponent implements OnInit {
           );
         }
 
+        if (p.dependsOnInputDefinitionId) {
+          formData.append(
+            `PricingInputs[${i}].DependsOnInputDefinitionId`,
+            p.dependsOnInputDefinitionId.toString(),
+          );
+        }
+
         if (p.dependsOnInputValueId) {
           formData.append(
             `PricingInputs[${i}].DependsOnInputValueId`,
@@ -323,11 +335,10 @@ export class CreateServiceComponent implements OnInit {
         }
       });
     }
-
     this.serviceService.CreateService(formData).subscribe({
       next: (res) => {
         this.isSubmitting = false;
-
+        console.log(formData);
         if (res.success) {
           this.toast.show(
             res.message ?? 'Service created successfully',
@@ -371,13 +382,13 @@ export class CreateServiceComponent implements OnInit {
       },
     });
   }
-  addPricingInput(def: any): void {
+  addPricingInput(def: InputDefinitionDto): void {
     const input: PricingInputUI = {
       inputDefinitionId: def.id,
-      inputCode: def.code,
       label: def.label,
+      code: def.code,
       dataType: def.dataType,
-      pricingBehavior: def.pricingBehavior,
+      pricingBehavior: def.pricingBehavior, // READ ONLY
       amount: 0,
       isRequired: false,
       priority: this.pricingInputs.length + 1,
@@ -388,9 +399,8 @@ export class CreateServiceComponent implements OnInit {
     if (def.dataType === MetadataDataType.Select) {
       this.loadInputValues(def.id);
     }
-
-    this.calculatePreview();
   }
+
   onAddInputChange(event: Event): void {
     const select = event.target as HTMLSelectElement | null;
     if (!select || !select.value) return;
@@ -423,30 +433,24 @@ export class CreateServiceComponent implements OnInit {
     let fixedCost = 0;
     let hasDimension = false;
 
-    // build selected value map
-    const selectedValues: Record<number, string> = {};
+    const selectedValues: Record<number, number> = {};
+
     this.pricingInputs.forEach((p) => {
-      if (p.previewSelectedValueCode) {
-        selectedValues[p.inputDefinitionId] = p.previewSelectedValueCode;
+      if (p.previewSelectedValueId) {
+        selectedValues[p.inputDefinitionId] = p.previewSelectedValueId;
       }
     });
-
     const ordered = [...this.pricingInputs].sort(
       (a, b) => a.priority - b.priority,
     );
-
     for (const rule of ordered) {
-      // dependency check
-      if (rule.dependsOnInputValueId) {
-        const parentDefId = this.inputValuesMap[rule.inputDefinitionId]?.find(
-          (v) => v.id === rule.dependsOnInputValueId,
-        )?.inputDefinitionId;
-
-        if (!parentDefId) continue;
-
-        if (selectedValues[parentDefId] !== rule.previewSelectedValueCode) {
-          continue;
-        }
+      if (
+        rule.dependsOnInputDefinitionId &&
+        rule.dependsOnInputValueId &&
+        selectedValues[rule.dependsOnInputDefinitionId] !==
+          rule.dependsOnInputValueId
+      ) {
+        continue;
       }
 
       switch (rule.pricingBehavior) {
@@ -472,5 +476,33 @@ export class CreateServiceComponent implements OnInit {
     }
 
     this.previewBaseCost = dimension * rateSum + fixedCost;
+  }
+
+  getPricingTypeLabel(rule: PricingInputUI): string {
+    switch (rule.pricingBehavior) {
+      case PricingInputBehavior.Rate:
+        return 'Rate';
+      case PricingInputBehavior.Fixed:
+        return 'Fixed';
+      case PricingInputBehavior.Dimensional:
+        return 'Dimensional';
+      default:
+        return '';
+    }
+  }
+
+  onDependencyValueChange(rule: PricingInputUI, valueId: number): void {
+    const parentRule = this.pricingInputs.find((r) =>
+      this.inputValuesMap[r.inputDefinitionId]?.some((v) => v.id === +valueId),
+    );
+
+    if (!parentRule) {
+      rule.dependsOnInputDefinitionId = undefined;
+      rule.dependsOnInputValueId = undefined;
+      return;
+    }
+
+    rule.dependsOnInputDefinitionId = parentRule.inputDefinitionId;
+    rule.dependsOnInputValueId = +valueId;
   }
 }

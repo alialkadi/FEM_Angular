@@ -204,74 +204,72 @@
         </div>
     </form>
 </div>
-<!-- =========================================== -->
-<!-- DYNAMIC PRICING CONFIGURATION -->
-<!-- =========================================== -->
-<div class="service-card dynamic-pricing" *ngIf="pricingMode === 'Dynamic'">
-    <h3>Dynamic Pricing Configuration</h3>
-    <p class="hint"> Pricing is calculated based on rules that apply under specific conditions. </p>
-    <!-- ================= INPUTS ================= -->
-    <div class="section">
-        <h4>1. Inputs Used in Pricing</h4>
-        <p class="hint"> These are the inputs the customer will provide. </p>
-        <div class="add-input">
-            <label>Add Input</label>
-            <select #defSelect (change)="onAddInputChange($event)">
-                <option value="">Select input</option>
-                <option *ngFor="let d of inputDefinitions" [value]="d.id"> {{ d.label }} </option>
-            </select>
-        </div>
-        <div class="input-list">
-            <div class="input-chip" *ngFor="let i of pricingInputs"> {{ i.label }} <span class="chip-type">TEXT</span>
-            </div>
-        </div>
+<!-- Input Mangement -->
+<!-- ================= DYNAMIC PRICING ================= -->
+<div class="pricing-manager" *ngIf="pricingMode === 'Dynamic'">
+    <h4>Dynamic Pricing Rules</h4>
+    <p class="hint"> Define how the service price is calculated based on user inputs. </p>
+    <!-- ADD INPUT -->
+    <div class="add-input">
+        <label>Add Pricing Input</label>
+        <select (change)="onAddInputChange($event)">
+            <option value="">Select input</option>
+            <option *ngFor="let def of inputDefinitions" [value]="def.id"> {{ def.label }} ({{ getPricingTypeLabel(def)
+                }}) </option>
+        </select>
     </div>
-    <!-- ================= PRICING RULES ================= -->
-    <div class="section" *ngIf="pricingInputs.length">
-        <h4>2. Pricing Rules</h4>
-        <p class="hint"> Define how the price changes and when the rule applies. </p>
+    <!-- RULES -->
+    <div class="rule-list">
         <div class="rule-card" *ngFor="let rule of pricingInputs; let i = index">
-            <!-- RULE HEADER -->
+            <!-- HEADER -->
             <div class="rule-header">
-                <strong>Rule for {{ rule.label }}</strong>
-                <button type="button" (click)="removePricingInput(i)">✕</button>
+                <strong>{{ rule.label }}</strong>
+                <span class="badge"> {{ getPricingTypeLabel(rule) }} </span>
+                <button type="button" class="remove" (click)="removePricingInput(i)"> ✕ </button>
             </div>
-            <!-- WHAT THIS RULE ADDS -->
-            <div class="field">
-                <label>Pricing Type</label>
-                <select [(ngModel)]="rule.pricingBehavior" [ngModelOptions]="{ standalone: true }">
-                    <option [value]="PricingInputBehavior.Rate">Rate</option>
-                    <option [value]="PricingInputBehavior.Fixed">Fixed</option>
-                    <option [value]="PricingInputBehavior.Dimensional">Dimension</option>
+            <!-- REQUIRED -->
+            <label class="checkbox">
+                <input type="checkbox" [(ngModel)]="rule.isRequired" /> Required </label>
+            <!-- SELECT VALUE (FOR SELECT INPUTS) -->
+            <div class="form-group" *ngIf="rule.dataType === MetadataDataType.Select">
+                <label>Input Value</label>
+                <select [(ngModel)]="rule.inputValueId">
+                    <option [ngValue]="undefined">Select value</option>
+                    <option *ngFor="let v of inputValuesMap[rule.inputDefinitionId]" [ngValue]="v.id"> {{ v.displayName
+                        || v.value }} </option>
                 </select>
             </div>
-            <div class="field" *ngIf="rule.pricingBehavior !== PricingInputBehavior.Dimensional">
+            <!-- AMOUNT (RATE / FIXED) -->
+            <div class="form-group" *ngIf="rule.pricingBehavior !== PricingInputBehavior.Dimensional">
                 <label>Amount</label>
-                <input type="number" [(ngModel)]="rule.amount" [ngModelOptions]="{ standalone: true }" />
+                <input type="number" [(ngModel)]="rule.amount" />
             </div>
-            <!-- WHEN THIS RULE APPLIES -->
-            <div class="field condition">
-                <label>Apply This Rule</label>
-                <select [(ngModel)]="rule.dependsOnInputValueId" [ngModelOptions]="{ standalone: true }">
-                    <option value="">Always</option>
-                    <ng-container *ngFor="let input of pricingInputs">
-                        <optgroup [label]="input.label">
-                            <option *ngFor="let v of inputValuesMap[input.inputDefinitionId]" [value]="v.id"> When {{
-                                input.label }} is "{{ v.displayName }}" </option>
-                        </optgroup>
+            <!-- DIMENSIONAL PREVIEW -->
+            <div class="form-group" *ngIf="rule.pricingBehavior === PricingInputBehavior.Dimensional">
+                <label>Preview Value</label>
+                <input type="number" [(ngModel)]="rule.previewNumericValue" (input)="calculatePreview()" />
+            </div>
+            <!-- DEPENDENCY (RATE ONLY) -->
+            <div class="form-group dependency" *ngIf="rule.pricingBehavior === PricingInputBehavior.Rate">
+                <label>Apply only when</label>
+                <select [(ngModel)]="rule.dependsOnInputValueId"
+                    (change)="onDependencyValueChange(rule, rule.dependsOnInputValueId!)">
+                    <option [ngValue]="undefined">No dependency</option>
+                    <ng-container *ngFor="let parent of pricingInputs">
+                        <ng-container *ngIf="
+                parent !== rule &&
+                parent.dataType === MetadataDataType.Select
+              ">
+                            <option *ngFor="let pv of inputValuesMap[parent.inputDefinitionId]" [ngValue]="pv.id"> {{
+                                parent.label }} = {{ pv.displayName || pv.value }} </option>
+                        </ng-container>
                     </ng-container>
                 </select>
-                <small class="hint"> This rule will only apply when the selected condition is met. </small>
             </div>
         </div>
     </div>
-    <!-- ================= CALCULATION ================= -->
-    <div class="section preview" *ngIf="pricingInputs.length">
-        <h4>3. Price Preview</h4>
-        <p class="hint"> Provide example values and calculate the final base cost. </p>
-        <button type="button" class="primary-btn" (click)="calculatePreview()"> Calculate Price </button>
-        <div class="preview-result" *ngIf="previewBaseCost > 0">
-            <strong>Estimated Base Cost:</strong> {{ previewBaseCost | number:'1.2-2' }}
-        </div>
+    <!-- PRICE PREVIEW -->
+    <div class="price-preview">
+        <strong>Preview Price:</strong> {{ previewBaseCost | currency }}
     </div>
 </div>

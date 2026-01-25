@@ -24,19 +24,23 @@ export interface UpdateInputValueRequest {
 }
 export interface PricingInputUI {
   inputDefinitionId: number;
-  inputCode: string;
   label: string;
-  pricingBehavior: PricingInputBehavior;
-  dataType: MetadataDataType;
+  code: string;
 
-  // backend fields
+  dataType: MetadataDataType;
+  pricingBehavior: PricingInputBehavior;
+
+  // pricing
   amount: number;
   isRequired: boolean;
   priority: number;
   inputValueId?: number;
+
+  // dependency (NEW – clearer)
+  dependsOnInputDefinitionId?: number;
   dependsOnInputValueId?: number;
 
-  // UI-only (preview)
+  // preview
   previewNumericValue?: number;
-  previewSelectedValueCode?: string;
+  previewSelectedValueId?: number;
 }
