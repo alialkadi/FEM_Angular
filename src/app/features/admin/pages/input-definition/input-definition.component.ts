@@ -191,14 +191,24 @@ export class InputDefinitionComponent implements OnInit {
       code: this.form.value.code.trim().toLowerCase(),
     };
     console.log(payload);
-    this.service.create(payload).subscribe((res) => {
-      if (res.success) {
-        this.definitions.unshift(res.data);
-
-        this.form.reset();
-      }
-      this.submitting = true;
-      console.log(res);
+    this.service.create(payload).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.definitions.unshift(res.data);
+          this.form.reset({
+            pricingBehavior: PricingInputBehavior.None,
+            allowDecimal: false,
+            min: null,
+            max: null,
+          });
+        }
+      },
+      error: (err) => {
+        console.log(err);
+      },
+      complete: () => {
+        this.submitting = false; // ✅ RESET
+      },
     });
   }
 

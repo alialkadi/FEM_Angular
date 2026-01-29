@@ -87,15 +87,20 @@
     </div>
 </div>
 <!-- ================= VALUES MODAL ================= -->
-<div class="modal-backdrop" *ngIf="showValues">
-    <div class="modal">
+<div class="modal-overlay" *ngIf="showValues">
+    <div class="modal-card">
+        <!-- HEADER -->
         <div class="modal-header">
-            <h3>Values — {{ selectedDefinition?.label }}</h3>
-            <button class="close" (click)="closeValues()">×</button>
+            <div class="title">
+                <h3>Manage Values</h3>
+                <span class="subtitle">{{ selectedDefinition?.label }}</span>
+            </div>
+            <button class="close-btn" (click)="closeValues()">✕</button>
         </div>
+        <!-- BODY -->
         <div class="modal-body">
             <!-- CREATE VALUE -->
-            <form [formGroup]="valueForm" (ngSubmit)="createValue()" class="grid four">
+            <form [formGroup]="valueForm" (ngSubmit)="createValue()" class="create-value-form">
                 <div class="field">
                     <label>Code</label>
                     <input formControlName="code" />
@@ -104,15 +109,15 @@
                     <label>Display Name</label>
                     <input formControlName="displayName" />
                 </div>
-                <div class="field">
+                <div class="field small">
                     <label>Order</label>
                     <input type="number" formControlName="sortOrder" />
                 </div>
                 <div class="field actions">
-                    <button class="primary" [disabled]="creatingValue"> Add </button>
+                    <button class="primary" [disabled]="creatingValue"> + Add Value </button>
                 </div>
             </form>
-            <div *ngIf="loadingValues" class="muted">Loading values…</div>
+            <div *ngIf="loadingValues" class="muted center"> Loading values… </div>
             <!-- VALUES TABLE -->
             <table *ngIf="!loadingValues && values.length">
                 <thead>
@@ -130,16 +135,17 @@
                         <td>{{ v.displayName }}</td>
                         <td>{{ v.sortOrder }}</td>
                         <td>
-                            <span [class.active]="v.isActive"> {{ v.isActive ? 'Active' : 'Disabled' }} </span>
+                            <span class="status" [class.active]="v.isActive"> {{ v.isActive ? 'Active' : 'Disabled' }}
+                            </span>
                         </td>
-                        <td>
-                            <button (click)="toggleActive(v)">Toggle</button>
+                        <td class="actions">
+                            <button class="secondary" (click)="toggleActive(v)"> Toggle </button>
                             <button class="danger" (click)="deleteValue(v)"> Delete </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <div *ngIf="!loadingValues && !values.length" class="muted"> No values defined yet. </div>
+            <div *ngIf="!loadingValues && !values.length" class="muted center"> No values defined yet. </div>
         </div>
     </div>
 </div>

@@ -1,88 +1,117 @@
 <div class="review-wrapper" *ngIf="!loading; else loadingTpl">
+    <!-- PAGE HEADER -->
     <header class="page-header">
         <h2 class="page-title">🧾 Review Your Selected Services</h2>
-        <p class="page-subtitle"> Please review the detailed breakdown, costs, and process steps for each selected
-            service before confirming your request. </p>
+        <p class="page-subtitle"> Review pricing, inputs, and steps before confirming your request. </p>
     </header>
+    <!-- SERVICES GRID -->
     <div class="cards-grid">
         <div *ngFor="let item of requestedServices" class="service-card">
+            <!-- CARD HEADER -->
             <header class="card-header">
                 <div class="title-group">
                     <h3 class="service-name">{{ item.service.name }}</h3>
-                    <p class="service-desc">{{ item.service.description || 'No description provided.' }}</p>
+                    <p class="service-desc"> {{ item.service.description || 'No description provided.' }} </p>
                 </div>
                 <div class="price-tag">
                     <span class="label">Total</span>
-                    <span class="value">{{ item.calculation.total | currency }}</span>
+                    <span class="value"> {{ item.calculation?.total | currency }} </span>
                 </div>
             </header>
-            <!-- Cost Breakdown -->
-            <section class="card-section cost-breakdown">
-                <h4><i class="fas fa-coins"></i> Cost Breakdown</h4>
+            <!-- INPUTS -->
+            <section class="card-section inputs-section" *ngIf="item.service.inputs?.length">
+                <h4>🧩 Service Inputs</h4>
+                <div class="inputs-grid">
+                    <div class="input-row" *ngFor="let input of item.service.inputs">
+                        <label class="input-label"> {{ input.label }} <span *ngIf="input.isRequired"
+                                class="required">*</span>
+                        </label>
+                        <!-- SELECT INPUT -->
+                        <select *ngIf="input.values?.length" class="input-control"
+                            [value]="getAnswer(item, input.code)?.selectedValueCode || ''" (change)="
+                setAnswer(
+                  item,
+                  input.code,
+                  $any($event.target).value
+                )
+              ">
+                            <option value="">-- select --</option>
+                            <option *ngFor="let v of input.values" [value]="v.code"> {{ v.displayName }} </option>
+                        </select>
+                        <!-- NUMBER INPUT -->
+                        <input *ngIf="!input.values?.length" class="input-control" type="number"
+                            [value]="getAnswer(item, input.code)?.numericValue ?? ''" (input)="
+                setAnswer(
+                  item,
+                  input.code,
+                  +$any($event.target).value
+                )
+              " />
+                    </div>
+                </div>
+            </section>
+            <!-- COST BREAKDOWN -->
+            <section class="card-section cost-breakdown" *ngIf="item.calculation">
+                <h4>💰 Cost Breakdown</h4>
                 <div class="fees-list">
                     <div class="fee-row">
-                        <span class="fee-label">Base Cost</span>
-                        <span class="fee-value">{{ item.calculation?.baseCost | currency }}</span>
+                        <span>Base Cost</span>
+                        <span>{{ item.calculation.baseCost | currency }}</span>
                     </div>
-                    <div *ngFor="let fee of item.calculation?.globalFees" class="fee-row">
-                        <span class="fee-label">🌍 Global Fee — {{ fee.name }}</span>
-                        <span class="fee-value">{{ fee.amount | currency }}</span>
+                    <div *ngFor="let fee of item.calculation.globalFees" class="fee-row">
+                        <span>🌍 {{ fee.name }}</span>
+                        <span>{{ fee.amount | currency }}</span>
                     </div>
-                    <div *ngFor="let fee of item.calculation?.serviceSpecificFees" class="fee-row">
-                        <span class="fee-label">🧰 Service Fee — {{ fee.name }}</span>
-                        <span class="fee-value">{{ fee.amount | currency }}</span>
+                    <div *ngFor="let fee of item.calculation.serviceSpecificFees" class="fee-row">
+                        <span>🧰 {{ fee.name }}</span>
+                        <span>{{ fee.amount | currency }}</span>
                     </div>
                 </div>
                 <div class="total-box">
                     <div>
                         <span>Subtotal</span>
-                        <span>{{ item.calculation?.subTotal | currency }}</span>
+                        <span>{{ item.calculation.subTotal | currency }}</span>
                     </div>
                     <div class="final">
                         <span>Total</span>
-                        <span>{{ item.calculation?.total | currency }}</span>
+                        <span>{{ item.calculation.total | currency }}</span>
                     </div>
                 </div>
-                <button class="wishlist-btn" (click)="toggleWishlist(item); $event.stopPropagation()">
-                    <span *ngIf="!isWishlisted(item.service.id)">♡ Save</span>
-                    <span *ngIf="isWishlisted(item.service.id)">❤️ Saved</span>
-                </button>
-                <button class="remove-btn" (click)="removeFromReview(item); $event.stopPropagation()"> ❌ Remove
-                </button>
             </section>
-            <!-- Steps Section -->
+            <!-- STEPS -->
             <section class="card-section steps-section">
-                <h4><i class="fas fa-list-check"></i> Service Steps</h4>
-                <ol *ngIf="item.steps.length > 0; else noSteps">
+                <h4>🛠 Service Steps</h4>
+                <ol *ngIf="item.steps?.length; else noSteps">
                     <li *ngFor="let step of item.steps">
                         <span class="step-number">#{{ step.stepOrder }}</span>
                         <span class="step-desc">{{ step.description }}</span>
                     </li>
                 </ol>
                 <ng-template #noSteps>
-                    <div class="no-steps">
-                        <i class="fas fa-circle-info"></i>
-                        <p>This service has no defined steps.</p>
-                    </div>
+                    <div class="no-steps">No steps defined.</div>
                 </ng-template>
             </section>
+            <!-- ACTIONS -->
+            <div class="card-actions">
+                <button class="wishlist-btn" (click)="toggleWishlist(item)"> {{ isWishlisted(item.service.id) ? '❤️
+                    Saved' : '♡ Save' }} </button>
+                <button class="remove-btn" (click)="removeFromReview(item)"> ❌ Remove </button>
+            </div>
         </div>
     </div>
-    <!-- Summary Footer -->
+    <!-- SUMMARY -->
     <footer class="summary-footer">
         <div class="summary-box">
-            <div class="summary-info">
-                <h3>Total for All Services</h3>
-                <h2>{{ overallTotal | currency }}</h2>
-            </div>
-            <button class="confirm-btn" (click)="confirmRequest()">
-                <i class="fas fa-check-circle"></i> Confirm & Submit Request </button>
+            <h3>Total for All Services</h3>
+            <h2>{{ overallTotal | currency }}</h2>
+            <button class="confirm-btn" (click)="confirmRequest()" [disabled]="!canConfirm"> ✔ Confirm & Submit Request
+            </button>
         </div>
     </footer>
 </div>
 <ng-template #loadingTpl>
     <div class="loading-container">
         <div class="spinner"></div>
-        <p>Loading service details...</p>
+        <p>Loading services…</p>
     </div>
 </ng-template>

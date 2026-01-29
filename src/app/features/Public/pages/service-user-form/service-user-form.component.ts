@@ -8,10 +8,9 @@ import { WishlistService } from '../../Services/wishlist.service';
 @Component({
   selector: 'app-service-user-form',
   templateUrl: './service-user-form.component.html',
-  styleUrl: './service-user-form.component.scss'
+  styleUrl: './service-user-form.component.scss',
 })
 export class ServiceUserFormComponent implements OnInit {
-
   requestedServices: RequestedService[] = [];
   submitting = false;
 
@@ -19,16 +18,19 @@ export class ServiceUserFormComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private serviceRequestApi: ServiceService,
-    private wishlist: WishlistService
+    private wishlist: WishlistService,
   ) {}
 
   userForm = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     lastName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9+\- ]+$/)]],
+    phoneNumber: [
+      '',
+      [Validators.required, Validators.pattern(/^[0-9+\- ]+$/)],
+    ],
     address: ['', [Validators.required, Validators.minLength(5)]],
-    preferredContactMethod: ['Email']
+    preferredContactMethod: ['Email'],
   });
 
   // ✅ REQUIRED FOR TEMPLATE ACCESS
@@ -55,48 +57,46 @@ export class ServiceUserFormComponent implements OnInit {
     this.submitting = true;
 
     const payload = {
-  user: this.userForm.value,
+      user: this.userForm.value,
 
-  services: this.requestedServices.map(r => ({
-    serviceId: r.service.id,
-    baseCost: r.calculation.baseCost,
-    calculatedTotal: r.calculation.total,
-    description: r.service.description,
+      services: this.requestedServices.map((r) => ({
+        serviceId: r.service.id,
+        baseCost: r.calculation?.baseCost,
+        calculatedTotal: r.calculation?.total,
+        description: r.service.description,
 
-    // ✅ FIXED
-    metadata: r.service.metadata ?? []
-  })),
+        // ✅ FIXED
+        metadata: r.service.metadata ?? [],
+      })),
 
-  total: this.requestedServices.reduce(
-    (sum, r) => sum + (r.calculation.total ?? 0),
-    0
-  ),
+      total: this.requestedServices.reduce(
+        (sum, r) => sum + (r.calculation?.total ?? 0),
+        0,
+      ),
 
-  notes: 'Public user service request submission'
-};
-
+      notes: 'Public user service request submission',
+    };
 
     console.log('🚀 FINAL REQUEST PAYLOAD', payload);
 
     this.serviceRequestApi.submitServiceRequest(payload).subscribe({
-      next: _ => {
+      next: (_) => {
         this.submitting = false;
-        this.wishlist.clear(); 
+        this.wishlist.clear();
         alert('✅ Request submitted successfully!');
         this.router.navigate(['/FenetrationMaintainence/Home/success']);
       },
-      error: err => {
+      error: (err) => {
         console.error('❌ Submission failed:', err);
         this.submitting = false;
         alert('An error occurred while submitting your request.');
-      }
+      },
     });
   }
 
   cancel() {
-    this.router.navigate(
-      ['/FenetrationMaintainence/Home/service-review'],
-      { state: { requestedServices: this.requestedServices } }
-    );
+    this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
+      state: { requestedServices: this.requestedServices },
+    });
   }
 }

@@ -15,6 +15,10 @@
 //     partOptionName?: string
 
 import { MetadataDataType } from './MetadataTargetType';
+import {
+  ServiceInputDefinition,
+  ServiceInputAnswer,
+} from './RequestedInputs.model';
 
 // }
 
@@ -99,6 +103,7 @@ import { MetadataDataType } from './MetadataTargetType';
 // ========================================================
 
 export interface ServiceResponse {
+  inputs?: ServiceInputDefinition[];
   id: number;
   name?: string;
   description?: string;
@@ -206,8 +211,10 @@ export interface ServiceUserInfo {
 
 export interface RequestedService {
   service: ServiceResponse;
-  calculation: ServiceCalculationResult;
+  calculation: ServiceCalculationResult | null;
   steps: ServiceStep[];
+  // inputs?: ServiceInputDefinition[];
+  answers: ServiceInputAnswer[];
 }
 
 // ========================================================
@@ -263,4 +270,12 @@ export interface InputDefinitionDto {
   label: string;
   dataType: MetadataDataType;
   pricingBehavior: PricingInputBehavior;
+}
+export interface ExplorerService {
+  id: number;
+  name: string;
+  fileUrl?: string;
+  itemType: number;
+  inputs?: ServiceInputDefinition[];
+  metadata?: any[];
 }

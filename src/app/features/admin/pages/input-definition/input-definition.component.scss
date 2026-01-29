@@ -123,104 +123,199 @@ td span.active {
   background: #dcfce7;
   color: #166534;
 }
-
 /* ===============================
-   MODAL BACKDROP
+   MODAL OVERLAY
 ================================ */
-.modal-backdrop {
+.modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(15, 23, 42, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 /* ===============================
-   MODAL
+   MODAL CARD
 ================================ */
-.modal {
+.modal-card {
   background: #ffffff;
-  width: 900px;
+  width: 860px;
   max-width: 95%;
   max-height: 85vh;
-  border-radius: 6px;
+  border-radius: 10px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  z-index: 1001;
+  animation: scaleIn 0.18s ease-out;
 }
 
 /* ===============================
-   MODAL HEADER
+   HEADER
 ================================ */
 .modal-header {
-  padding: 14px 18px;
+  padding: 18px 22px;
   border-bottom: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.modal-header h3 {
-  font-size: 15px;
-  font-weight: 600;
+.modal-header .title h3 {
   margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
 }
 
-.modal-header .close {
+.modal-header .subtitle {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.close-btn {
   background: transparent;
   border: none;
   font-size: 20px;
   cursor: pointer;
+  color: #6b7280;
+}
+
+.close-btn:hover {
+  color: #111827;
 }
 
 /* ===============================
-   MODAL BODY
+   BODY
 ================================ */
 .modal-body {
-  padding: 18px;
+  padding: 20px 22px;
   overflow-y: auto;
 }
 
-/* Create value form inside modal */
-.modal-body form.row {
+/* ===============================
+   CREATE VALUE FORM
+================================ */
+.create-value-form {
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr 0.6fr auto;
+  gap: 12px;
+  margin-bottom: 18px;
+  align-items: end;
+}
+
+.create-value-form .field {
   display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+  flex-direction: column;
 }
 
-.modal-body form.row input {
-  flex: 1;
+.create-value-form label {
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.create-value-form input {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.create-value-form .actions {
+  display: flex;
+  align-items: flex-end;
 }
 
 /* ===============================
-   MODAL TABLE
+   TABLE
 ================================ */
-.modal-body table {
-  margin-top: 12px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead {
+  background: #f9fafb;
+}
+
+th,
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody tr:hover {
+  background: #f9fafb;
 }
 
 /* ===============================
-   ACTION BUTTON GROUP
+   STATUS
 ================================ */
-td button {
+.status {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #e5e7eb;
+}
+
+.status.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ===============================
+   ACTION BUTTONS
+================================ */
+td.actions {
+  white-space: nowrap;
+}
+
+td.actions button {
   margin-right: 6px;
+}
+
+/* ===============================
+   HELPERS
+================================ */
+.center {
+  text-align: center;
+}
+
+.muted {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.mono {
+  font-family: monospace;
+}
+
+/* ===============================
+   ANIMATION
+================================ */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* ===============================
    RESPONSIVE
 ================================ */
 @media (max-width: 768px) {
-  .admin-card form .row {
-    flex-direction: column;
+  .create-value-form {
+    grid-template-columns: 1fr;
   }
 
-  .modal {
-    width: 95%;
-  }
-
-  .modal-body form.row {
-    flex-direction: column;
+  .modal-card {
+    max-height: 90vh;
   }
 }
