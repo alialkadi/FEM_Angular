@@ -250,7 +250,85 @@ export class ServiceRequestReviewComponent {
       ans.selectedValueCode = value;
       ans.numericValue = null;
     }
+    this.clearInvalidAnswers(item);
 
     this.recalculate(item); // 🔥 AUTO RECALC
+  }
+  clearInvalidAnswers(item: RequestedService) {
+    item.answers = item.answers.filter((ans) => {
+      const input = item.service.inputs?.find((i) => i.code === ans.inputCode);
+      if (!input) return false;
+
+      if (!this.isInputVisible(item, input)) return false;
+
+      if (ans.selectedValueCode) {
+        const allowedValues = this.getVisibleValues(item, input);
+        return allowedValues.some((v) => v.code === ans.selectedValueCode);
+      }
+
+      return true;
+    });
+  }
+
+  getParentLabel(item: RequestedService, input: ServiceInputDefinition) {
+    const parent = item.service.inputs?.find(
+      (i) => i.inputDefinitionId === input.dependsOnInputDefinitionId,
+    );
+    return parent?.label ?? '';
+  }
+
+  getInputById(item: RequestedService, id: number) {
+    return item.service.inputs?.find((i) => i.inputDefinitionId === id);
+  }
+  isInputVisible(
+    item: RequestedService,
+    input: ServiceInputDefinition,
+  ): boolean {
+    // Root input
+    if (!input.dependsOnInputDefinitionId) return true;
+
+    const parent = item.service.inputs?.find(
+      (i) => i.inputDefinitionId === input.dependsOnInputDefinitionId,
+    );
+    if (!parent) return false;
+
+    const parentAnswer = this.getAnswer(item, parent.code);
+    if (!parentAnswer?.selectedValueCode) return false;
+
+    // ✅ show input only if it has valid values
+    return this.getVisibleValues(item, input).length > 0;
+  }
+
+  getVisibleValues(item: RequestedService, input: ServiceInputDefinition) {
+    if (!input.values?.length) return [];
+
+    // ROOT select input → show values with no dependency
+    if (!input.dependsOnInputDefinitionId) {
+      return input.values.filter(
+        (v) =>
+          !v.dependsOnInputValueIds || v.dependsOnInputValueIds.length === 0,
+      );
+    }
+
+    // CHILD select → must check parent VALUE
+    const parent = item.service.inputs?.find(
+      (i) => i.inputDefinitionId === input.dependsOnInputDefinitionId,
+    );
+    if (!parent) return [];
+
+    const parentAnswer = this.getAnswer(item, parent.code);
+    if (!parentAnswer?.selectedValueCode) return [];
+
+    const selectedParentValue = parent.values?.find(
+      (v) => v.code === parentAnswer.selectedValueCode,
+    );
+    if (!selectedParentValue) return [];
+
+    // ✅ MULTI-VALUE DEPENDENCY MATCH
+    return input.values.filter(
+      (v) =>
+        !v.dependsOnInputValueIds ||
+        v.dependsOnInputValueIds.includes(selectedParentValue.id),
+    );
   }
 }

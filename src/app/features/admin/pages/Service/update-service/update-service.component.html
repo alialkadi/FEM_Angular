@@ -77,6 +77,65 @@
                 </app-attribute-assignment>
             </div>
         </div>
+        <!-- ================= PRICING INPUTS (EDITABLE) ================= -->
+        <div class="service-card pricing-editable" *ngIf="pricingInputs.length">
+            <h3>Dynamic Pricing Configuration</h3>
+            <p class="hint">Values are loaded from backend. Edit if needed.</p>
+            <div class="pricing-group" *ngFor="let input of pricingInputs">
+                <!-- HEADER -->
+                <div class="group-header">
+                    <div>
+                        <h4>{{ input.label }}</h4>
+                        <span class="behavior-badge">{{ getPricingTypeLabel(input) }}</span>
+                    </div>
+                    <label class="flag">
+                        <input type="checkbox" [(ngModel)]="input.isRequired" [ngModelOptions]="{ standalone: true }" />
+                        Required </label>
+                </div>
+                <!-- FIXED / DIMENSIONAL -->
+                <div *ngIf="input.pricingBehavior !== PricingInputBehavior.Rate">
+                    <label>Amount</label>
+                    <input type="number" [(ngModel)]="input.amount" [ngModelOptions]="{ standalone: true }" />
+                    <label>Priority</label>
+                    <input type="number" [(ngModel)]="input.priority" [ngModelOptions]="{ standalone: true }" />
+                </div>
+                <!-- RATE -->
+                <table *ngIf="input.pricingBehavior === PricingInputBehavior.Rate" class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Value</th>
+                            <th>Amount</th>
+                            <th>Depends On</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngFor="let v of inputValuesMap[input.inputDefinitionId]">
+                            <tr *ngFor="let r of v.rates">
+                                <td>{{ v.displayName || v.value }}</td>
+                                <td>
+                                    <input type="number" [(ngModel)]="r.amount"
+                                        [ngModelOptions]="{ standalone: true }" />
+                                </td>
+                                <td>
+                                    <select [(ngModel)]="r.dependsOnValueId" [ngModelOptions]="{ standalone: true }">
+                                        <option [ngValue]="undefined">Always</option>
+                                        <ng-container *ngFor="let opt of getDependencyOptions(input)">
+                                            <option [ngValue]="opt.value.id"> {{ opt.parent.label }} = {{
+                                                opt.value.displayName || opt.value.value }} </option>
+                                        </ng-container>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" [(ngModel)]="input.priority"
+                                        [ngModelOptions]="{ standalone: true }" />
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+            </div>
+        </div>
         <!-- ================= ACTIONS ================= -->
         <div class="actions">
             <button type="submit" [disabled]="isSubmitting"> {{ isSubmitting ? 'Updating…' : 'Update Service' }}

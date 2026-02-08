@@ -99,10 +99,13 @@ export class CreateServiceComponent implements OnInit {
       lockingPoint: [''],
       pointNumber: [''],
       baseCost: [0, [Validators.required, Validators.min(0)]],
+      baseRate: [0, [Validators.required, Validators.min(0)]],
       warrantyDuration: [0, [Validators.required, Validators.min(0)]],
       warrantyUnit: ['Months', Validators.required],
       deliveryDays: [0, [Validators.required, Validators.min(0)]],
       labors: [0, [Validators.min(0)]],
+      applyGlobalFees: [true],
+      applyLogistics: [true],
       categoryId: [null],
       categoryTypeId: [null],
       structureId: [null],
@@ -689,7 +692,7 @@ interface ValuePricingRuleUI {
   rate: number;
   dependsOnValueId?: number; // Pane.Double / Pane.Triple / undefined
 }
-interface PricingValueUI {
+export interface PricingValueUI {
   id: number;
   value: string;
   displayName?: string;

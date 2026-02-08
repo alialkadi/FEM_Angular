@@ -4,7 +4,7 @@ import { AdminRoutingModule } from './admin-routing.module';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ManageUsersComponent } from './pages/manage-users/manage-users.component';
 import { DashboradNavComponent } from './pages/dashboard/dashborad-nav/dashborad-nav.component';
-import { MatIcon } from "@angular/material/icon";
+import { MatIcon } from '@angular/material/icon';
 import { CategoryTypesComponent } from './pages/Categories/category-types/category-types.component';
 import { CommonModule } from '@angular/common';
 import { CategoriesListComponent } from './pages/Categories/categories-list/categories-list.component';
@@ -31,9 +31,11 @@ import { UpdateServiceComponent } from './pages/Service/update-service/update-se
 import { MetadataUpdateAttributeComponent } from './pages/Metadata/metadata-update-attribute/metadata-update-attribute.component';
 import { InputDefinitionComponent } from './pages/input-definition/input-definition.component';
 import { InputValueComponent } from './pages/input-value/input-value.component';
+import { GroupByPipe } from '../../core/Pipes/groupByPipe';
 
 @NgModule({
-  declarations: [DashboardComponent,
+  declarations: [
+    DashboardComponent,
     ManageUsersComponent,
     DashboradNavComponent,
     CategoryTypesComponent,
@@ -56,13 +58,18 @@ import { InputValueComponent } from './pages/input-value/input-value.component';
     UpdateServiceComponent,
     MetadataUpdateAttributeComponent,
     InputDefinitionComponent,
-    InputValueComponent],
-  imports: [SharedModule,
-            AdminRoutingModule,
-            MatIcon,CommonModule ,
-            MatPaginatorModule,
-            FormsModule,
-            ReactiveFormsModule ,
-            MatFormFieldModule]
+    InputValueComponent,
+    GroupByPipe,
+  ],
+  imports: [
+    SharedModule,
+    AdminRoutingModule,
+    MatIcon,
+    CommonModule,
+    MatPaginatorModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+  ],
 })
 export class AdminModule {}

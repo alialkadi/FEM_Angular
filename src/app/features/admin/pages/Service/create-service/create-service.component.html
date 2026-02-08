@@ -114,6 +114,24 @@
                     <label>Labors</label>
                     <input type="number" formControlName="labors" />
                 </div>
+                <div class="form-group" style="
+                            width: 100%;
+                            display: inline-flex;
+                            flex-direction: row;
+                            align-items: center;
+                        ">
+                    <input type="checkbox" formControlName="applyGlobalFees" />
+                    <label>Apply Global Fees</label>
+                </div>
+                <div class="form-group" style="
+                            width: 100%;
+                            display: inline-flex;
+                            flex-direction: row;
+                            align-items: center;
+                        ">
+                    <input type="checkbox" formControlName="applyLogistics" />
+                    <label>Apply Logistics</label>
+                </div>
                 <!-- FILE -->
                 <div class="form-group">
                     <input type="file" (change)="onFileSelected($event)" />
@@ -154,11 +172,15 @@
                     </div>
                     <!-- ================= DYNAMIC PRICING OVERVIEW ================= -->
                     <div class="dynamic-pricing" *ngIf="pricingMode === 'Dynamic'">
+                        <h4>Base Rate</h4>
+                        <p class="hint"> This amount will be used directly as the service base rate. </p>
+                        <input type="number" formControlName="baseRate" placeholder="Enter base Rate" />
                         <h4>Dynamic Pricing Rules</h4>
                         <p class="hint"> The service price will be calculated based on the inputs below. </p>
                         <ul class="pricing-explanation">
                             <li>Dimensional inputs are multiplied together</li>
                             <li>Rate inputs are summed and applied to dimensions</li>
+                            <li>BaseRate will be added to the sum of rate inputs</li>
                             <li>Fixed inputs are added directly</li>
                             <li>Dependencies control when a rule applies</li>
                         </ul>

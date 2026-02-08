@@ -1,4 +1,5 @@
 export interface ServiceInputDefinition {
+  dependsOnInputDefinitionId: any;
   inputDefinitionId: number;
   code: string;
   label: string;
@@ -14,6 +15,7 @@ export interface ServiceInputDefinition {
 }
 
 export interface ServiceInputValue {
+  dependsOnInputValueIds?: number[] | null;
   id: number;
   code: string;
   displayName: string;

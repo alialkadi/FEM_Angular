@@ -22,32 +22,24 @@
             <section class="card-section inputs-section" *ngIf="item.service.inputs?.length">
                 <h4>🧩 Service Inputs</h4>
                 <div class="inputs-grid">
-                    <div class="input-row" *ngFor="let input of item.service.inputs">
-                        <label class="input-label"> {{ input.label }} <span *ngIf="input.isRequired"
-                                class="required">*</span>
-                        </label>
-                        <!-- SELECT INPUT -->
-                        <select *ngIf="input.values?.length" class="input-control"
-                            [value]="getAnswer(item, input.code)?.selectedValueCode || ''" (change)="
-                setAnswer(
-                  item,
-                  input.code,
-                  $any($event.target).value
-                )
-              ">
-                            <option value="">-- select --</option>
-                            <option *ngFor="let v of input.values" [value]="v.code"> {{ v.displayName }} </option>
-                        </select>
-                        <!-- NUMBER INPUT -->
-                        <input *ngIf="!input.values?.length" class="input-control" type="number"
-                            [value]="getAnswer(item, input.code)?.numericValue ?? ''" (input)="
-                setAnswer(
-                  item,
-                  input.code,
-                  +$any($event.target).value
-                )
-              " />
-                    </div>
+                    <ng-container *ngFor="let input of item.service.inputs">
+                        <div *ngIf="isInputVisible(item, input)"
+                            class="input-row level-{{ input.dependsOnInputDefinitionId ? 2 : 1 }}">
+                            <label> {{ input.label }} <small *ngIf="input.dependsOnInputDefinitionId"> (depends on {{
+                                    getParentLabel(item, input) }}) </small>
+                            </label>
+                            <select *ngIf="input.values?.length"
+                                [value]="getAnswer(item, input.code)?.selectedValueCode || ''"
+                                (change)="setAnswer(item, input.code, $any($event.target).value)">
+                                <option value="">-- select --</option>
+                                <option *ngFor="let v of getVisibleValues(item, input)" [value]="v.code"> {{
+                                    v.displayName }} </option>
+                            </select>
+                            <input *ngIf="!input.values?.length" type="number"
+                                [value]="getAnswer(item, input.code)?.numericValue ?? ''"
+                                (input)="setAnswer(item, input.code, +$any($event.target).value)" />
+                        </div>
+                    </ng-container>
                 </div>
             </section>
             <!-- COST BREAKDOWN -->

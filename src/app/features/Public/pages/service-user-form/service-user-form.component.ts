@@ -64,7 +64,11 @@ export class ServiceUserFormComponent implements OnInit {
         baseCost: r.calculation?.baseCost,
         calculatedTotal: r.calculation?.total,
         description: r.service.description,
-
+        inputs: r.answers.map((a) => ({
+          inputCode: a.inputCode,
+          numericValue: a.numericValue ?? null,
+          selectedValueCode: a.selectedValueCode ?? null,
+        })),
         // ✅ FIXED
         metadata: r.service.metadata ?? [],
       })),

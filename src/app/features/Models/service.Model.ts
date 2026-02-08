@@ -103,6 +103,7 @@ import {
 // ========================================================
 
 export interface ServiceResponse {
+  requiredInputs?: any[];
   inputs?: ServiceInputDefinition[];
   id: number;
   name?: string;
@@ -119,6 +120,10 @@ export interface ServiceResponse {
   labors?: number;
   structureName?: string;
   partOptionName?: string;
+  applyGlobalFees?: boolean;
+  applyLogistics?: boolean;
+  baseRate?: number;
+  pricingMode?: number;
   calculatedTotal?: number; // added dynamically after cost calculation
   metadata?: ServiceSelectedMetadataDto[];
 }
