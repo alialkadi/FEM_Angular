@@ -90,6 +90,7 @@ export class ServiceRequestReviewComponent {
             subTotal: s.baseCost,
             total: s.baseCost,
           };
+          console.log(res);
           calcDone = true;
           tryPushResult();
         },
@@ -280,29 +281,14 @@ export class ServiceRequestReviewComponent {
   getInputById(item: RequestedService, id: number) {
     return item.service.inputs?.find((i) => i.inputDefinitionId === id);
   }
-  isInputVisible(
-    item: RequestedService,
-    input: ServiceInputDefinition,
-  ): boolean {
-    // Root input
-    if (!input.dependsOnInputDefinitionId) return true;
-
-    const parent = item.service.inputs?.find(
-      (i) => i.inputDefinitionId === input.dependsOnInputDefinitionId,
-    );
-    if (!parent) return false;
-
-    const parentAnswer = this.getAnswer(item, parent.code);
-    if (!parentAnswer?.selectedValueCode) return false;
-
-    // ✅ show input only if it has valid values
-    return this.getVisibleValues(item, input).length > 0;
+  isInputVisible(_: RequestedService, __: ServiceInputDefinition): boolean {
+    return true;
   }
 
   getVisibleValues(item: RequestedService, input: ServiceInputDefinition) {
     if (!input.values?.length) return [];
 
-    // ROOT select input → show values with no dependency
+    // ROOT INPUT → show only global values
     if (!input.dependsOnInputDefinitionId) {
       return input.values.filter(
         (v) =>
@@ -310,25 +296,33 @@ export class ServiceRequestReviewComponent {
       );
     }
 
-    // CHILD select → must check parent VALUE
+    // INPUT HAS DEPENDENCY → still render, but filter VALUES
     const parent = item.service.inputs?.find(
       (i) => i.inputDefinitionId === input.dependsOnInputDefinitionId,
     );
     if (!parent) return [];
 
     const parentAnswer = this.getAnswer(item, parent.code);
-    if (!parentAnswer?.selectedValueCode) return [];
 
-    const selectedParentValue = parent.values?.find(
-      (v) => v.code === parentAnswer.selectedValueCode,
-    );
-    if (!selectedParentValue) return [];
+    return input.values.filter((v) => {
+      // ✅ GLOBAL VALUE → always visible
+      if (!v.dependsOnInputValueIds || v.dependsOnInputValueIds.length === 0) {
+        return true;
+      }
 
-    // ✅ MULTI-VALUE DEPENDENCY MATCH
-    return input.values.filter(
-      (v) =>
-        !v.dependsOnInputValueIds ||
-        v.dependsOnInputValueIds.includes(selectedParentValue.id),
-    );
+      // ❌ No parent answer yet → hide dependent values
+      if (!parentAnswer?.selectedValueCode) {
+        return false;
+      }
+
+      const parentValue = parent.values?.find(
+        (pv) => pv.code === parentAnswer.selectedValueCode,
+      );
+
+      if (!parentValue) return false;
+
+      // ✅ Dependency match
+      return v.dependsOnInputValueIds.includes(parentValue.id);
+    });
   }
 }

@@ -81,6 +81,7 @@ export class ServiceService {
     id: number,
     formData: FormData,
   ): Observable<ApiResponse<ServiceResponse>> {
+    console.log(formData);
     return this._http.put<ApiResponse<ServiceResponse>>(
       `${this.baseurl}/Service/${id}`,
       formData,

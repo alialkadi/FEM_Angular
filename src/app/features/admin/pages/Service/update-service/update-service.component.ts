@@ -112,6 +112,7 @@ export class UpdateServiceComponent implements OnInit {
         if (!res.success || !res.data) return;
 
         const s: ServiceResponse = res.data;
+        this.pricingMode = s.pricingMode === 1 ? 'Static' : 'Dynamic';
 
         this.serviceForm.patchValue({
           name: s.name,
@@ -255,6 +256,8 @@ export class UpdateServiceComponent implements OnInit {
         formData.append(k, v as any);
       }
     });
+    formData.append('PricingMode', this.pricingMode);
+
     if (this.pricingMode === 'Dynamic') {
       let index = 0;
 
@@ -292,10 +295,19 @@ export class UpdateServiceComponent implements OnInit {
                 input.priority.toString(),
               );
 
-              if (rate.dependsOnValueId) {
+              if (
+                rate.dependsOnValueId !== undefined &&
+                rate.dependsOnValueId !== null
+              ) {
                 formData.append(
                   `PricingInputs[${index}].DependsOnInputValueId`,
                   rate.dependsOnValueId.toString(),
+                );
+              } else {
+                // 🔥 Explicitly clear dependency
+                formData.append(
+                  `PricingInputs[${index}].DependsOnInputValueId`,
+                  '',
                 );
               }
 
@@ -334,8 +346,6 @@ export class UpdateServiceComponent implements OnInit {
 
         // DIMENSIONAL
         if (input.pricingBehavior === PricingInputBehavior.Dimensional) {
-          if (input.previewNumericValue == null) return;
-
           formData.append(
             `PricingInputs[${index}].InputDefinitionId`,
             input.inputDefinitionId.toString(),
@@ -346,7 +356,7 @@ export class UpdateServiceComponent implements OnInit {
           );
           formData.append(
             `PricingInputs[${index}].Amount`,
-            input.previewNumericValue.toString(),
+            input.amount.toString(),
           );
           formData.append(
             `PricingInputs[${index}].IsRequired`,
