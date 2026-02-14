@@ -100,7 +100,7 @@
 /* ================= FILTER BAR ================= */
 .filters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15%, 1fr)) ;
+  grid-template-columns: repeat(auto-fit, minmax(15%, 1fr));
   gap: 10px;
   padding: 12px;
   background: #fff;
@@ -245,4 +245,55 @@
   padding: 30px;
   text-align: center;
   color: #6b7280;
+}
+
+.advertise-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0;
+  flex-wrap: wrap;
+}
+
+.sort-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+}
+
+.success-btn {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.warn-btn {
+  background: #f59e0b;
+  color: #fff;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.primary-btn.small {
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.copy-toast {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  z-index: 9999;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
 }

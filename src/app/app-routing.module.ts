@@ -7,6 +7,7 @@ import { LoginComponent } from './features/login/login.component';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 import { UserLayoutComponent } from './layouts/user-layout/user-layout.component';
 import { TechniciaLayoutComponent } from './layouts/technicia-layout/technicia-layout.component';
+import { ServiceAdvertisedDetailComponent } from './features/Public/pages/service-advertised-detail/service-advertised-detail.component';
 
 const routes: Routes = [
   {
@@ -18,9 +19,9 @@ const routes: Routes = [
       {
         path: '',
         loadChildren: () =>
-          import('./features/admin/admin.module').then(m => m.AdminModule)
-      }
-    ]
+          import('./features/admin/admin.module').then((m) => m.AdminModule),
+      },
+    ],
   },
   {
     path: 'FenetrationMaintainence',
@@ -28,9 +29,10 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        loadChildren: () => import('./features/Public/public.module').then(m => m.PublicModule)
-      }
-    ]
+        loadChildren: () =>
+          import('./features/Public/public.module').then((m) => m.PublicModule),
+      },
+    ],
   },
   {
     path: 'user',
@@ -40,9 +42,12 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        loadChildren: () => import('./features/user-dashboard/user-dashboard.module').then(m =>m.UserDashboardModule )
-      }
-    ]
+        loadChildren: () =>
+          import('./features/user-dashboard/user-dashboard.module').then(
+            (m) => m.UserDashboardModule,
+          ),
+      },
+    ],
   },
   {
     path: 'technician',
@@ -52,17 +57,21 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        loadChildren: () => import('./features/technician-dashboard/technician-dashboard.module').then(m =>m.TechnicianDashboardModule )
-      }
-    ]
+        loadChildren: () =>
+          import('./features/technician-dashboard/technician-dashboard.module').then(
+            (m) => m.TechnicianDashboardModule,
+          ),
+      },
+    ],
   },
+  { path: 's/:slug', component: ServiceAdvertisedDetailComponent },
   { path: 'login', component: LoginComponent },
   { path: '', redirectTo: 'FenetrationMaintainence', pathMatch: 'full' },
-  { path: '**', redirectTo: 'FenetrationMaintainence' }
+  { path: '**', redirectTo: 'FenetrationMaintainence' },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, { enableTracing: false })],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
 export class AppRoutingModule {}

@@ -34,6 +34,7 @@
         </select>
         <button class="clear-btn" (click)="clearFilters()">Clear</button>
     </div>
+    <div class="copy-toast" *ngIf="copySuccessMessage"> {{ copySuccessMessage }} </div>
     <!-- ================= TABLE ================= -->
     <table class="service-table" *ngIf="!isLoading; else loading">
         <thead>
@@ -81,7 +82,19 @@
                     <button class="ghost-btn" (click)="openStepsModal(service)">Steps</button>
                     <button class="ghost-btn" [routerLink]="['/admin/dashboard/editservice', service.id]"> Edit
                     </button>
-                    <button class="danger-btn" (click)="onDelete(service.id!)"> Delete </button>
+                    <!-- ✅ Advertise buttons -->
+                    <div class="advertise-actions">
+                        <ng-container *ngIf="service.isAdvertised; else notAdvertised">
+                            <button class="success-btn" (click)="onCopyLink(service)"> Copy Link </button>
+                            <button class="warn-btn" (click)="onUnAdvertise(service)"> Remove Home </button>
+                        </ng-container>
+                        <ng-template #notAdvertised>
+                            <input type="number" class="sort-input" placeholder="Order"
+                                [(ngModel)]="advertiseSortOrderInput[service.id!]" />
+                            <button class="primary-btn small" (click)="onAdvertise(service)"> Add Home + Link </button>
+                        </ng-template>
+                    </div>
+                    <button class="danger-btn" (click)="onDelete(service.id!)">Delete</button>
                 </td>
             </tr>
         </tbody>

@@ -34,9 +34,13 @@ export class ServiceExplorerOptionCComponent implements OnInit {
 
   explorerItems: ExplorerItem[] = [];
   filters: MetadataFilter[] = [];
+  selectedStructureName?: string;
+  selectedPartName?: string;
+  selectedOptionName?: string;
 
   selectedFilters: Record<string, number[]> = {};
   selectedServices: ExplorerItem[] = [];
+  filtersSheetOpen = false;
 
   ExplorerItemType = ExplorerItemType; // 👈 expose enum to template
 
@@ -85,7 +89,23 @@ export class ServiceExplorerOptionCComponent implements OnInit {
         this.optionId = item.id;
         this.selectedFilters = {};
         break;
+      case ExplorerItemType.Structure:
+        this.resetBelow('structure');
+        this.structureId = item.id;
+        this.selectedStructureName = item.name;
+        break;
 
+      case ExplorerItemType.Part:
+        this.resetBelow('part');
+        this.partId = item.id;
+        this.selectedPartName = item.name;
+        break;
+
+      case ExplorerItemType.PartOption:
+        this.optionId = item.id;
+        this.selectedOptionName = item.name;
+        this.selectedFilters = {};
+        break;
       case ExplorerItemType.Service:
         this.toggleService(item);
         return;
@@ -217,6 +237,12 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     if (structure) {
       crumbs.push({ label: structure.name, level: 'structure' });
     }
+    if (this.selectedStructureName)
+      crumbs.push({ label: this.selectedStructureName, level: 'structure' });
+    if (this.selectedPartName)
+      crumbs.push({ label: this.selectedPartName, level: 'part' });
+    if (this.selectedOptionName)
+      crumbs.push({ label: this.selectedOptionName, level: 'option' });
 
     const part = this.explorerItems.find(
       (i) => i.itemType === ExplorerItemType.Part && i.id === this.partId,
@@ -278,5 +304,51 @@ export class ServiceExplorerOptionCComponent implements OnInit {
 
     this.selectedFilters = {};
     this.loadExplorer();
+  }
+
+  get hasFilters(): boolean {
+    return (this.filters?.length ?? 0) > 0;
+  }
+
+  get hasSelectedFilters(): boolean {
+    return Object.keys(this.selectedFilters).some(
+      (k) => (this.selectedFilters[k]?.length ?? 0) > 0,
+    );
+  }
+
+  openFiltersSheet() {
+    this.filtersSheetOpen = true;
+  }
+  closeFiltersSheet() {
+    this.filtersSheetOpen = false;
+  }
+  toggleFiltersSheet() {
+    this.filtersSheetOpen = !this.filtersSheetOpen;
+  }
+
+  clearFilters() {
+    this.selectedFilters = {};
+    this.loadExplorer();
+  }
+
+  // Better empty-state level
+  get currentLevel(): 'structure' | 'part' | 'option' | 'service' {
+    if (this.optionId) return 'service';
+    if (this.partId) return 'option';
+    if (this.structureId) return 'part';
+    return 'structure';
+  }
+
+  get hasAnyItems(): any {
+    return (
+      this.structures.length ||
+      this.parts.length ||
+      this.options.length ||
+      this.services.length
+    );
+  }
+
+  get showEmptyState(): boolean {
+    return !!this.selectedType && !this.hasAnyItems;
   }
 }

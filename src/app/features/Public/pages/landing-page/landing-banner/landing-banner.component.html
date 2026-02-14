@@ -1,17 +1,26 @@
-<section class="landing-banner">
-    <!-- Gradient Background Overlay -->
-    <div class="banner-overlay"></div>
-    <!-- Banner Content -->
-    <div class="banner-content">
-        <div class="text-section">
-            <h1>Reliable Maintenance for Every Window and Door</h1>
-            <p> Ensuring durability, performance, and aesthetic appeal with our expert fenestration services. </p>
-            <button class="cta-btn" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']"> Explore Services
-            </button>
-        </div>
-        <!-- Banner Image / Illustration -->
-        <div class="image-section">
-            <img src="../../../../../../assets/landing-paeg/miantain.jpg" alt="Maintenance Worker" />
+<section class="hero" aria-label="Hero">
+    <!-- Background image + overlay -->
+    <div class="hero__bg" aria-hidden="true"></div>
+    <div class="container">
+        <div class="hero__content">
+            <div class="hero__kicker">
+                <span class="dot" aria-hidden="true"></span>
+                <span>Fenestration maintenance & replacement</span>
+            </div>
+            <h1 class="hero__title"> Reliable Maintenance for Every Window and Door </h1>
+            <p class="hero__subtitle"> Ensuring durability, performance, and aesthetic appeal with expert fenestration
+                services. From repairs to full replacements — built to last. </p>
+            <div class="hero__actions" role="group" aria-label="Primary actions">
+                <a class="btn btn--primary" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']"> Explore
+                    Services </a>
+                <a class="btn btn--ghost" [routerLink]="['/public/FenestrationMaintainence/contact']"> Request a Quote
+                </a>
+            </div>
+            <div class="hero__badges" aria-label="Trust badges">
+                <span class="badge">Licensed &amp; Insured</span>
+                <span class="badge">Fast Response</span>
+                <span class="badge">Quality Guaranteed</span>
+            </div>
         </div>
     </div>
 </section>

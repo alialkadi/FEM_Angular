@@ -126,6 +126,11 @@ export interface ServiceResponse {
   pricingMode?: number;
   calculatedTotal?: number; // added dynamically after cost calculation
   metadata?: ServiceSelectedMetadataDto[];
+
+  // ✅ advertise fields
+  isAdvertised?: boolean;
+  advertiseSlug?: string | null;
+  advertiseSortOrder?: number | null;
 }
 
 export interface ServiceListResponse {

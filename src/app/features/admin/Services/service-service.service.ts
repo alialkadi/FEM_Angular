@@ -164,4 +164,33 @@ export class ServiceService {
   getServiceFilterHierarchy(): Observable<any> {
     return this._http.get<any>(`${this.baseurl}/Service/filter-hierarchy`);
   }
+
+  getByIds(ids: number[]) {
+    return this._http.post<any>(`${this.baseurl}/Service/get-by-ids`, ids);
+  }
+
+  advertiseService(id: number, sortOrder?: number) {
+    let params = new HttpParams();
+    if (sortOrder !== undefined && sortOrder !== null) {
+      params = params.set('sortOrder', sortOrder);
+    }
+
+    return this._http.post<ApiResponse<string>>(
+      `${this.baseurl}/Service/${id}/advertise`,
+      {},
+      { params },
+    );
+  }
+  getAdvertisedBySlug(slug: string) {
+    return this._http.get<ApiResponse<any>>(
+      `${this.baseurl}/AdvertisedService/advertised/${encodeURIComponent(slug)}`,
+    );
+  }
+
+  unAdvertiseService(id: number) {
+    return this._http.post<ApiResponse<boolean>>(
+      `${this.baseurl}/Service/${id}/unadvertise`,
+      {},
+    );
+  }
 }

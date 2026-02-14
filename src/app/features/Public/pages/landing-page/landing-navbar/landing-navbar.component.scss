@@ -1,87 +1,189 @@
-.landing-navbar {
-  position: sticky;
-  top: 0;
+:host {
+  display: block;
+}
+
+/* Layout */
+.container {
+  width: min(1200px, 100%);
+  margin: auto;
+  padding: 0 20px;
+}
+
+/* Header */
+.header {
+  position: fixed;
+  width: 100%;
+  padding: 15px 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
   z-index: 1000;
-  background-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 0.8rem 5%;
+}
+
+/* Nav */
+.nav {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
+  justify-content: space-between;
+  height: 100%;
+}
 
-  .navbar-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 1200px;
-  }
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 18px;
+  letter-spacing: 1px;
 
-  /* Logo */
-  .logo-text {
-    font-family: "Poppins", sans-serif;
+  strong {
     font-weight: 700;
-    font-size: 1.4rem;
-    color: #0078d4;
-    letter-spacing: 0.5px;
-  }
-
-  /* Navigation links */
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      text-decoration: none;
-      color: #333;
-      font-weight: 500;
-      transition: color 0.3s ease;
-      font-family: "Inter", sans-serif;
-
-      &:hover,
-      &.active-link {
-        color: #0078d4;
-      }
-
-      .nav-icon {
-        font-size: 18px;
-        color: #0078d4;
-      }
-    }
-
-    /* Login button */
-    .login-btn {
-      background-color: #0078d4;
-      color: #fff;
-      padding: 0.5rem 1.2rem;
-      border-radius: 25px;
-      font-weight: 500;
-      text-decoration: none;
-      transition: background-color 0.3s ease;
-
-      &:hover {
-        background-color: #005fa3;
-      }
-    }
   }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .landing-navbar {
-    .nav-links {
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+.brand__mark {
+  width: 10px;
+  height: 10px;
+  background: var(--text);
+  border-radius: 50%;
+}
 
-    .logo-text {
-      font-size: 1.2rem;
-    }
+/* Nav links */
+.nav__links {
+  display: none;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav-item {
+  text-decoration: none;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: 0.3s;
+
+  &:hover {
+    color: var(--link-hover);
+  }
+}
+
+.active-link {
+  color: var(--link-hover);
+}
+
+/* Cart */
+.nav-cart {
+  position: relative;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+
+  &:hover {
+    color: var(--link-hover);
+  }
+}
+
+.cart-count {
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 50px;
+  padding: 3px 8px;
+  margin-left: 8px;
+}
+
+/* CTA */
+.btn-outline {
+  border: 1px solid var(--text);
+  color: var(--text);
+  padding: 8px 18px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: 0.3s;
+
+  &:hover {
+    border-color: var(--link-hover);
+    color: var(--link-hover);
+  }
+}
+
+/* Right side */
+.nav__right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Hamburger */
+.hamburger {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 22px;
+  cursor: pointer;
+  display: inline-block;
+}
+
+/* Mobile */
+/* Mobile */
+.mobile-menu {
+  position: fixed;
+  left: 0;
+  right: 0;
+
+  /* always below header */
+  top: 64px; /* fallback */
+  z-index: 999; /* below header (1000) is okay, but better use 1001 */
+  z-index: 1001;
+
+  background: rgba(15, 15, 15, 0.92);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border);
+
+  transform: translateY(-10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s ease;
+}
+
+.mobile-menu.open {
+  transform: translateY(0);
+  opacity: 1;
+  margin: 15px 0px;
+  pointer-events: auto;
+}
+
+.mobile-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 15px;
+}
+
+.mobile-item {
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+
+  &:hover {
+    color: var(--link-hover);
+  }
+}
+
+.full-width {
+  text-align: center;
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+  .nav__links {
+    display: flex;
+  }
+
+  .hamburger {
+    display: none;
   }
 }

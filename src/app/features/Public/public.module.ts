@@ -19,6 +19,7 @@ import { ServiceExplorerOptionBComponent } from './pages/service-explorer-option
 import { ServiceExplorerOptionCComponent } from './pages/service-explorer-option-c/service-explorer-option-c.component';
 import { ServiceUserFormComponent } from './pages/service-user-form/service-user-form.component';
 import { WishlistComponent } from './pages/Wishlist/wishlist.component';
+import { ServiceAdvertisedDetailComponent } from './pages/service-advertised-detail/service-advertised-detail.component';
 
 
 @NgModule({
@@ -34,7 +35,8 @@ import { WishlistComponent } from './pages/Wishlist/wishlist.component';
     ServiceExplorerOptionBComponent,
     ServiceExplorerOptionCComponent,
     ServiceUserFormComponent,
-    WishlistComponent
+    WishlistComponent,
+    ServiceAdvertisedDetailComponent
   ],
   imports: [
     CommonModule,
