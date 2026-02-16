@@ -1,99 +1,167 @@
-<div class="category-type-container">
-    <!-- Structure List -->
-    <section class="card list-card">
-        <h2>Structure List</h2>
-        <table class="category-table">
-            <thead>
-                <tr>
-                    <th>Structure Name</th>
-                    <th>Image</th>
-                    <th>Type Name</th>
-                    <th>Category Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let item of structures; let i = index">
-                    <td>{{item.name}}</td>
-                    <td>
-                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Type Image" class="type-image" />
-                        <span *ngIf="!item.fileUrl">No Image</span>
-                    </td>
-                    <td>{{item.typeName}}</td>
-                    <td>{{item.categoryName}}</td>
-                    <td>
-                        <button class="icon-btn edit" (click)="onEdit(item)">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button class="icon-btn delete" (click)="onDelete(item.id!)">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                        <!-- <button class="icon-btn metadata" title="Assign Metadata" (click)="openMetadata(item)">
-                            <i class="fa-solid fa-tags"></i>
-                        </button> -->
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- Paginator -->
-        <div class="paginator">
-            <div class="page-size">
-                <label for="pageSize">Rows per page:</label>
-                <select id="pageSize" (change)="onPageSizeChange($event)">
-                    <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{size}}
-                    </option>
+<div class="fe-page">
+    <!-- ================= FILTERS CARD ================= -->
+    <section class="fe-card">
+        <div class="fe-card__head">
+            <div>
+                <h2 class="fe-title">Structures</h2>
+                <p class="fe-subtitle">Filter and manage structures in your system.</p>
+            </div>
+            <button class="fe-btn fe-btn--ghost" type="button" (click)="clearFilters()">
+                <i class="fa-solid fa-rotate-left"></i> Clear </button>
+        </div>
+        <div class="fe-grid fe-grid--filters">
+            <!-- Category (FILTER) -->
+            <div class="fe-field">
+                <label>Category</label>
+                <select (change)="onFilterCategoryChange($event)">
+                    <option value="">All Categories</option>
+                    <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
                 </select>
             </div>
-            <div class="page-controls">
-                <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1">Prev</button>
-                <span>Page {{pageIndex}} of {{totalPage}}</span>
-                <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPage">Prev</button>
+            <!-- Category Type (FILTER) -->
+            <div class="fe-field">
+                <label>Category Type</label>
+                <select (change)="onFilterCategoryTypeChange($event)">
+                    <option value="">All Types</option>
+                    <option *ngFor="let t of filterCategoryTypes" [value]="t.id">{{ t.name }}</option>
+                </select>
+            </div>
+            <!-- Search -->
+            <div class="fe-field fe-search">
+                <label>Search</label>
+                <!-- <i class="fa-solid fa-magnifying-glass"></i> -->
+                <input type="text" [value]="searchText" (input)="onSearchChange(($any($event.target)).value)"
+                    placeholder="Search by structure / type / category..." />
             </div>
         </div>
     </section>
-    <!-- Add New Structure -->
-    <section class="card form-card">
-        <h2>Add New Structure</h2>
-        <form [formGroup]="crateForm" (ngSubmit)="onSave()">
-            <div class="form-group">
-                <label for="typeName">Type Name <span class="required">*</span></label>
-                <input type="text" formControlName="name" id="typeName" placeholder="e.g., Electronics" required />
-                <p *ngIf="
-        crateForm.get('name')?.getError('required') &&
-        crateForm.get('name')?.touched
-      " class="text-danger"> Name is required! </p>
+    <!-- ================= MAIN GRID ================= -->
+    <div class="fe-grid fe-grid--main" style="margin-top:16px;">
+        <!-- ================= LIST CARD ================= -->
+        <section class="fe-card">
+            <div class="fe-card__head">
+                <div>
+                    <h3 class="fe-card__title">Structure List</h3>
+                    <p class="fe-card__sub">Showing {{ totalCount }} result(s)</p>
+                </div>
+                <div class="fe-pill"> Page {{ pageIndex }} / {{ totalPage }} </div>
             </div>
-            <div class="form-group">
-                <div class="select-group">
-                    <label>Category</label>
-                    <select formControlName="categoryId" (change)="onCategoryChange($event)">
+            <div class="fe-table-wrap" *ngIf="structures.length; else emptyState">
+                <table class="fe-table">
+                    <thead>
+                        <tr>
+                            <th>Structure Name</th>
+                            <th class="fe-col-image">Image</th>
+                            <th>Type Name</th>
+                            <th>Category Name</th>
+                            <th class="fe-col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of structures">
+                            <td>
+                                <div class="fe-strong">{{ item.name }}</div>
+                            </td>
+                            <td>
+                                <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="fe-thumb" alt="Structure image" />
+                                <span *ngIf="!item.fileUrl" class="fe-muted">No image</span>
+                            </td>
+                            <td>{{ item.typeName }}</td>
+                            <td>{{ item.categoryName }}</td>
+                            <td class="fe-actions">
+                                <button class="fe-icon fe-icon--edit" type="button" (click)="onEdit(item)" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="fe-icon fe-icon--delete" type="button" (click)="onDelete(item.id!)"
+                                    title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <ng-template #emptyState>
+                <div class="fe-empty">
+                    <div class="fe-empty__icon">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div class="fe-strong">No structures found</div>
+                    <div class="fe-muted">Try adjusting filters or search.</div>
+                </div>
+            </ng-template>
+            <!-- Paginator -->
+            <div class="fe-paginator">
+                <div class="fe-field fe-field--inline">
+                    <label>Rows per page:</label>
+                    <select (change)="onPageSizeChange($event)">
+                        <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
+                        </option>
+                    </select>
+                </div>
+                <div class="fe-pageinfo"> Page {{ pageIndex }} of {{ totalPage }} </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="fe-btn fe-btn--ghost" type="button" (click)="onPageChange(pageIndex - 1)"
+                        [disabled]="pageIndex === 1"> Prev </button>
+                    <button class="fe-btn fe-btn--ghost" type="button" (click)="onPageChange(pageIndex + 1)"
+                        [disabled]="pageIndex === totalPage"> Next </button>
+                </div>
+            </div>
+        </section>
+        <!-- ================= CREATE CARD ================= -->
+        <section class="fe-card">
+            <div class="fe-card__head">
+                <div>
+                    <h3 class="fe-card__title">Add New Structure</h3>
+                    <p class="fe-card__sub">Create a structure and upload an image.</p>
+                </div>
+            </div>
+            <form class="fe-form" [formGroup]="crateForm" (ngSubmit)="onSave()">
+                <!-- Name -->
+                <div class="fe-field">
+                    <label>Structure Name <span class="fe-required">*</span></label>
+                    <input type="text" formControlName="name" placeholder="e.g., Window Frame" />
+                    <p class="fe-error"
+                        *ngIf="crateForm.get('name')?.hasError('required') && crateForm.get('name')?.touched"> Name is
+                        required. </p>
+                </div>
+                <!-- Category (CREATE) -->
+                <div class="fe-field">
+                    <label>Category <span class="fe-required">*</span></label>
+                    <select formControlName="categoryId" (change)="onCreateCategoryChange($event)">
                         <option value="">Select Category</option>
                         <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
                     </select>
+                    <p class="fe-error"
+                        *ngIf="crateForm.get('categoryId')?.hasError('required') && crateForm.get('categoryId')?.touched">
+                        Category is required. </p>
                 </div>
-                <label for="parentCategory">Type</label>
-                <select id="parentCategory" formControlName="typeId">
-                    <option value="" disabled selected style="color: #484b4d; text-align: center;">-Select Type-
-                    </option>
-                    <option *ngFor="let item of categoryTypes" [value]="item.id">{{item.name}} </option>
-                </select>
-                <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
-                <div *ngIf="previewUrl" class="preview">
-                    <p>Preview:</p>
-                    <img [src]="previewUrl" alt="Preview" class="preview-img" />
+                <!-- Type (CREATE) -->
+                <div class="fe-field">
+                    <label>Type <span class="fe-required">*</span></label>
+                    <select formControlName="typeId">
+                        <option value="">Select Type</option>
+                        <option *ngFor="let t of createCategoryTypes" [value]="t.id">{{ t.name }}</option>
+                    </select>
+                    <p class="fe-error"
+                        *ngIf="crateForm.get('typeId')?.hasError('required') && crateForm.get('typeId')?.touched"> Type
+                        is required. </p>
                 </div>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn cancel">Cancel</button>
-                <button type="submit" class="btn primary">Save</button>
-            </div>
-        </form>
-    </section>
-</div>
-<!-- Metadata Assignment Panel -->
-<div *ngIf="selectedStructureForMetadata" class="metadata-panel card">
-    <div class="panel-header">
-        <h3> Assign Metadata – {{ selectedStructureForMetadata.name }} </h3>
-        <button class="icon-btn close" (click)="closeMetadata()"> ✖ </button>
+                <!-- File -->
+                <div class="fe-field">
+                    <label>Image</label>
+                    <input type="file" (change)="onFileSelected($event)" />
+                    <div class="fe-preview" *ngIf="previewUrl">
+                        <div class="fe-muted">Preview</div>
+                        <img [src]="previewUrl" alt="Preview" />
+                    </div>
+                </div>
+                <!-- Actions -->
+                <div class="fe-form-actions">
+                    <button class="fe-btn fe-btn--ghost" type="button" (click)="onCancelCreate()">Cancel</button>
+                    <button class="fe-btn fe-btn--primary" type="submit" [disabled]="!crateForm.valid">Save</button>
+                </div>
+            </form>
+        </section>
     </div>
 </div>

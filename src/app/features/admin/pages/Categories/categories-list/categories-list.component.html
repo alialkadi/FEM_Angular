@@ -1,76 +1,103 @@
-<div class="category-container">
-    <!-- <div *ngIf="message" class="alert alert-info mt-3"> {{ message }} </div> -->
-    <!-- Category List -->
-    <section class="card list-card">
-        <h2>Category List</h2>
-        <table class="category-table">
-            <thead>
-                <tr>
-                    <th>Category Name</th>
-                    <th>Types Count</th>
-                    <th>Image</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let item of categories">
-                    <td>{{ item.name }}</td>
-                    <td>
-                        <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Type Image" class="type-image" />
-                        <span *ngIf="!item.fileUrl">No Image</span>
-                    </td>
-                    <td>{{ item.typesCount }}</td>
-                    <td>
-                        <button class="icon-btn edit" (click)="onEdit(item)">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button class="icon-btn delete" (click)="onDelete(item.id!)">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- Custom paginator -->
-        <div class="paginator">
-            <div class="page-size">
-                <label for="pageSize">Rows per page:</label>
-                <select id="pageSize" (change)="onPageSizeChange($event)">
-                    <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
-                    </option>
-                </select>
-            </div>
-            <div class="page-controls">
-                <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1">Prev</button>
-                <span>Page {{ pageIndex }} of {{ totalPages }}</span>
-                <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPages">Next</button>
-            </div>
-        </div>
-    </section>
-    <!-- Add New Category -->
-    <section class="card form-card">
-        <h2>Add New Category</h2>
-        <form [formGroup]="createForm" (ngSubmit)="onSave()">
-            <div class="form-group">
-                <label for="categoryName">Category Name <span class="required">*</span></label>
-                <input type="text" id="categoryName" formControlName="name" placeholder="e.g., Electronics" required />
-                <p *ngIf="
-        createForm.get('name')?.getError('required') &&
-        createForm.get('name')?.touched
-      " class="text-danger"> Name is required! </p>
-            </div>
-            <div class="form-group">
-                <label for="fileUpload">Upload Image</label>
-                <input type="file" id="fileUpload" (change)="onFileSelected($event)" />
-                <div *ngIf="previewUrl" class="preview">
-                    <p>Preview:</p>
-                    <img [src]="previewUrl" alt="Preview" class="preview-img" />
+<div class="fe-page">
+    <!-- ================= MAIN GRID ================= -->
+    <div class="fe-grid fe-grid--main">
+        <!-- ================= TABLE CARD ================= -->
+        <section class="fe-card fe-table-card">
+            <div class="fe-card__head">
+                <div>
+                    <h2 class="fe-title">Category List</h2>
+                    <p class="fe-subtitle">Browse and manage categories.</p>
+                </div>
+                <!-- rows per page -->
+                <div class="fe-field fe-field--inline">
+                    <label>Rows</label>
+                    <select (change)="onPageSizeChange($event)">
+                        <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
+                        </option>
+                    </select>
                 </div>
             </div>
-            <div class="form-actions">
-                <button type="button" class="btn cancel">Cancel</button>
-                <button type="submit" [disabled]="!createForm.valid" class="btn primary">Save Category</button>
+            <div class="fe-table-wrap">
+                <table class="fe-table">
+                    <thead>
+                        <tr>
+                            <th>Category Name</th>
+                            <th class="fe-col-image">Image</th>
+                            <th>Types Count</th>
+                            <th class="fe-col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody *ngIf="categories.length; else feEmpty">
+                        <tr *ngFor="let item of categories">
+                            <td class="fe-strong">{{ item.name }}</td>
+                            <td>
+                                <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Category Image" class="fe-thumb" />
+                                <span *ngIf="!item.fileUrl" class="fe-muted">No Image</span>
+                            </td>
+                            <td class="fe-muted">{{ item.typesCount }}</td>
+                            <td class="fe-actions">
+                                <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="fe-icon fe-icon--delete" (click)="onDelete(item.id!)" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- empty state -->
+                <ng-template #feEmpty>
+                    <div class="fe-empty">
+                        <div class="fe-empty__icon">
+                            <i class="fa-regular fa-folder-open"></i>
+                        </div>
+                        <h4>No categories</h4>
+                        <p class="fe-muted">Create your first category from the form on the right.</p>
+                    </div>
+                </ng-template>
             </div>
-        </form>
-    </section>
+            <!-- ================= PAGINATION ================= -->
+            <div class="fe-paginator">
+                <button class="fe-btn fe-btn--ghost" (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1">
+                    Prev </button>
+                <span class="fe-pageinfo"> Page <b>{{ pageIndex }}</b> of <b>{{ totalPages }}</b>
+                </span>
+                <button class="fe-btn fe-btn--ghost" (click)="onPageChange(pageIndex + 1)"
+                    [disabled]="pageIndex === totalPages"> Next </button>
+            </div>
+        </section>
+        <!-- ================= FORM CARD ================= -->
+        <section class="fe-card fe-form-card">
+            <div class="fe-card__head">
+                <div>
+                    <h3 class="fe-card__title">Add New Category</h3>
+                    <p class="fe-card__sub">Name + optional image.</p>
+                </div>
+            </div>
+            <form class="fe-form" [formGroup]="createForm" (ngSubmit)="onSave()">
+                <div class="fe-field">
+                    <label>Category Name <span class="fe-required">*</span></label>
+                    <input type="text" formControlName="name" placeholder="e.g., Windows" />
+                    <p *ngIf="createForm.get('name')?.getError('required') && createForm.get('name')?.touched"
+                        class="fe-error"> Name is required. </p>
+                </div>
+                <div class="fe-field">
+                    <label>Upload Image</label>
+                    <input type="file" (change)="onFileSelected($event)" />
+                    <div *ngIf="previewUrl" class="fe-preview">
+                        <img [src]="previewUrl" alt="Preview" />
+                        <button class="fe-btn fe-btn--ghost" type="button" (click)="previewUrl=null; selectedFile=null">
+                            Remove </button>
+                    </div>
+                </div>
+                <div class="fe-form-actions">
+                    <button class="fe-btn fe-btn--ghost" type="button"
+                        (click)="createForm.reset(); previewUrl=null; selectedFile=null"> Cancel </button>
+                    <button class="fe-btn fe-btn--primary" type="submit" [disabled]="!createForm.valid">
+                        <i class="fa-solid fa-plus"></i> Save Category </button>
+                </div>
+            </form>
+        </section>
+    </div>
 </div>

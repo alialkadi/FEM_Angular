@@ -37,6 +37,7 @@
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  margin: 3rem auto;
 }
 
 .topbar-left h2 {
@@ -712,5 +713,76 @@
   .services-callout {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+/* ✅ Desktop base: ONE column by default */
+@media (min-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  /* show sidebar only if it exists (DOM) */
+  .filters-side {
+    display: block;
+  }
+
+  /* ✅ Only when sidebar is actually present */
+  .layout:has(.filters-side) {
+    grid-template-columns: 340px 1fr;
+    gap: 14px;
+  }
+
+  /* When there's NO sidebar, allow wider cards */
+  .layout:not(:has(.filters-side)) .cards {
+    grid-template-columns: repeat(auto-fit, minmax(360px, 460px));
+  }
+
+  /* When sidebar exists, keep cards comfy (2 cols max) */
+  .layout:has(.filters-side) .cards {
+    grid-template-columns: repeat(auto-fit, minmax(340px, 440px));
+  }
+}
+
+/* ============================= */
+/* DESKTOP GRID LOGIC FIX */
+/* ============================= */
+
+@media (min-width: 980px) {
+  /* Default: no sidebar → full width content */
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* When sidebar exists */
+  .layout:has(.filters-side) {
+    grid-template-columns: 340px 1fr;
+  }
+
+  /* ----------------------------- */
+  /* CARD GRID BEHAVIOR */
+  /* ----------------------------- */
+
+  /* When NO sidebar → allow up to 3 columns */
+  .layout:not(:has(.filters-side)) .cards {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+
+  /* When sidebar EXISTS → max 2 columns */
+  .layout:has(.filters-side) .cards {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+/* Extra wide screens */
+@media (min-width: 1500px) {
+  /* No sidebar → force max 3 clean columns */
+  .layout:not(:has(.filters-side)) .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Sidebar → keep max 2 */
+  .layout:has(.filters-side) .cards {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

@@ -172,7 +172,15 @@
     color: var(--link-hover);
   }
 }
+.login-btn {
+  text-decoration: none;
+  color: var(--link-hover);
 
+  &:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
+}
 .full-width {
   text-align: center;
 }

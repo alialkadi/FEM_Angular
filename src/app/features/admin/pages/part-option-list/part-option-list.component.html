@@ -1,124 +1,157 @@
-<div class="admin-crud-container">
-    <!-- ================= PAGE HEADER ================= -->
-    <div class="page-header">
-        <h1>Part Options</h1>
-        <p class="subtitle">Manage part options and their hierarchy</p>
-    </div>
+<div class="fe-page">
     <!-- ================= FILTERS ================= -->
-    <section class="card filter-card">
-        <div class="card-header">
-            <h3>Filters</h3>
+    <section class="fe-card fe-filters">
+        <div class="fe-card__head">
+            <div>
+                <h2 class="fe-title">Part Options</h2>
+                <p class="fe-subtitle">Manage part options and their hierarchy.</p>
+            </div>
+            <div class="fe-pill">{{ totalCount }} items</div>
         </div>
-        <div class="filter-grid">
-            <div class="form-group">
+        <div class="fe-grid fe-grid--filters">
+            <!-- Category -->
+            <div class="fe-field">
                 <label>Category</label>
                 <select (change)="onCategoryChange($event)">
                     <option value="">All Categories</option>
-                    <option *ngFor="let c of categories" [value]="c.id"> {{ c.name }} </option>
+                    <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
                 </select>
             </div>
-            <div class="form-group">
+            <!-- Category Type -->
+            <div class="fe-field">
                 <label>Category Type</label>
                 <select (change)="onCategoryTypeChange($event)">
                     <option value="">All Types</option>
-                    <option *ngFor="let t of categoryTypes" [value]="t.id"> {{ t.name }} </option>
+                    <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
                 </select>
             </div>
-            <div class="form-group">
+            <!-- Structure -->
+            <div class="fe-field">
                 <label>Structure</label>
                 <select (change)="onStructureChange($event)">
                     <option value="">All Structures</option>
-                    <option *ngFor="let s of Structures" [value]="s.id"> {{ s.name }} </option>
+                    <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
                 </select>
             </div>
-            <div class="form-group">
+            <!-- Part -->
+            <div class="fe-field">
                 <label>Part</label>
                 <select (change)="onPartFilterChange($event)">
                     <option value="">All Parts</option>
-                    <option *ngFor="let p of Parts" [value]="p.id"> {{ p.name }} </option>
+                    <option *ngFor="let p of Parts" [value]="p.id">{{ p.name }}</option>
                 </select>
+            </div>
+            <!-- ✅ Search -->
+            <div class="fe-field fe-search">
+                <label>Search</label>
+                <!-- <i class="fa-solid fa-magnifying-glass"></i> -->
+                <input type="text" [value]="searchText" (input)="onSearchChange(($any($event.target)).value)"
+                    placeholder="Search option / part / structure / type..." />
             </div>
         </div>
     </section>
-    <!-- ================= CONTENT GRID ================= -->
-    <div class="content-grid">
-        <!-- ================= LIST ================= -->
-        <section class="card list-card">
-            <div class="card-header between">
-                <h3>Part Option List</h3>
-                <span class="badge">{{ totalCount }} items</span>
-            </div>
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Option</th>
-                        <th>Image</th>
-                        <th>Part</th>
-                        <th>Structure</th>
-                        <th>Category Type</th>
-                        <th class="center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let item of PartOptions">
-                        <td class="strong">{{ item.name }}</td>
-                        <td>
-                            <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="thumb" />
-                            <span *ngIf="!item.fileUrl" class="muted">—</span>
-                        </td>
-                        <td>{{ item.mainPartName }}</td>
-                        <td>{{ item.strucutreName }}</td>
-                        <td>{{ item.categoryTypeName }}</td>
-                        <td class="center actions">
-                            <button class="icon-btn edit" (click)="onEdit(item)">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button class="icon-btn delete" (click)="onDelete(item.id!)">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <!-- ================= PAGINATION ================= -->
-            <div class="table-footer">
-                <div class="page-size">
+    <!-- ================= MAIN GRID ================= -->
+    <div class="fe-grid fe-grid--main">
+        <!-- ================= TABLE ================= -->
+        <section class="fe-card fe-table-card">
+            <div class="fe-card__head">
+                <div>
+                    <h3 class="fe-card__title">Part Option List</h3>
+                    <p class="fe-card__sub">Showing {{ totalCount }} result(s).</p>
+                </div>
+                <div class="fe-field fe-field--inline">
                     <label>Rows</label>
                     <select (change)="onPageSizeChange($event)">
-                        <option *ngFor="let size of pageSizes" [value]="size"> {{ size }} </option>
+                        <option *ngFor="let size of pageSizes" [value]="size" [selected]="size === pageSize"> {{ size }}
+                        </option>
                     </select>
                 </div>
-                <div class="page-controls">
-                    <button (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1"> Prev </button>
-                    <span>Page {{ pageIndex }} of {{ totalPage }}</span>
-                    <button (click)="onPageChange(pageIndex + 1)" [disabled]="pageIndex === totalPage"> Next </button>
-                </div>
+            </div>
+            <div class="fe-table-wrap">
+                <table class="fe-table">
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th class="fe-col-image">Image</th>
+                            <th>Part</th>
+                            <th>Structure</th>
+                            <th>Category Type</th>
+                            <th class="fe-col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody *ngIf="PartOptions.length; else feEmpty">
+                        <tr *ngFor="let item of PartOptions">
+                            <td class="fe-strong">{{ item.name }}</td>
+                            <td>
+                                <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="fe-thumb" alt="Option Image" />
+                                <span *ngIf="!item.fileUrl" class="fe-muted">—</span>
+                            </td>
+                            <td class="fe-muted">{{ item.mainPartName }}</td>
+                            <td class="fe-muted">{{ item.strucutreName }}</td>
+                            <td class="fe-muted">{{ item.categoryTypeName }}</td>
+                            <td class="fe-actions">
+                                <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="fe-icon fe-icon--delete" (click)="onDelete(item.id!)" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <ng-template #feEmpty>
+                    <div class="fe-empty">
+                        <div class="fe-empty__icon">
+                            <i class="fa-regular fa-folder-open"></i>
+                        </div>
+                        <h4>No part options found</h4>
+                        <p class="fe-muted">Try changing filters or create a new option.</p>
+                    </div>
+                </ng-template>
+            </div>
+            <!-- ================= PAGINATION ================= -->
+            <div class="fe-paginator">
+                <button class="fe-btn fe-btn--ghost" (click)="onPageChange(pageIndex - 1)" [disabled]="pageIndex === 1">
+                    Prev </button>
+                <span class="fe-pageinfo">Page <b>{{ pageIndex }}</b> of <b>{{ totalPage }}</b></span>
+                <button class="fe-btn fe-btn--ghost" (click)="onPageChange(pageIndex + 1)"
+                    [disabled]="pageIndex === totalPage"> Next </button>
             </div>
         </section>
-        <!-- ================= CREATE ================= -->
-        <section class="card form-card">
-            <div class="card-header">
-                <h3>Create Part Option</h3>
+        <!-- ================= FORM ================= -->
+        <section class="fe-card fe-form-card">
+            <div class="fe-card__head">
+                <div>
+                    <h3 class="fe-card__title">Create Part Option</h3>
+                    <p class="fe-card__sub">Add an option under a parent part.</p>
+                </div>
             </div>
-            <form [formGroup]="crateForm" (ngSubmit)="onSave()">
-                <div class="form-group">
-                    <label>Option Name *</label>
+            <form class="fe-form" [formGroup]="crateForm" (ngSubmit)="onSave()">
+                <div class="fe-field">
+                    <label>Option Name <span class="fe-required">*</span></label>
                     <input type="text" formControlName="name" placeholder="e.g. Operator 01" />
                 </div>
-                <div class="form-group">
-                    <label>Parent Part *</label>
+                <div class="fe-field">
+                    <label>Parent Part <span class="fe-required">*</span></label>
                     <select formControlName="mainPartId">
                         <option value="">Select Part</option>
-                        <option *ngFor="let p of Parts" [value]="p.id"> {{ p.name }} </option>
+                        <option *ngFor="let p of Parts" [value]="p.id">{{ p.name }}</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="fe-field">
                     <label>Image</label>
                     <input type="file" (change)="onFileSelected($event)" />
-                    <img *ngIf="previewUrl" [src]="previewUrl" class="preview-img" />
+                    <div *ngIf="previewUrl" class="fe-preview">
+                        <img [src]="previewUrl" alt="Preview" />
+                        <button class="fe-btn fe-btn--ghost" type="button" (click)="previewUrl=null; selectedFile=null">
+                            Remove </button>
+                    </div>
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn primary">
+                <div class="fe-form-actions">
+                    <button class="fe-btn fe-btn--ghost" type="button"
+                        (click)="crateForm.reset(); previewUrl=null; selectedFile=null"> Cancel </button>
+                    <button class="fe-btn fe-btn--primary" type="submit" [disabled]="!crateForm.valid">
                         <i class="fa-solid fa-plus"></i> Create </button>
                 </div>
             </form>

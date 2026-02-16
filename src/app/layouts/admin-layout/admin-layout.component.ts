@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { AuthService } from '../../core/Auth/auth.service';
 
 @Component({
   selector: 'app-admin-layout',
   templateUrl: './admin-layout.component.html',
-  styleUrl: './admin-layout.component.scss'
+  styleUrl: './admin-layout.component.scss',
+  encapsulation: ViewEncapsulation.None,
 })
 export class AdminLayoutComponent {
- constructor(private auth: AuthService) {}
- 
+  constructor(private auth: AuthService) {}
 }

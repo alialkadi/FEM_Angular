@@ -17,8 +17,10 @@
                 <!-- Dynamic Sections -->
                 <a *ngFor="let section of sections" [routerLink]="section.route" routerLinkActive="active-link"
                     [routerLinkActiveOptions]="{ exact: true }" class="nav-item"> {{ section.title }} </a>
+                <!-- ✅ Login Button -->
+                <a routerLink="/login" routerLinkActive="active-link" class="login-btn"> Sign In </a>
             </div>
-            <!-- CTA -->
+            <!-- CTA / Hamburger -->
             <div class="nav__right">
                 <button class="hamburger" (click)="toggleMenu()" [attr.aria-expanded]="mobileOpen"> ☰ </button>
             </div>
@@ -28,11 +30,16 @@
 <!-- Mobile -->
 <div class="mobile-menu" [class.open]="mobileOpen">
     <div class="mobile-panel">
+        <!-- Cart -->
         <a class="mobile-item" *ngIf="cartCount" [routerLink]="cartRoute" (click)="closeMenu()"> Cart <span
                 *ngIf="cartCount" class="cart-count"> {{ cartCount }} </span>
         </a>
+        <!-- Sections -->
         <a *ngFor="let section of sections" class="mobile-item" [routerLink]="section.route" (click)="closeMenu()"> {{
             section.title }} </a>
+        <!-- ✅ Login (Mobile) -->
+        <a class="mobile-item" routerLink="/login" (click)="closeMenu()"> Sign In </a>
+        <!-- Quote -->
         <a class="btn-outline full-width" [routerLink]="quoteRoute" (click)="closeMenu()"> Free Quote </a>
     </div>
 </div>

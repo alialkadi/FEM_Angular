@@ -19,10 +19,9 @@ import { ToastService } from '../../../../shared/Services/toast.service';
 @Component({
   selector: 'app-part-option-list',
   templateUrl: './part-option-list.component.html',
-  styleUrl: './part-option-list.component.scss'
+  styleUrl: './part-option-list.component.scss',
 })
 export class PartOptionListComponent implements OnInit {
-
   /* ================= DATA ================= */
   allPartOptions: PartOption[] = [];
   filteredPartOptions: PartOption[] = [];
@@ -38,7 +37,7 @@ export class PartOptionListComponent implements OnInit {
   selectedCategoryTypeId?: number;
   selectedStructureId?: number;
   selectedPartId?: number;
-
+  searchText: string = '';
   /* ================= PAGINATION ================= */
   pageIndex = 1;
   pageSize = 5;
@@ -48,7 +47,7 @@ export class PartOptionListComponent implements OnInit {
   /* ================= FORM ================= */
   crateForm = new FormGroup({
     name: new FormControl('', Validators.required),
-    mainPartId: new FormControl('', Validators.required)
+    mainPartId: new FormControl('', Validators.required),
   });
 
   selectedFile: File | null = null;
@@ -61,7 +60,7 @@ export class PartOptionListComponent implements OnInit {
     private categoryService: CategoryService,
     private categoryTypeService: CategoryTypeService,
     private dialog: MatDialog,
-    private toast: ToastService
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -73,7 +72,7 @@ export class PartOptionListComponent implements OnInit {
 
   loadPartOptions(): void {
     this.partOptionService.getAllPartOptions(true, 1, 1000).subscribe({
-      next: res => {
+      next: (res) => {
         if (!res.success) {
           this.toast.show(res.message, 'error');
           return;
@@ -81,12 +80,12 @@ export class PartOptionListComponent implements OnInit {
         this.allPartOptions = res.data.partOptions;
         this.applyFilters();
       },
-      error: () => this.toast.show('Failed to load Part Options', 'error')
+      error: () => this.toast.show('Failed to load Part Options', 'error'),
     });
   }
 
   loadCategories(): void {
-    this.categoryService.getAllCategories(true).subscribe(res => {
+    this.categoryService.getAllCategories(true).subscribe((res) => {
       if (res.success) this.categories = res.data.categories;
     });
   }
@@ -94,7 +93,8 @@ export class PartOptionListComponent implements OnInit {
   /* ================= FILTER HANDLERS ================= */
 
   onCategoryChange(event: Event): void {
-    this.selectedCategoryId = +(event.target as HTMLSelectElement).value || undefined;
+    this.selectedCategoryId =
+      +(event.target as HTMLSelectElement).value || undefined;
     this.selectedCategoryTypeId = undefined;
     this.selectedStructureId = undefined;
     this.selectedPartId = undefined;
@@ -104,16 +104,19 @@ export class PartOptionListComponent implements OnInit {
     this.Parts = [];
 
     if (this.selectedCategoryId) {
-      this.categoryTypeService.getTypesByCategory(this.selectedCategoryId).subscribe(res => {
-        if (res.success) this.categoryTypes = res.data.categoryTypes;
-      });
+      this.categoryTypeService
+        .getTypesByCategory(this.selectedCategoryId)
+        .subscribe((res) => {
+          if (res.success) this.categoryTypes = res.data.categoryTypes;
+        });
     }
 
     this.applyFilters();
   }
 
   onCategoryTypeChange(event: Event): void {
-    this.selectedCategoryTypeId = +(event.target as HTMLSelectElement).value || undefined;
+    this.selectedCategoryTypeId =
+      +(event.target as HTMLSelectElement).value || undefined;
     this.selectedStructureId = undefined;
     this.selectedPartId = undefined;
 
@@ -121,40 +124,67 @@ export class PartOptionListComponent implements OnInit {
     this.Parts = [];
 
     if (this.selectedCategoryTypeId) {
-      this.structureService.getStructuresByType(this.selectedCategoryTypeId).subscribe(res => {
-        if (res.success) this.Structures = res.data.structures;
-      });
+      this.structureService
+        .getStructuresByType(this.selectedCategoryTypeId)
+        .subscribe((res) => {
+          if (res.success) this.Structures = res.data.structures;
+        });
     }
 
     this.applyFilters();
   }
 
   onStructureChange(event: Event): void {
-    this.selectedStructureId = +(event.target as HTMLSelectElement).value || undefined;
+    this.selectedStructureId =
+      +(event.target as HTMLSelectElement).value || undefined;
     this.selectedPartId = undefined;
 
     this.Parts = [];
 
     if (this.selectedStructureId) {
-      this.partService.getPartsByStructure(this.selectedStructureId).subscribe(res => {
-        if (res.success) this.Parts = res.data.parts;
-      });
+      this.partService
+        .getPartsByStructure(this.selectedStructureId)
+        .subscribe((res) => {
+          if (res.success) this.Parts = res.data.parts;
+        });
     }
 
     this.applyFilters();
   }
 
   onPartFilterChange(event: Event): void {
-    this.selectedPartId = +(event.target as HTMLSelectElement).value || undefined;
+    this.selectedPartId =
+      +(event.target as HTMLSelectElement).value || undefined;
     this.applyFilters();
   }
-
+  onSearchChange(value: string): void {
+    this.searchText = value ?? '';
+    this.applyFilters();
+  }
   applyFilters(): void {
-    this.filteredPartOptions = this.allPartOptions.filter(o => {
-      if (this.selectedCategoryId && o.categoryId !== this.selectedCategoryId) return false;
-      if (this.selectedCategoryTypeId && o.categoryTypeId !== this.selectedCategoryTypeId) return false;
-      if (this.selectedStructureId && o.structureId !== this.selectedStructureId) return false;
-      if (this.selectedPartId && o.mainPartId !== this.selectedPartId) return false;
+    const search = (this.searchText || '').trim().toLowerCase();
+    this.filteredPartOptions = this.allPartOptions.filter((o) => {
+      if (this.selectedCategoryId && o.categoryId !== this.selectedCategoryId)
+        return false;
+      if (
+        this.selectedCategoryTypeId &&
+        o.categoryTypeId !== this.selectedCategoryTypeId
+      )
+        return false;
+      if (
+        this.selectedStructureId &&
+        o.structureId !== this.selectedStructureId
+      )
+        return false;
+      if (this.selectedPartId && o.mainPartId !== this.selectedPartId)
+        return false;
+      if (search) {
+        const hay =
+          `${o.name ?? ''} ${o.mainPartName ?? ''} ${(o as any).strucutreName ?? ''} ${o.categoryTypeName ?? ''}`.toLowerCase();
+
+        if (!hay.includes(search)) return false;
+      }
+
       return true;
     });
 
@@ -167,7 +197,10 @@ export class PartOptionListComponent implements OnInit {
 
   updatePagedData(): void {
     const start = (this.pageIndex - 1) * this.pageSize;
-    this.PartOptions = this.filteredPartOptions.slice(start, start + this.pageSize);
+    this.PartOptions = this.filteredPartOptions.slice(
+      start,
+      start + this.pageSize,
+    );
   }
 
   onPageChange(page: number): void {
@@ -199,7 +232,7 @@ export class PartOptionListComponent implements OnInit {
     formData.append('mainPartId', this.crateForm.value.mainPartId!);
     if (this.selectedFile) formData.append('file', this.selectedFile);
 
-    this.partOptionService.createPartOption(formData).subscribe(res => {
+    this.partOptionService.createPartOption(formData).subscribe((res) => {
       if (res.success) {
         this.toast.show(res.message, 'success');
         this.loadPartOptions();
@@ -213,9 +246,11 @@ export class PartOptionListComponent implements OnInit {
   }
 
   onEdit(option: PartOption): void {
-    const dialogRef = this.dialog.open(EditPartOptionDialogComponent, { data: option });
+    const dialogRef = this.dialog.open(EditPartOptionDialogComponent, {
+      data: option,
+    });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (!result) return;
 
       const formData = new FormData();
@@ -223,17 +258,19 @@ export class PartOptionListComponent implements OnInit {
       formData.append('mainPartId', result.mainPartId);
       if (result.file) formData.append('file', result.file);
 
-      this.partOptionService.updatePartOption(result.id, formData).subscribe(res => {
-        if (res.success) {
-          this.toast.show(res.message, 'success');
-          this.loadPartOptions();
-        }
-      });
+      this.partOptionService
+        .updatePartOption(result.id, formData)
+        .subscribe((res) => {
+          if (res.success) {
+            this.toast.show(res.message, 'success');
+            this.loadPartOptions();
+          }
+        });
     });
   }
 
   onDelete(id: number): void {
-    this.partOptionService.deletePartOption(id).subscribe(res => {
+    this.partOptionService.deletePartOption(id).subscribe((res) => {
       if (res.success) {
         this.toast.show(res.message, 'success');
         this.loadPartOptions();
