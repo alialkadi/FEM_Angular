@@ -228,14 +228,24 @@ export class PartListComponent implements OnInit {
   }
 
   onEdit(part: Part): void {
-    const dialogRef = this.dialog.open(EditPartDialogComponent, { data: part });
+    const dialogRef = this.dialog.open(EditPartDialogComponent, {
+      data: {
+        id: part.id,
+        name: part.name,
+        file: part.fileUrl,
+
+        categoryId: part.categoryId,
+        categoryTypeId: part.categoryTypeId,
+        structureId: part.structureId,
+      },
+    });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) return;
 
       const formData = new FormData();
       formData.append('name', result.name);
-      formData.append('structureId', result.structureId);
+      formData.append('structureId', String(result.structureId));
       if (result.file) formData.append('file', result.file);
 
       this.partService.updatePart(result.id, formData).subscribe((res) => {

@@ -247,7 +247,16 @@ export class PartOptionListComponent implements OnInit {
 
   onEdit(option: PartOption): void {
     const dialogRef = this.dialog.open(EditPartOptionDialogComponent, {
-      data: option,
+      data: {
+        id: option.id,
+        name: option.name,
+        file: option.fileUrl,
+
+        categoryId: option.categoryId,
+        categoryTypeId: option.categoryTypeId,
+        structureId: option.structureId,
+        mainPartId: option.mainPartId,
+      },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -255,7 +264,7 @@ export class PartOptionListComponent implements OnInit {
 
       const formData = new FormData();
       formData.append('name', result.name);
-      formData.append('mainPartId', result.mainPartId);
+      formData.append('mainPartId', String(result.mainPartId));
       if (result.file) formData.append('file', result.file);
 
       this.partOptionService

@@ -68,6 +68,7 @@ export class StructureListComponent {
     this._structureService.getAllStructures(true, 1, 1000).subscribe({
       next: (res) => {
         this.allStructures = res.data?.structures ?? [];
+        console.log(res);
         this.applyFilters();
       },
       error: () => console.log('Failed to load structures'),
@@ -265,13 +266,17 @@ export class StructureListComponent {
 
   /* ================= CRUD (same logic) ================= */
 
-  onEdit(structure: Structure): void {
+  onEdit(item: any): void {
+    console.log(item);
     const dialogRef = this.dialog.open(EditStructureDialogComponent, {
       data: {
-        id: structure.id,
-        name: structure.name,
-        file: structure.fileUrl,
-        typeId: structure.typeId,
+        id: item.id,
+        name: item.name,
+        file: item.fileUrl,
+
+        // ✅ MUST exist on the item (prefer backend returns it)
+        categoryId: item.categoryId,
+        typeId: item.typeId,
       },
     });
 
@@ -284,9 +289,7 @@ export class StructureListComponent {
       if (result.file) formData.append('file', result.file);
 
       this._structureService.updateStructure(result.id, formData).subscribe({
-        next: (res) => {
-          if (res.success) this.loadAllStructures();
-        },
+        next: (res) => res.success && this.loadAllStructures(),
       });
     });
   }

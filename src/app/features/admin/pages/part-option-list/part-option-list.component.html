@@ -133,6 +133,27 @@
                     <input type="text" formControlName="name" placeholder="e.g. Operator 01" />
                 </div>
                 <div class="fe-field">
+                    <label>Category</label>
+                    <select (change)="onCategoryChange($event)">
+                        <option value="">Select Category</option>
+                        <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+                    </select>
+                </div>
+                <div class="fe-field">
+                    <label>Category Type</label>
+                    <select (change)="onCategoryTypeChange($event)">
+                        <option value="">Select Type</option>
+                        <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
+                    </select>
+                </div>
+                <div class="fe-field">
+                    <label>Structure <span class="fe-required">*</span></label>
+                    <select (change)="onStructureChange($event)">
+                        <option value="">Select Structure</option>
+                        <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
+                    </select>
+                </div>
+                <div class="fe-field">
                     <label>Parent Part <span class="fe-required">*</span></label>
                     <select formControlName="mainPartId">
                         <option value="">Select Part</option>

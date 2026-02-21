@@ -156,12 +156,19 @@
                             <tbody>
                                 <tr *ngFor="let i of s.inputs">
                                     <td>{{ i.inputLabel }}</td>
-                                    <td> {{ i.enteredValue ?? i.inputValueLabel ?? i.inputValueCode ?? '—' }} </td>
+                                    <!-- ✅ Correct “Value” -->
+                                    <td>{{ formatInputValue(i) }}</td>
+                                    <!-- ✅ Correct “Pricing” -->
                                     <td>
-                                        <span class="pill" [class.fixed]="i.pricingBehavior === 1"
-                                            [class.rate]="i.pricingBehavior !== 1"> {{ i.pricingBehavior === 1 ? 'Fixed'
-                                            : 'Rate' }} </span>
+                                        <span class="pill" [class.dim]="i.pricingBehavior === 1"
+                                            [class.rate]="i.pricingBehavior === 2"
+                                            [class.fixed]="i.pricingBehavior === 3"
+                                            [class.none]="i.pricingBehavior === 0"> {{
+                                            getBehaviorLabel(i.pricingBehavior) }} </span>
+                                        <small class="muted" style="display:block; margin-top:4px;"> {{ formatPricing(i)
+                                            }} </small>
                                     </td>
+                                    <!-- ✅ Correct “Cost” -->
                                     <td>{{ i.calculatedCost | currency }}</td>
                                 </tr>
                             </tbody>
