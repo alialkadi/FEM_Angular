@@ -28,7 +28,7 @@ export enum ExplorerItemType {
   Structure = 0,
   Part = 1,
   PartOption = 2,
-  Service = 3
+  Service = 3,
 }
 
 export interface ExplorerItem {
@@ -36,6 +36,7 @@ export interface ExplorerItem {
   name: string;
   fileUrl?: string;
   itemType: ExplorerItemType;
+  description: string;
   metadata: {
     attributeCode: string;
     value?: string | null;
@@ -90,6 +91,6 @@ export class MetadataExplorerService {
   explore(request: ServiceExplorerRequest): Observable<ExplorerResponse> {
     return this.http
       .post<any>(`${this.baseUrl}/explore`, request)
-      .pipe(map(res => res));
+      .pipe(map((res) => res));
   }
 }

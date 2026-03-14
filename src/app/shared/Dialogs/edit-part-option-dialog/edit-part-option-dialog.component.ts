@@ -61,6 +61,7 @@ export class EditPartOptionDialogComponent implements OnInit, OnDestroy {
       categoryTypeId: number;
       structureId: number;
       mainPartId: number;
+      description: string;
     },
   ) {
     this.editForm = this.fb.group({
@@ -70,6 +71,7 @@ export class EditPartOptionDialogComponent implements OnInit, OnDestroy {
       structureId: [data.structureId ?? null, Validators.required],
       mainPartId: [data.mainPartId ?? null, Validators.required],
       file: [data.file],
+      description: [data.description],
     });
 
     this.previewUrl = data.file;
@@ -261,6 +263,7 @@ export class EditPartOptionDialogComponent implements OnInit, OnDestroy {
         name: this.editForm.value.name,
         file: this.selectedFiled,
         mainPartId: this.editForm.value.mainPartId,
+        description: this.editForm.value.description,
       });
     });
   }

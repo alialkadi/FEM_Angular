@@ -1,3 +1,4 @@
+import { ToastService } from './../../../../shared/Services/toast.service';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {
@@ -11,6 +12,9 @@ import {
   InputValueDto,
 } from '../../../Models/InputValueDto.model';
 import { InputValueService } from '../../Services/input-value.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
+import { error } from 'console';
 
 @Component({
   selector: 'app-input-definition',
@@ -44,6 +48,8 @@ export class InputDefinitionComponent implements OnInit {
     private fb: FormBuilder,
     private service: InputDefinitionService,
     private valueService: InputValueService,
+    private confirmDialog: MatDialog,
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -213,11 +219,31 @@ export class InputDefinitionComponent implements OnInit {
   }
 
   delete(item: InputDefinitionDto): void {
-    if (!confirm(`Delete input "${item.label}"?`)) return;
-
-    this.service.delete(item.id).subscribe((res) => {
-      if (res.success) {
-        this.definitions = this.definitions.filter((x) => x.id !== item.id);
+    // if (!confirm(`Delete input "${item.label}"?`)) return;
+    const confirmRef = this.confirmDialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${item.label}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.service.delete(item.id).subscribe({
+          next: (res) => {
+            //  this.definitions = this.definitions.filter((x) => x.id !== item.id);
+            this.toast.show(res.message);
+            this.loadDefinitions();
+          },
+          error: (err) => {
+            this.toast.show(err.error.message);
+            console.log(err);
+          },
+        });
+        // this.service.delete(item.id).subscribe((res) => {
+        //   if (res.success) {
+        //     this.definitions = this.definitions.filter((x) => x.id !== item.id);
+        //     this.toast.show(res.message);
+        //     this.loadDefinitions();
+        //   }
+        // });
       }
     });
   }

@@ -5,6 +5,7 @@ export interface Structure {
   typeName: string;
   categoryName?: string;
   fileUrl?: string;
+  description: string;
 }
 
 export interface StructureListResponse {

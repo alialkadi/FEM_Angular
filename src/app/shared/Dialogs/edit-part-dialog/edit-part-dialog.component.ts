@@ -63,6 +63,7 @@ export class EditPartDialogComponent implements OnInit, OnDestroy {
       categoryId: number;
       categoryTypeId: number;
       structureId: number;
+      description: string;
     },
   ) {
     this.initCategoryId = Number(data.categoryId) || null;
@@ -75,6 +76,7 @@ export class EditPartDialogComponent implements OnInit, OnDestroy {
       categoryTypeId: [this.initTypeId, Validators.required],
       structureId: [this.initStructureId, Validators.required],
       file: [data.file],
+      description: [data.description],
     });
 
     this.previewUrl = data.file;
@@ -218,6 +220,7 @@ export class EditPartDialogComponent implements OnInit, OnDestroy {
         name: this.editForm.value.name,
         file: this.selectedFiled,
         structureId: this.editForm.value.structureId,
+        description: this.editForm.value.description,
       });
     });
   }

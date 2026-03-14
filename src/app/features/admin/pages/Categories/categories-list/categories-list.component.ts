@@ -5,18 +5,18 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { EditCategoryDialogComponent } from '../../../../../shared/Dialogs/edit-category-dialog/edit-category-dialog.component';
 import { ToastService } from '../../../../../shared/Services/toast.service';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-categories-list',
   templateUrl: './categories-list.component.html',
-  styleUrl: './categories-list.component.scss'
+  styleUrl: './categories-list.component.scss',
 })
 export class CategoriesListComponent {
-
   totalCount = 0;
-  pageIndex = 1;     // start at page 1
-  pageSize = 5;      // default per page
-  pageSizes = [5, 10, 25]; // options
+  pageIndex = 1; // start at page 1
+  pageSize = 15;
+  pageSizes = [15, 25, 50, 100];
   categories: Category[] = [];
   newCategory: CreateCategory = { name: '' };
 
@@ -27,7 +27,8 @@ export class CategoriesListComponent {
   constructor(
     private dialog: MatDialog,
     private categoryService: CategoryService,
-    private toast: ToastService
+    private toast: ToastService,
+    private confirmDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -49,7 +50,7 @@ export class CategoriesListComponent {
         },
         error: () => {
           this.toast.show('Failed to load categories.', 'error');
-        }
+        },
       });
   }
 
@@ -68,7 +69,8 @@ export class CategoriesListComponent {
   }
 
   createForm: FormGroup = new FormGroup({
-    name: new FormControl('', Validators.required)
+    name: new FormControl('', Validators.required),
+    description: new FormControl(''),
   });
 
   selectedFile: File | null = null;
@@ -90,7 +92,8 @@ export class CategoriesListComponent {
     if (this.createForm.valid) {
       const formData = new FormData();
       formData.append('name', this.createForm.value.name);
-
+      formData.append('description', this.createForm.value.description);
+      console.log(this.createForm.value.description);
       if (this.selectedFile) {
         formData.append('file', this.selectedFile);
       }
@@ -109,38 +112,52 @@ export class CategoriesListComponent {
         },
         error: () => {
           this.toast.show('Failed to create category.', 'error');
-        }
+        },
       });
     }
   }
 
-  onDelete(id: number) {
-    this.categoryService.DeleteCategory(id).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.toast.show(res.message, 'success');
-          this.loadCategories();
-        } else {
-          this.toast.show(res.message, 'error');
-        }
-      },
-      error: () => {
-        this.toast.show('Failed to delete category.', 'error');
+  onDelete(id: number, name: string) {
+    const confirmRef = this.confirmDialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.categoryService.DeleteCategory(id).subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.toast.show(res.message, 'success');
+              this.loadCategories();
+            } else {
+              this.toast.show(res.message, 'error');
+            }
+          },
+          error: () => {
+            this.toast.show('Failed to delete category.', 'error');
+          },
+        });
       }
     });
   }
 
   onEdit(category: Category): void {
     const dialogRef = this.dialog.open(EditCategoryDialogComponent, {
-      data: { id: category.id, name: category.name, file: category.fileUrl }
+      data: {
+        id: category.id,
+        name: category.name,
+        file: category.fileUrl,
+        description: category.description,
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (!result) return;
-
+      console.log(result);
       const formData = new FormData();
       formData.append('name', result.name);
       formData.append('file', result.file);
+      formData.append('description', result.description);
 
       this.categoryService.updateCategory(result.id, formData).subscribe({
         next: (res) => {
@@ -153,7 +170,7 @@ export class CategoriesListComponent {
         },
         error: () => {
           this.toast.show('Failed to update category.', 'error');
-        }
+        },
       });
     });
   }

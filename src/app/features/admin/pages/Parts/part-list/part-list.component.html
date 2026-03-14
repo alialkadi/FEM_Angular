@@ -61,6 +61,7 @@
                     <thead>
                         <tr>
                             <th>Part Name</th>
+                            <th>Description</th>
                             <th>Structure</th>
                             <th>Type</th>
                             <th class="fe-col-image">Image</th>
@@ -70,6 +71,7 @@
                     <tbody *ngIf="Parts.length; else feEmpty">
                         <tr *ngFor="let item of Parts">
                             <td class="fe-strong">{{ item.name }}</td>
+                            <td class="fe-strong">{{ item.description }}</td>
                             <td class="fe-muted">{{ item.strucutreName }}</td>
                             <td class="fe-muted">{{ item.categoryTypeName }}</td>
                             <td>
@@ -80,7 +82,8 @@
                                 <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
-                                <button class="fe-icon fe-icon--delete" (click)="onDelete(item.id!)" title="Delete">
+                                <button class="fe-icon fe-icon--delete" (click)="onDelete(item.id!,item.name)"
+                                    title="Delete">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
@@ -120,24 +123,29 @@
                     <input type="text" formControlName="name" placeholder="Enter part name" />
                 </div>
                 <div class="fe-field">
+                    <label>Part description </label>
+                    <input type="text" formControlName="description" placeholder="Enter part description" />
+                </div>
+                <div class="fe-field">
                     <label>Category</label>
-                    <select (change)="onCategoryChange($event)">
+                    <select (change)="onCreateCategoryChange($event)">
                         <option value="">Select Category</option>
                         <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
                     </select>
                 </div>
                 <div class="fe-field">
                     <label>Category Type</label>
-                    <select (change)="onCategoryTypeChange($event)">
+                    <select (change)="onCreateCategoryTypeChange($event)" [disabled]="!createCategoryId">
                         <option value="">Select Type</option>
-                        <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
+                        <option *ngFor="let t of createCategoryTypes" [value]="t.id">{{ t.name }}</option>
                     </select>
                 </div>
                 <div class="fe-field">
                     <label>Parent Structure <span class="fe-required">*</span></label>
-                    <select formControlName="structureId">
+                    <select formControlName="structureId" (change)="onCreateStructureChange($event)"
+                        [disabled]="!createCategoryTypeId">
                         <option value="">Select Structure</option>
-                        <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
+                        <option *ngFor="let s of createStructures" [value]="s.id">{{ s.name }}</option>
                     </select>
                 </div>
                 <div class="fe-field">

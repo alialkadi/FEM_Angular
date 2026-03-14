@@ -3,15 +3,16 @@ import { MetadataAttribute } from '../../../../Models/MetadataAttribute';
 import { MetadataDataType } from '../../../../Models/MetadataDataType';
 import { MetadataAttributeService } from '../../../Services/metadata-attribute.service';
 import { ToastService } from '../../../../../shared/Services/toast.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-metadata-attribute-list',
   templateUrl: './metadata-attribute-list.component.html',
-  styleUrls: ['./metadata-attribute-list.component.scss']
+  styleUrls: ['./metadata-attribute-list.component.scss'],
 })
 export class MetadataAttributeListComponent implements OnInit {
-
-  attributes: MetadataAttribute[] =[];
+  attributes: MetadataAttribute[] = [];
   loading = false;
 
   // filters (UI only for now)
@@ -23,7 +24,8 @@ export class MetadataAttributeListComponent implements OnInit {
 
   constructor(
     private attributeService: MetadataAttributeService,
-    private toast: ToastService
+    private toast: ToastService,
+    private confirmDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -43,50 +45,71 @@ export class MetadataAttributeListComponent implements OnInit {
       error: (err) => {
         this.toast.show(
           err?.error?.message ?? 'Failed to load metadata attributes.',
-          'error'
+          'error',
         );
         this.loading = false;
-      }
+      },
     });
   }
 
   // ================= DELETE (SINGLE) =================
   delete(attr: MetadataAttribute): void {
-    if (!confirm(`Delete metadata attribute "${attr.name}"?`)) return;
+    // if (!confirm(`Delete metadata attribute "${attr.name}"?`)) return;
 
-    this.attributeService.delete(attr.id).subscribe({
-      next: (res) => {
-        this.toast.show(res.message, 'success');
-        this.attributes = this.attributes.filter(a => a.id !== attr.id);
-      },
-      error: (err) => {
-        this.toast.show(
-          err?.error?.message ?? 'Failed to delete metadata attribute.',
-          'error'
-        );
+    const confirmRef = this.confirmDialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${attr.name}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.attributeService.delete(attr.id).subscribe({
+          next: (res) => {
+            //  this.definitions = this.definitions.filter((x) => x.id !== item.id);
+            this.toast.show(res.message, 'success');
+            this.loadAttributes();
+          },
+          error: (err) => {
+            this.toast.show(
+              err?.error?.message ?? 'Failed to delete metadata attribute.',
+              'error',
+            );
+            console.log(err);
+          },
+        });
       }
     });
+
+    // this.attributeService.delete(attr.id).subscribe({
+    //   next: (res) => {
+    //     this.toast.show(res.message, 'success');
+    //     this.attributes = this.attributes.filter(a => a.id !== attr.id);
+    //   },
+    //   error: (err) => {
+    //     this.toast.show(
+    //       err?.error?.message ?? 'Failed to delete metadata attribute.',
+    //       'error'
+    //     );
+    //   }
+    // });
   }
 
   // ================= TOGGLE ACTIVE =================
   toggleStatus(attr: MetadataAttribute): void {
-    this.attributeService
-      .toggleActive(attr.id, !attr.isActive)
-      .subscribe({
-        next: () => {
-          attr.isActive = !attr.isActive;
-          this.toast.show(
-            `Attribute ${attr.isActive ? 'activated' : 'deactivated'} successfully`,
-            'success'
-          );
-        },
-        error: (err) => {
-          this.toast.show(
-            err?.error?.message ?? 'Failed to update attribute status.',
-            'error'
-          );
-        }
-      });
+    this.attributeService.toggleActive(attr.id, !attr.isActive).subscribe({
+      next: () => {
+        attr.isActive = !attr.isActive;
+        this.toast.show(
+          `Attribute ${attr.isActive ? 'activated' : 'deactivated'} successfully`,
+          'success',
+        );
+      },
+      error: (err) => {
+        this.toast.show(
+          err?.error?.message ?? 'Failed to update attribute status.',
+          'error',
+        );
+      },
+    });
   }
 
   // ========= Helpers =========
@@ -97,11 +120,16 @@ export class MetadataAttributeListComponent implements OnInit {
 
   getDataTypeLabel(type: MetadataDataType): string {
     switch (type) {
-      case MetadataDataType.Select: return 'SELECT';
-      case MetadataDataType.Number: return 'NUMBER';
-      case MetadataDataType.Boolean: return 'BOOLEAN';
-      case MetadataDataType.Text: return 'TEXT';
-      default: return 'UNKNOWN';
+      case MetadataDataType.Select:
+        return 'SELECT';
+      case MetadataDataType.Number:
+        return 'NUMBER';
+      case MetadataDataType.Boolean:
+        return 'BOOLEAN';
+      case MetadataDataType.Text:
+        return 'TEXT';
+      default:
+        return 'UNKNOWN';
     }
   }
 

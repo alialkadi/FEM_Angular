@@ -76,6 +76,7 @@
                         </div>
                         <div class="hcard-body">
                             <div class="hcard-title">{{ c.name }}</div>
+                            <div class="hcard-sub">{{c.description}}</div>
                             <div class="hcard-sub">Structures, parts, and services inside this category.</div>
                             <div class="hcard-foot">
                                 <span class="tag">Category</span>
@@ -105,6 +106,7 @@
                         <div class="hcard-body">
                             <div class="hcard-title">{{ t.name }}</div>
                             <div class="hcard-sub">Available structures & services under this type.</div>
+                            <div class="hcard-sub">{{t.description}}</div>
                             <div class="hcard-foot">
                                 <span class="tag tag--blue">Type</span>
                                 <span class="chev" aria-hidden="true">›</span>
@@ -133,6 +135,7 @@
                         <div class="hcard-body">
                             <div class="hcard-title">{{ s.name }}</div>
                             <div class="hcard-sub">Continue to parts/options or directly to services.</div>
+                            <div class="hcard-sub">{{s.description}}</div>
                             <div class="hcard-foot">
                                 <span class="tag tag--indigo">Structure</span>
                                 <span class="chev" aria-hidden="true">›</span>
@@ -161,6 +164,7 @@
                         <div class="hcard-body">
                             <div class="hcard-title">{{ p.name }}</div>
                             <div class="hcard-sub">Select to see options and services.</div>
+                            <div class="hcard-sub">{{p.description}}</div>
                             <div class="hcard-foot">
                                 <span class="tag tag--green">Part</span>
                                 <span class="chev" aria-hidden="true">›</span>
@@ -177,6 +181,7 @@
                         <div class="hcard-body">
                             <div class="hcard-title">{{ o.name }}</div>
                             <div class="hcard-sub">Select to see services under this option.</div>
+                            <div class="hcard-sub">{{o.description}}</div>
                             <div class="hcard-foot">
                                 <span class="tag tag--purple">Option</span>
                                 <span class="chev" aria-hidden="true">›</span>
@@ -207,9 +212,10 @@
                         </div>
                         <div class="hcard-body">
                             <div class="hcard-title">{{ s.name }}</div>
-                            <div class="chips" *ngIf="s.metadata?.length">
+                            <div class="hcard-title">{{ s.description }}</div>
+                            <!-- <div class="chips" *ngIf="s.metadata?.length">
                                 <span class="chip" *ngFor="let m of s.metadata">{{ m.valueText || m.value }}</span>
-                            </div>
+                            </div> -->
                             <div class="hcard-foot">
                                 <span class="tag tag--dark">Service</span>
                                 <span class="request-badge">Requested item</span>

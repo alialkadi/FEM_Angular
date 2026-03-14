@@ -25,14 +25,18 @@
   position: absolute;
   inset: 0;
 
+  //
+  //   linear-gradient(
+  //     180deg,
+  //     rgba(0, 0, 0, 0.55) 0%,
+  //     rgba(0, 0, 0, 0.9) 70%,
+  //     rgba(0, 0, 0, 1) 100%
+  //   ),
+  //   url("/assets/landing-page/miantain.jpg");
+
   background-image:
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.55) 0%,
-      rgba(0, 0, 0, 0.9) 70%,
-      rgba(0, 0, 0, 1) 100%
-    ),
-    url("/assets/landing-page/miantain.jpg");
+    linear-gradient(180deg, #0000008c, #000000e6 70%, #0239698a),
+    url(/assets/landing-page/miantain.jpg);
 
   background-size: cover;
   background-position: center;

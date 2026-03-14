@@ -7,6 +7,8 @@ import {
 } from '../../../../Models/service.Model';
 import { ServiceService } from '../../../Services/service-service.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-service-list',
@@ -17,7 +19,7 @@ export class ServiceListComponent implements OnInit {
   services: ServiceResponse[] = [];
   totalCount: number = 0;
   page: number = 1;
-  pageSize: number = 10;
+  pageSize: number = 50;
   searchTerm: string = '';
   isLoading: boolean = false;
   showStepsModal = false;
@@ -29,7 +31,10 @@ export class ServiceListComponent implements OnInit {
   advertiseSortOrderInput: Record<number, number> = {};
   copySuccessMessage: string | null = null;
 
-  constructor(private serviceService: ServiceService) {}
+  constructor(
+    private serviceService: ServiceService,
+    private dialog: MatDialog,
+  ) {}
 
   ngOnInit(): void {
     this.loadServices();
@@ -68,11 +73,17 @@ export class ServiceListComponent implements OnInit {
   }
 
   onDelete(id: number): void {
-    if (confirm('Are you sure you want to delete this service?')) {
-      this.serviceService.deleteService(id).subscribe(() => {
-        this.loadServices();
-      });
-    }
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.serviceService.deleteService(id).subscribe(() => {
+          this.loadServices();
+        });
+      }
+    });
   }
 
   onPageChange(page: number): void {
@@ -380,5 +391,14 @@ export class ServiceListComponent implements OnInit {
   onCopyLink(service: ServiceResponse) {
     if (!service.isAdvertised || !service.advertiseSlug) return;
     this.copyToClipboard(this.getAdvertiseUrl(service));
+  }
+
+  // ---------------------------------------------------------
+  // UPDATE SERVICE BREAKDOWN
+  // ---------------------------------------------------------
+  openMenu: number | null = null;
+
+  toggleMenu(id: number) {
+    this.openMenu = this.openMenu === id ? null : id;
   }
 }

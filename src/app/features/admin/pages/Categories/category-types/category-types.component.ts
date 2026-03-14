@@ -10,6 +10,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { EditCateogyTypeComponent } from '../../../../../shared/Dialogs/edit-cateogy-type/edit-cateogy-type.component';
 import { ToastService } from '../../../../../shared/Services/toast.service';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-category-types',
@@ -35,10 +36,10 @@ export class CategoryTypesComponent {
   /* ================= PAGINATION ================= */
   totalCount = 0;
   pageIndex = 1;
-  pageSize = 5;
-  pageSizes = [5, 10, 25];
+  pageSize = 15;
+  pageSizes = [15, 25, 50, 100];
 
-  newType: CreateCategoryType = { name: '', categoryId: 0 };
+  newType: CreateCategoryType = { name: '', categoryId: 0, description: '' };
 
   get totalPages(): number {
     return Math.ceil(this.totalCount / this.pageSize) || 1;
@@ -49,10 +50,12 @@ export class CategoryTypesComponent {
     private _catogryTypeService: CategoryTypeService,
     private categoryService: CategoryService,
     private toast: ToastService,
+    private confirmDialog: MatDialog,
   ) {
     this.createType = new FormGroup({
       name: new FormControl('', Validators.required),
       categoryId: new FormControl('', Validators.required),
+      description: new FormControl(''),
     });
   }
 
@@ -170,6 +173,7 @@ export class CategoryTypesComponent {
     const formData = new FormData();
     formData.append('name', this.createType.value.name);
     formData.append('categoryId', this.createType.value.categoryId);
+    formData.append('description', this.createType.value.description);
 
     if (this.selectedFile) formData.append('file', this.selectedFile);
 
@@ -189,17 +193,27 @@ export class CategoryTypesComponent {
     });
   }
 
-  onDelete(id: number) {
-    this._catogryTypeService.deleteCategoryType(id).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.toast.show(res.message, 'success');
-          this.loadAllCategoryTypes();
-        } else {
-          this.toast.show(res.message, 'error');
-        }
-      },
-      error: () => this.toast.show('Failed to delete category type.', 'error'),
+  onDelete(id: number, name: string) {
+    const confirmRef = this.confirmDialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this._catogryTypeService.deleteCategoryType(id).subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.toast.show(res.message, 'success');
+              this.loadAllCategoryTypes();
+            } else {
+              this.toast.show(res.message, 'error');
+            }
+          },
+          error: () =>
+            this.toast.show('Failed to delete category type.', 'error'),
+        });
+      }
     });
   }
 
@@ -210,6 +224,7 @@ export class CategoryTypesComponent {
         name: categoryType.name,
         file: categoryType.fileUrl,
         categoryId: categoryType.categoryId,
+        description: categoryType.description,
       },
     });
 
@@ -220,6 +235,7 @@ export class CategoryTypesComponent {
       formData.append('name', result.name);
       if (result.file) formData.append('file', result.file);
       formData.append('categoryId', result.categoryId);
+      formData.append('description', result.description);
 
       this._catogryTypeService
         .updateCategoryType(result.id, formData)

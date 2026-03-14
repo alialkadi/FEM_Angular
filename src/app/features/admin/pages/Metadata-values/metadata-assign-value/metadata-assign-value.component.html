@@ -19,7 +19,7 @@
             <thead>
                 <tr>
                     <th>Technical Value</th>
-                    <th>Display Name</th>
+                    <!-- <th>Display Name</th> -->
                     <th>Sort Order</th>
                     <th>Status</th>
                     <th class="actions">Actions</th>
@@ -30,10 +30,10 @@
                     <!-- Technical Value (READ ONLY) -->
                     <td class="mono">{{ v.value }}</td>
                     <!-- Display Name -->
-                    <td>
+                    <!-- <td>
                         <input *ngIf="editingId === v.id" type="text" [(ngModel)]="v._edit.displayName" />
                         <span *ngIf="editingId !== v.id"> {{ v.displayName || '—' }} </span>
-                    </td>
+                    </td> -->
                     <!-- Sort Order -->
                     <td>
                         <input *ngIf="editingId === v.id" type="number" [(ngModel)]="v._edit.sortOrder" />
@@ -76,62 +76,33 @@
             </tbody>
         </table>
     </div>
-    <!-- ===============================
-       CREATE MODE SWITCH
-  ================================ -->
-    <div class="mode-switch">
-        <button type="button" [class.active]="mode === 'single'" (click)="mode = 'single'"> ➕ Add Single Value </button>
-        <button type="button" [class.active]="mode === 'bulk'" (click)="mode = 'bulk'"> 📄 Add Bulk Values </button>
-    </div>
-    <!-- ===============================
-       CREATE SINGLE VALUE
-  ================================ -->
-    <form *ngIf="mode === 'single'" [formGroup]="singleForm" (ngSubmit)="submitSingle()" class="card">
-        <h3>Add New Value</h3>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="card">
+        <h3>Add Value(s)</h3>
         <div class="form-group">
-            <label>Technical Value</label>
-            <input type="text" formControlName="value" (blur)="normalizeSingleValue()"
-                placeholder="e.g. roto_germany" />
-            <small class="hint"> Immutable system identifier (lowercase, underscores only) </small>
+            <label>Values</label>
+            <textarea rows="6" formControlName="rawValues" (blur)="normalizeIfSingle()" placeholder="Type one value, or paste multiple lines:
+Roto Germany
+Siegenia
+GEZE"></textarea>
+            <small class="hint"> • One line = single value<br /> • Multiple lines = bulk create (one per line) </small>
         </div>
-        <div class="form-group">
-            <label>Display Name</label>
+        <!-- Single-only fields -->
+        <!-- <div class="form-group" *ngIf="lineCount <= 1">
+            <label>Display Name (optional)</label>
             <input type="text" formControlName="displayName" placeholder="e.g. Roto Germany" />
-        </div>
-        <div class="form-group">
+        </div> -->
+        <div class="form-group" *ngIf="lineCount <= 1">
             <label>Sort Order</label>
             <input type="number" formControlName="sortOrder" />
         </div>
-        <div class="actions">
-            <button type="submit" class="btn primary" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Value'
-                }} </button>
-        </div>
-    </form>
-    <!-- ===============================
-       CREATE BULK VALUES
-  ================================ -->
-    <form *ngIf="mode === 'bulk'" [formGroup]="bulkForm" (ngSubmit)="submitBulk()" class="card">
-        <h3>Add Bulk Values</h3>
-        <div class="form-group">
-            <label>Values (one per line)</label>
-            <textarea rows="6" formControlName="values" placeholder="Roto Germany
-Siegenia
-GEZE"></textarea>
-            <small class="hint"> Each line becomes a value automatically </small>
-        </div>
-        <div class="form-group">
+        <!-- Bulk-only field -->
+        <div class="form-group" *ngIf="lineCount > 1">
             <label>Starting Sort Order</label>
             <input type="number" formControlName="startSortOrder" />
+            <small class="hint">Sort order increments automatically per line.</small>
         </div>
         <div class="actions">
-            <button type="submit" class="btn primary" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Values'
-                }} </button>
+            <button type="submit" class="btn primary" [disabled]="loading"> {{ loading ? 'Saving...' : (lineCount > 1 ?
+                'Create Values' : 'Create Value') }} </button>
         </div>
     </form>
-    <!-- ===============================
-       FOOTER ACTIONS
-  ================================ -->
-    <div class="footer-actions">
-        <button class="btn cancel" (click)="cancel()">⬅ Back to Attributes</button>
-    </div>
-</div>

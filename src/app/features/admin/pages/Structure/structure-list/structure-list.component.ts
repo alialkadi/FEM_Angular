@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { CategoryService } from '../../../Services/CategoryService';
 import { Category } from '../../../../Models/Category';
 import { MetadataTargetType } from '../../../../Models/MetadataTargetType';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-structure-list',
@@ -43,8 +44,8 @@ export class StructureListComponent {
   /* ================= PAGINATION ================= */
   totalCount = 0;
   pageIndex = 1;
-  pageSize = 5;
-  pageSizes = [5, 10, 25];
+  pageSize = 15;
+  pageSizes = [15, 25, 50, 100];
 
   get totalPage(): number {
     return Math.ceil(this.totalCount / this.pageSize) || 1;
@@ -199,6 +200,7 @@ export class StructureListComponent {
     name: new FormControl('', Validators.required),
     categoryId: new FormControl('', Validators.required),
     typeId: new FormControl('', Validators.required),
+    description: new FormControl(''),
   });
 
   selectedFile: File | null = null;
@@ -240,6 +242,7 @@ export class StructureListComponent {
     const formData = new FormData();
     formData.append('name', this.crateForm.value.name);
     formData.append('typeId', this.crateForm.value.typeId);
+    formData.append('description', this.crateForm.value.description);
 
     if (this.selectedFile) formData.append('file', this.selectedFile);
 
@@ -273,7 +276,7 @@ export class StructureListComponent {
         id: item.id,
         name: item.name,
         file: item.fileUrl,
-
+        description: item.description,
         // ✅ MUST exist on the item (prefer backend returns it)
         categoryId: item.categoryId,
         typeId: item.typeId,
@@ -286,6 +289,7 @@ export class StructureListComponent {
       const formData = new FormData();
       formData.append('name', result.name);
       formData.append('typeId', result.typeId);
+      formData.append('description', result.description);
       if (result.file) formData.append('file', result.file);
 
       this._structureService.updateStructure(result.id, formData).subscribe({
@@ -295,11 +299,19 @@ export class StructureListComponent {
   }
 
   onDelete(id: number) {
-    this._structureService.deleteStructure(id).subscribe({
-      next: (res) => {
-        if (res.success) this.loadAllStructures();
-      },
-      error: (err) => console.log(err),
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this._structureService.deleteStructure(id).subscribe({
+          next: (res) => {
+            if (res.success) this.loadAllStructures();
+          },
+          error: (err) => console.log(err),
+        });
+      }
     });
   }
 

@@ -23,6 +23,7 @@
                         <tr>
                             <th>Category Name</th>
                             <th class="fe-col-image">Image</th>
+                            <th>Description</th>
                             <th>Types Count</th>
                             <th class="fe-col-actions">Actions</th>
                         </tr>
@@ -34,12 +35,14 @@
                                 <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Category Image" class="fe-thumb" />
                                 <span *ngIf="!item.fileUrl" class="fe-muted">No Image</span>
                             </td>
+                            <td class="fe-muted">{{ item.description }}</td>
                             <td class="fe-muted">{{ item.typesCount }}</td>
                             <td class="fe-actions">
                                 <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
-                                <button class="fe-icon fe-icon--delete" (click)="onDelete(item.id!)" title="Delete">
+                                <button class="fe-icon fe-icon--delete" (click)="onDelete(item.id!,item.name)"
+                                    title="Delete">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
@@ -81,6 +84,10 @@
                     <input type="text" formControlName="name" placeholder="e.g., Windows" />
                     <p *ngIf="createForm.get('name')?.getError('required') && createForm.get('name')?.touched"
                         class="fe-error"> Name is required. </p>
+                </div>
+                <div class="fe-field">
+                    <label>Category description <span class="fe-required">*</span></label>
+                    <input type="text" formControlName="description" placeholder="e.g., ...." />
                 </div>
                 <div class="fe-field">
                     <label>Upload Image</label>

@@ -32,6 +32,9 @@ import { MetadataUpdateAttributeComponent } from './pages/Metadata/metadata-upda
 import { InputDefinitionComponent } from './pages/input-definition/input-definition.component';
 import { InputValueComponent } from './pages/input-value/input-value.component';
 import { GroupByPipe } from '../../core/Pipes/groupByPipe';
+import { EditServiceGeneralComponent } from './pages/Service/edit-service-general/edit-service-general.component';
+import { EditServiceMetadataComponent } from './pages/Service/edit-service-metadata/edit-service-metadata.component';
+import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/edit-service-inputs.component';
 
 @NgModule({
   declarations: [
@@ -60,6 +63,9 @@ import { GroupByPipe } from '../../core/Pipes/groupByPipe';
     InputDefinitionComponent,
     InputValueComponent,
     GroupByPipe,
+    EditServiceGeneralComponent,
+    EditServiceMetadataComponent,
+    EditServiceInputsComponent,
   ],
   imports: [
     SharedModule,

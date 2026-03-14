@@ -78,20 +78,6 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       case ExplorerItemType.Structure:
         this.resetBelow('structure');
         this.structureId = item.id;
-        break;
-
-      case ExplorerItemType.Part:
-        this.resetBelow('part');
-        this.partId = item.id;
-        break;
-
-      case ExplorerItemType.PartOption:
-        this.optionId = item.id;
-        this.selectedFilters = {};
-        break;
-      case ExplorerItemType.Structure:
-        this.resetBelow('structure');
-        this.structureId = item.id;
         this.selectedStructureName = item.name;
         break;
 
@@ -106,6 +92,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
         this.selectedOptionName = item.name;
         this.selectedFilters = {};
         break;
+
       case ExplorerItemType.Service:
         this.toggleService(item);
         return;
@@ -128,8 +115,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.explorerService.explore(request).subscribe({
       next: (res) => {
         this.explorerItems = res?.items ?? [];
-        this.filters = res?.filters ?? [];
-        console.log(res);
+        this.filters = this.normalizeFilters(res?.filters ?? []);
       },
       error: (_) => {
         this.explorerItems = [];
@@ -179,7 +165,6 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   get services() {
     return this.explorerItems.filter(
       (i) => i.itemType === ExplorerItemType.Service,
-      console.log(this.explorerItems),
     );
   }
 
@@ -315,7 +300,45 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       (k) => (this.selectedFilters[k]?.length ?? 0) > 0,
     );
   }
+  private normalizeFilters(filters: MetadataFilter[] = []): MetadataFilter[] {
+    const map = new Map<string, MetadataFilter>();
 
+    for (const f of filters) {
+      if (!f?.code) continue;
+
+      if (!map.has(f.code)) {
+        // clone + start fresh values array
+        map.set(f.code, { ...f, values: [...(f.values ?? [])] });
+        continue;
+      }
+
+      const existing = map.get(f.code)!;
+      // merge values
+      existing.values.push(...(f.values ?? []));
+    }
+
+    // Distinct values by id + stable sort (optional)
+    const result = Array.from(map.values()).map((f) => ({
+      ...f,
+      values: this.distinctById(f.values ?? []),
+    }));
+
+    // Optional: sort filters by name
+    result.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+
+    return result;
+  }
+
+  private distinctById<T extends { id: number }>(arr: T[]): T[] {
+    const seen = new Set<number>();
+    const out: T[] = [];
+    for (const x of arr) {
+      if (!x || seen.has(x.id)) continue;
+      seen.add(x.id);
+      out.push(x);
+    }
+    return out;
+  }
   openFiltersSheet() {
     this.filtersSheetOpen = true;
   }

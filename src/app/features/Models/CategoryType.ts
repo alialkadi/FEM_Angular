@@ -3,6 +3,7 @@ export interface CategoryType {
   name: string;
   categoryId?: number | null;
   categoryName?: string | null;
+  description: string;
   fileUrl?: string | null;
 }
 export interface CategoryTypeListResponse {
@@ -10,7 +11,8 @@ export interface CategoryTypeListResponse {
   categoryTypes: CategoryType[];
 }
 
-export interface CreateCategoryType{
+export interface CreateCategoryType {
   name: string;
-  categoryId:number
+  categoryId: number;
+  description: string;
 }

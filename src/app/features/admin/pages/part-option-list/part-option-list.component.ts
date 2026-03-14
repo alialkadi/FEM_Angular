@@ -15,6 +15,7 @@ import { CategoryTypeService } from '../../Services/categoryTypeService.service'
 import { StructureService } from '../../Services/structure-service.service';
 import { EditPartOptionDialogComponent } from '../../../../shared/Dialogs/edit-part-option-dialog/edit-part-option-dialog.component';
 import { ToastService } from '../../../../shared/Services/toast.service';
+import { ConfirmDialogComponent } from '../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-part-option-list',
@@ -40,14 +41,15 @@ export class PartOptionListComponent implements OnInit {
   searchText: string = '';
   /* ================= PAGINATION ================= */
   pageIndex = 1;
-  pageSize = 5;
-  pageSizes = [5, 10, 25];
+  pageSize = 15;
+  pageSizes = [15, 25, 50, 100];
   totalCount = 0;
 
   /* ================= FORM ================= */
   crateForm = new FormGroup({
     name: new FormControl('', Validators.required),
     mainPartId: new FormControl('', Validators.required),
+    description: new FormControl(''),
   });
 
   selectedFile: File | null = null;
@@ -230,6 +232,7 @@ export class PartOptionListComponent implements OnInit {
     const formData = new FormData();
     formData.append('name', this.crateForm.value.name!);
     formData.append('mainPartId', this.crateForm.value.mainPartId!);
+    formData.append('description', this.crateForm.value.description!);
     if (this.selectedFile) formData.append('file', this.selectedFile);
 
     this.partOptionService.createPartOption(formData).subscribe((res) => {
@@ -256,6 +259,7 @@ export class PartOptionListComponent implements OnInit {
         categoryTypeId: option.categoryTypeId,
         structureId: option.structureId,
         mainPartId: option.mainPartId,
+        description: option.description,
       },
     });
 
@@ -265,6 +269,7 @@ export class PartOptionListComponent implements OnInit {
       const formData = new FormData();
       formData.append('name', result.name);
       formData.append('mainPartId', String(result.mainPartId));
+      formData.append('description', String(result.description));
       if (result.file) formData.append('file', result.file);
 
       this.partOptionService
@@ -278,11 +283,19 @@ export class PartOptionListComponent implements OnInit {
     });
   }
 
-  onDelete(id: number): void {
-    this.partOptionService.deletePartOption(id).subscribe((res) => {
-      if (res.success) {
-        this.toast.show(res.message, 'success');
-        this.loadPartOptions();
+  onDelete(id: number, name: string): void {
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.partOptionService.deletePartOption(id).subscribe((res) => {
+          if (res.success) {
+            this.toast.show(res.message, 'success');
+            this.loadPartOptions();
+          }
+        });
       }
     });
   }

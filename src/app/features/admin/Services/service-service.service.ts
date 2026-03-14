@@ -11,6 +11,7 @@ import {
 } from '../../Models/service.Model';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../../Models/ApiResponse';
+import { MetadataAssignmentItemRequest } from '../../Models/MetadataTargetType';
 
 @Injectable({
   providedIn: 'root',
@@ -191,6 +192,40 @@ export class ServiceService {
     return this._http.post<ApiResponse<boolean>>(
       `${this.baseurl}/Service/${id}/unadvertise`,
       {},
+    );
+  }
+
+  // ---------------------------------------------------------
+  // UPDATE SERVICE BREAKDOWN
+  // ---------------------------------------------------------
+
+  updateServiceGeneral(
+    id: number,
+    formData: FormData,
+  ): Observable<ApiResponse<ServiceResponse>> {
+    return this._http.put<ApiResponse<ServiceResponse>>(
+      `${this.baseurl}/Service/${id}/general`,
+      formData,
+    );
+  }
+
+  updateServiceMetadata(
+    id: number,
+    payload: { metadata: MetadataAssignmentItemRequest[] },
+  ): Observable<ApiResponse<boolean>> {
+    return this._http.put<ApiResponse<boolean>>(
+      `${this.baseurl}/Service/${id}/metadata`,
+      payload,
+    );
+  }
+
+  updateServiceInputs(
+    id: number,
+    payload: { pricingInputs: any[] },
+  ): Observable<ApiResponse<boolean>> {
+    return this._http.put<ApiResponse<boolean>>(
+      `${this.baseurl}/Service/${id}/inputs`,
+      payload,
     );
   }
 }

@@ -73,6 +73,7 @@
                         <tr>
                             <th>Option</th>
                             <th class="fe-col-image">Image</th>
+                            <th class="fe-col-image">Description</th>
                             <th>Part</th>
                             <th>Structure</th>
                             <th>Category Type</th>
@@ -86,6 +87,7 @@
                                 <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="fe-thumb" alt="Option Image" />
                                 <span *ngIf="!item.fileUrl" class="fe-muted">—</span>
                             </td>
+                            <td class="fe-muted">{{ item.description }}</td>
                             <td class="fe-muted">{{ item.mainPartName }}</td>
                             <td class="fe-muted">{{ item.strucutreName }}</td>
                             <td class="fe-muted">{{ item.categoryTypeName }}</td>
@@ -93,7 +95,8 @@
                                 <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
-                                <button class="fe-icon fe-icon--delete" (click)="onDelete(item.id!)" title="Delete">
+                                <button class="fe-icon fe-icon--delete" (click)="onDelete(item.id!,item.name)"
+                                    title="Delete">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
@@ -131,6 +134,12 @@
                 <div class="fe-field">
                     <label>Option Name <span class="fe-required">*</span></label>
                     <input type="text" formControlName="name" placeholder="e.g. Operator 01" />
+                    <p *ngIf="crateForm.get('name')?.getError('required') && crateForm.get('name')?.touched"
+                        class="fe-error"> Name is required. </p>
+                </div>
+                <div class="fe-field">
+                    <label>Option Name </label>
+                    <input type="text" formControlName="description" placeholder="e.g. Operator 01" />
                 </div>
                 <div class="fe-field">
                     <label>Category</label>

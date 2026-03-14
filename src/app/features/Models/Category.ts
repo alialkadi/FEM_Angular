@@ -1,14 +1,15 @@
-import { CategoryType } from "./CategoryType";
+import { CategoryType } from './CategoryType';
 
 export interface Category {
   id: number;
   name: string;
   types: CategoryType[];
   count: number;
-  fileUrl? : string
+  fileUrl?: string;
   typesCount: number;
+  description: string;
 }
-export interface CreateCategory{
+export interface CreateCategory {
   name: string;
 }
 export interface CategoryListResponse {

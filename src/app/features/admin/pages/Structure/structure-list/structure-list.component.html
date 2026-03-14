@@ -51,6 +51,7 @@
                     <thead>
                         <tr>
                             <th>Structure Name</th>
+                            <th>Description</th>
                             <th class="fe-col-image">Image</th>
                             <th>Type Name</th>
                             <th>Category Name</th>
@@ -61,6 +62,9 @@
                         <tr *ngFor="let item of structures">
                             <td>
                                 <div class="fe-strong">{{ item.name }}</div>
+                            </td>
+                            <td>
+                                <div class="fe-strong">{{ item.description }}</div>
                             </td>
                             <td>
                                 <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="fe-thumb" alt="Structure image" />
@@ -124,6 +128,11 @@
                     <p class="fe-error"
                         *ngIf="crateForm.get('name')?.hasError('required') && crateForm.get('name')?.touched"> Name is
                         required. </p>
+                </div>
+                <!-- description -->
+                <div class="fe-field">
+                    <label>Structure description </label>
+                    <input type="text" formControlName="description" placeholder="e.g., Window Frame" />
                 </div>
                 <!-- Category (CREATE) -->
                 <div class="fe-field">

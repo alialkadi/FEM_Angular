@@ -79,22 +79,35 @@
                 </td>
                 <!-- ACTIONS -->
                 <td class="actions-cell">
-                    <button class="ghost-btn" (click)="openStepsModal(service)">Steps</button>
-                    <button class="ghost-btn" [routerLink]="['/admin/dashboard/editservice', service.id]"> Edit
-                    </button>
-                    <!-- ✅ Advertise buttons -->
                     <div class="advertise-actions">
                         <ng-container *ngIf="service.isAdvertised; else notAdvertised">
                             <button class="success-btn" (click)="onCopyLink(service)"> Copy Link </button>
                             <button class="warn-btn" (click)="onUnAdvertise(service)"> Remove Home </button>
                         </ng-container>
                         <ng-template #notAdvertised>
-                            <input type="number" class="sort-input" placeholder="Order"
-                                [(ngModel)]="advertiseSortOrderInput[service.id!]" />
+                            <!-- <input type="number" class="sort-input" placeholder="Order"
+                                [(ngModel)]="advertiseSortOrderInput[service.id!]" /> -->
                             <button class="primary-btn small" (click)="onAdvertise(service)"> Add Home + Link </button>
                         </ng-template>
                     </div>
-                    <button class="danger-btn" (click)="onDelete(service.id!)">Delete</button>
+                    <div class="actions-cell">
+                        <div class="actions-wrapper">
+                            <button class="actions-trigger" (click)="toggleMenu(service.id)"> ⋮ </button>
+                            <div class="actions-dropdown" *ngIf="openMenu === service.id">
+                                <button class="dropdown-item" (click)="openStepsModal(service)">Steps</button>
+                                <button class="dropdown-item"
+                                    [routerLink]="['/admin/dashboard/services/edit-general', service.id]"> Edit General
+                                </button>
+                                <button class="dropdown-item"
+                                    [routerLink]="['/admin/dashboard/services/edit-metadata', service.id]"> Edit
+                                    Metadata </button>
+                                <button class="dropdown-item"
+                                    [routerLink]="['/admin/dashboard/services/edit-inputs', service.id]"> Edit Inputs
+                                </button>
+                                <button class="dropdown-item danger-btn" (click)="onDelete(service.id!)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
                 </td>
             </tr>
         </tbody>

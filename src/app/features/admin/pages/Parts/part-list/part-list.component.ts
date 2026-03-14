@@ -13,6 +13,7 @@ import { CategoryService } from '../../../Services/CategoryService';
 import { CategoryTypeService } from '../../../Services/categoryTypeService.service';
 import { EditPartDialogComponent } from '../../../../../shared/Dialogs/edit-part-dialog/edit-part-dialog.component';
 import { ToastService } from '../../../../../shared/Services/toast.service';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-part-list',
@@ -36,14 +37,21 @@ export class PartListComponent implements OnInit {
   searchText: string = '';
   /* ================= PAGINATION ================= */
   pageIndex = 1;
-  pageSize = 5;
-  pageSizes = [5, 10, 25];
+  pageSize = 15;
+  pageSizes = [15, 25, 50, 100];
   totalCount = 0;
+  /* ================= CREATE DROPDOWNS STATE ================= */
+  createCategoryId?: number;
+  createCategoryTypeId?: number;
+  createStructureId?: number;
 
+  createCategoryTypes: CategoryType[] = [];
+  createStructures: Structure[] = [];
   /* ================= FORM ================= */
   crateForm = new FormGroup({
     name: new FormControl('', Validators.required),
     structureId: new FormControl('', Validators.required),
+    description: new FormControl(''),
   });
 
   selectedFile: File | null = null;
@@ -116,7 +124,55 @@ export class PartListComponent implements OnInit {
 
     this.applyFilters();
   }
+  onCreateCategoryChange(event: Event): void {
+    this.createCategoryId =
+      +(event.target as HTMLSelectElement).value || undefined;
 
+    this.createCategoryTypeId = undefined;
+    this.createStructureId = undefined;
+
+    this.createCategoryTypes = [];
+    this.createStructures = [];
+
+    // reset required control
+    this.crateForm.patchValue({ structureId: '' });
+
+    if (!this.createCategoryId) return;
+
+    this.categoryTypeService
+      .getTypesByCategory(this.createCategoryId)
+      .subscribe((res) => {
+        if (res.success) this.createCategoryTypes = res.data.categoryTypes;
+      });
+  }
+
+  onCreateCategoryTypeChange(event: Event): void {
+    this.createCategoryTypeId =
+      +(event.target as HTMLSelectElement).value || undefined;
+
+    this.createStructureId = undefined;
+    this.createStructures = [];
+
+    this.crateForm.patchValue({ structureId: '' });
+
+    if (!this.createCategoryTypeId) return;
+
+    this.structureService
+      .getStructuresByType(this.createCategoryTypeId)
+      .subscribe((res) => {
+        if (res.success) this.createStructures = res.data.structures;
+      });
+  }
+
+  onCreateStructureChange(event: Event): void {
+    this.createStructureId =
+      +(event.target as HTMLSelectElement).value || undefined;
+
+    // keep formControl in sync
+    this.crateForm.patchValue({
+      structureId: this.createStructureId ? String(this.createStructureId) : '',
+    });
+  }
   onCategoryTypeChange(event: Event): void {
     this.selectedCategoryTypeId =
       +(event.target as HTMLSelectElement).value || undefined;
@@ -212,6 +268,7 @@ export class PartListComponent implements OnInit {
     const formData = new FormData();
     formData.append('name', this.crateForm.value.name!);
     formData.append('structureId', this.crateForm.value.structureId!);
+    formData.append('description', this.crateForm.value.description!);
     if (this.selectedFile) formData.append('file', this.selectedFile);
 
     this.partService.createPart(formData).subscribe((res) => {
@@ -237,6 +294,7 @@ export class PartListComponent implements OnInit {
         categoryId: part.categoryId,
         categoryTypeId: part.categoryTypeId,
         structureId: part.structureId,
+        description: part.description,
       },
     });
 
@@ -246,6 +304,7 @@ export class PartListComponent implements OnInit {
       const formData = new FormData();
       formData.append('name', result.name);
       formData.append('structureId', String(result.structureId));
+      formData.append('description', String(result.description));
       if (result.file) formData.append('file', result.file);
 
       this.partService.updatePart(result.id, formData).subscribe((res) => {
@@ -259,13 +318,21 @@ export class PartListComponent implements OnInit {
     });
   }
 
-  onDelete(id: number): void {
-    this.partService.deletePart(id).subscribe((res) => {
-      if (res.success) {
-        this.toast.show(res.message, 'success');
-        this.loadParts();
-      } else {
-        this.toast.show(res.message, 'error');
+  onDelete(id: number, name: string): void {
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.partService.deletePart(id).subscribe((res) => {
+          if (res.success) {
+            this.toast.show(res.message, 'success');
+            this.loadParts();
+          } else {
+            this.toast.show(res.message, 'error');
+          }
+        });
       }
     });
   }
