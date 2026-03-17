@@ -1,14 +1,14 @@
 <div class="workers-container">
-    <h2>Workers List</h2>
+    <h2>Technicians List</h2>
     <!-- Loading -->
     <div *ngIf="loading" class="loading">
         <div class="spinner"></div>
-        <p>Loading workers...</p>
+        <p>Loading Technicians...</p>
     </div>
     <!-- Error -->
     <div *ngIf="!loading && errorMessage" class="error"> {{ errorMessage }} </div>
     <!-- Empty -->
-    <div *ngIf="!loading && !errorMessage && workers.length === 0" class="empty"> No workers found. </div>
+    <div *ngIf="!loading && !errorMessage && workers.length === 0" class="empty"> No Technicians found. </div>
     <!-- Workers Table -->
     <table *ngIf="!loading && workers.length > 0" class="workers-table">
         <thead>

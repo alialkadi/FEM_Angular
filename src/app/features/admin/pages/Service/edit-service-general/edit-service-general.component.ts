@@ -309,20 +309,29 @@ export class EditServiceGeneralComponent implements OnInit {
     }
 
     this.isSubmitting = true;
+
     const payload = { ...this.serviceForm.getRawValue() };
     const formData = new FormData();
 
+    // Only one linkage must be sent
     if (this.activeLinkage === 'Structure') {
+      payload.structureId = payload.structureId || null;
       payload.partId = null;
       payload.partOptionId = null;
     } else if (this.activeLinkage === 'Part') {
+      payload.structureId = null;
+      payload.partId = payload.partId || null;
       payload.partOptionId = null;
+    } else if (this.activeLinkage === 'PartOption') {
+      payload.structureId = null;
+      payload.partId = null;
+      payload.partOptionId = payload.partOptionId || null;
     }
 
     Object.keys(payload).forEach((key) => {
       const value = payload[key];
       if (value !== null && value !== undefined) {
-        formData.append(key, value);
+        formData.append(key, value.toString());
       }
     });
 
@@ -337,6 +346,7 @@ export class EditServiceGeneralComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.isSubmitting = false;
+
           if (res.success) {
             this.toast.show(
               res.message ?? 'Service updated successfully',

@@ -76,21 +76,21 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   selectItem(item: ExplorerItem) {
     switch (item.itemType) {
       case ExplorerItemType.Structure:
-        this.resetBelow('structure');
+        this.resetBelow('type');
         this.structureId = item.id;
         this.selectedStructureName = item.name;
         break;
 
       case ExplorerItemType.Part:
-        this.resetBelow('part');
+        this.resetBelow('structure');
         this.partId = item.id;
         this.selectedPartName = item.name;
         break;
 
       case ExplorerItemType.PartOption:
+        this.resetBelow('part');
         this.optionId = item.id;
         this.selectedOptionName = item.name;
-        this.selectedFilters = {};
         break;
 
       case ExplorerItemType.Service:
@@ -182,14 +182,15 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   resetAll() {
     this.types = [];
     this.selectedCategory = undefined;
-    this.resetBelow('category');
-  }
+    this.selectedType = undefined;
 
-  resetBelow(level: 'category' | 'type' | 'structure' | 'part') {
-    if (level === 'category') this.selectedType = undefined;
-    if (level === 'type') this.structureId = undefined;
-    if (level === 'structure') this.partId = undefined;
-    if (level === 'part') this.optionId = undefined;
+    this.structureId = undefined;
+    this.partId = undefined;
+    this.optionId = undefined;
+
+    this.selectedStructureName = undefined;
+    this.selectedPartName = undefined;
+    this.selectedOptionName = undefined;
 
     this.explorerItems = [];
     this.filters = [];
@@ -197,6 +198,47 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.selectedServices = [];
   }
 
+  resetBelow(level: 'category' | 'type' | 'structure' | 'part') {
+    if (level === 'category') {
+      this.selectedType = undefined;
+
+      this.structureId = undefined;
+      this.partId = undefined;
+      this.optionId = undefined;
+
+      this.selectedStructureName = undefined;
+      this.selectedPartName = undefined;
+      this.selectedOptionName = undefined;
+    }
+
+    if (level === 'type') {
+      this.structureId = undefined;
+      this.partId = undefined;
+      this.optionId = undefined;
+
+      this.selectedStructureName = undefined;
+      this.selectedPartName = undefined;
+      this.selectedOptionName = undefined;
+    }
+
+    if (level === 'structure') {
+      this.partId = undefined;
+      this.optionId = undefined;
+
+      this.selectedPartName = undefined;
+      this.selectedOptionName = undefined;
+    }
+
+    if (level === 'part') {
+      this.optionId = undefined;
+      this.selectedOptionName = undefined;
+    }
+
+    this.explorerItems = [];
+    this.filters = [];
+    this.selectedFilters = {};
+    this.selectedServices = [];
+  }
   requestServices() {
     console.log('before route ', this.selectedServices);
     this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
@@ -208,40 +250,38 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     const crumbs: ExplorerCrumb[] = [];
 
     if (this.selectedCategory) {
-      crumbs.push({ label: this.selectedCategory.name, level: 'category' });
+      crumbs.push({
+        label: this.selectedCategory.name,
+        level: 'category',
+      });
     }
 
     if (this.selectedType) {
-      crumbs.push({ label: this.selectedType.name, level: 'type' });
+      crumbs.push({
+        label: this.selectedType.name,
+        level: 'type',
+      });
     }
 
-    const structure = this.explorerItems.find(
-      (i) =>
-        i.itemType === ExplorerItemType.Structure && i.id === this.structureId,
-    );
-    if (structure) {
-      crumbs.push({ label: structure.name, level: 'structure' });
-    }
-    if (this.selectedStructureName)
-      crumbs.push({ label: this.selectedStructureName, level: 'structure' });
-    if (this.selectedPartName)
-      crumbs.push({ label: this.selectedPartName, level: 'part' });
-    if (this.selectedOptionName)
-      crumbs.push({ label: this.selectedOptionName, level: 'option' });
-
-    const part = this.explorerItems.find(
-      (i) => i.itemType === ExplorerItemType.Part && i.id === this.partId,
-    );
-    if (part) {
-      crumbs.push({ label: part.name, level: 'part' });
+    if (this.structureId && this.selectedStructureName) {
+      crumbs.push({
+        label: this.selectedStructureName,
+        level: 'structure',
+      });
     }
 
-    const option = this.explorerItems.find(
-      (i) =>
-        i.itemType === ExplorerItemType.PartOption && i.id === this.optionId,
-    );
-    if (option) {
-      crumbs.push({ label: option.name, level: 'option' });
+    if (this.partId && this.selectedPartName) {
+      crumbs.push({
+        label: this.selectedPartName,
+        level: 'part',
+      });
+    }
+
+    if (this.optionId && this.selectedOptionName) {
+      crumbs.push({
+        label: this.selectedOptionName,
+        level: 'option',
+      });
     }
 
     return crumbs;
@@ -249,7 +289,17 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   goToCrumb(level: ExplorerCrumb['level']) {
     switch (level) {
       case 'category':
-        this.resetAll();
+        this.selectedType = undefined;
+        this.structureId = undefined;
+        this.partId = undefined;
+        this.optionId = undefined;
+        this.selectedStructureName = undefined;
+        this.selectedPartName = undefined;
+        this.selectedOptionName = undefined;
+        this.explorerItems = [];
+        this.filters = [];
+        this.selectedFilters = {};
+        this.selectedServices = [];
         break;
 
       case 'type':
@@ -269,6 +319,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
 
       case 'option':
         this.optionId = undefined;
+        this.selectedOptionName = undefined;
         this.selectedFilters = {};
         this.loadExplorer();
         break;
@@ -277,18 +328,37 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   goBack() {
     if (this.optionId) {
       this.optionId = undefined;
+      this.selectedOptionName = undefined;
     } else if (this.partId) {
       this.partId = undefined;
+      this.selectedPartName = undefined;
+      this.selectedOptionName = undefined;
     } else if (this.structureId) {
       this.structureId = undefined;
+      this.selectedStructureName = undefined;
+      this.selectedPartName = undefined;
+      this.selectedOptionName = undefined;
     } else if (this.selectedType) {
       this.selectedType = undefined;
+      this.selectedStructureName = undefined;
+      this.selectedPartName = undefined;
+      this.selectedOptionName = undefined;
+      this.explorerItems = [];
+      this.filters = [];
     } else if (this.selectedCategory) {
       this.selectedCategory = undefined;
+      this.types = [];
     }
 
     this.selectedFilters = {};
-    this.loadExplorer();
+    this.selectedServices = [];
+
+    if (this.selectedType) {
+      this.loadExplorer();
+    } else {
+      this.explorerItems = [];
+      this.filters = [];
+    }
   }
 
   get hasFilters(): boolean {

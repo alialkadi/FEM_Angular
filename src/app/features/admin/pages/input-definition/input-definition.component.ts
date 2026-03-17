@@ -183,8 +183,27 @@ export class InputDefinitionComponent implements OnInit {
       this.loading = false;
     });
   }
+  private getFormValidationErrors(): any[] {
+    const result: any[] = [];
 
+    Object.keys(this.form.controls).forEach((key) => {
+      const controlErrors = this.form.get(key)?.errors;
+      if (controlErrors) {
+        result.push({
+          control: key,
+          errors: controlErrors,
+        });
+      }
+    });
+
+    return result;
+  }
   submit(): void {
+    console.log('submit fired');
+    console.log('form valid:', this.form.valid);
+    console.log('form value:', this.form.getRawValue());
+    console.log('form errors:', this.getFormValidationErrors());
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -194,14 +213,19 @@ export class InputDefinitionComponent implements OnInit {
 
     const payload = {
       ...this.form.getRawValue(),
-      code: this.form.value.code.trim().toLowerCase(),
+      code: this.form.getRawValue().code.trim().toLowerCase(),
     };
-    console.log(payload);
+
+    console.log('payload:', payload);
     this.service.create(payload).subscribe({
       next: (res) => {
+        console.log('create success:', res);
         if (res.success) {
           this.definitions.unshift(res.data);
           this.form.reset({
+            code: '',
+            label: '',
+            dataType: null,
             pricingBehavior: PricingInputBehavior.None,
             allowDecimal: false,
             min: null,
@@ -210,10 +234,10 @@ export class InputDefinitionComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.log(err);
+        console.error('create error:', err);
       },
       complete: () => {
-        this.submitting = false; // ✅ RESET
+        this.submitting = false;
       },
     });
   }

@@ -21,6 +21,7 @@
     <!-- MAIN LAYOUT -->
     <div class="layout">
         <!-- LEFT FILTERS (DESKTOP) -->
+        <!-- LEFT FILTERS (DESKTOP) -->
         <aside class="filters-side" *ngIf="hasFilters">
             <div class="filters-card">
                 <div class="filters-head">
@@ -31,11 +32,14 @@
                 <div class="filters-body">
                     <section class="filter" *ngFor="let f of filters">
                         <div class="filter-title">{{ f.name }}</div>
-                        <label class="filter-item" *ngFor="let v of f.values">
-                            <input type="checkbox" (change)="toggleFilter(f.code, v.id)"
-                                [checked]="selectedFilters[f.code]?.includes(v.id)" />
-                            <span>{{ v.displayName }}</span>
-                        </label>
+                        <div class="filter-chips">
+                            <label class="filter-chip" *ngFor="let v of f.values"
+                                [class.active]="selectedFilters[f.code]?.includes(v.id)">
+                                <input type="checkbox" (change)="toggleFilter(f.code, v.id)"
+                                    [checked]="selectedFilters[f.code]?.includes(v.id)" />
+                                <span>{{ v.displayName }}</span>
+                            </label>
+                        </div>
                     </section>
                 </div>
             </div>
@@ -235,23 +239,27 @@
     </button>
     <!-- MOBILE FILTER SHEET -->
     <div class="sheet-backdrop" *ngIf="filtersSheetOpen" (click)="closeFiltersSheet()"></div>
+    <!-- MOBILE FILTER SHEET -->
     <section class="sheet" [class.open]="filtersSheetOpen" *ngIf="hasFilters">
         <div class="sheet-head">
             <h3>Filters</h3>
             <div class="sheet-actions">
-                <button class="clear" type="button" (click)="clearFilters()"
-                    [disabled]="!hasSelectedFilters">Clear</button>
+                <button class="clear" type="button" (click)="clearFilters()" [disabled]="!hasSelectedFilters"> Clear
+                </button>
                 <button class="btn-primary" type="button" (click)="closeFiltersSheet()">Done</button>
             </div>
         </div>
         <div class="sheet-body">
             <section class="filter" *ngFor="let f of filters">
                 <div class="filter-title">{{ f.name }}</div>
-                <label class="filter-item" *ngFor="let v of f.values">
-                    <input type="checkbox" (change)="toggleFilter(f.code, v.id)"
-                        [checked]="selectedFilters[f.code]?.includes(v.id)" />
-                    <span>{{ v.displayName }}</span>
-                </label>
+                <div class="filter-chips">
+                    <label class="filter-chip" *ngFor="let v of f.values"
+                        [class.active]="selectedFilters[f.code]?.includes(v.id)">
+                        <input type="checkbox" (change)="toggleFilter(f.code, v.id)"
+                            [checked]="selectedFilters[f.code]?.includes(v.id)" />
+                        <span>{{ v.displayName }}</span>
+                    </label>
+                </div>
             </section>
         </div>
     </section>

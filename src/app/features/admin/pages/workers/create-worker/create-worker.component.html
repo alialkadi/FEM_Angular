@@ -1,5 +1,5 @@
 <div class="worker-container">
-    <h2>Create New Worker</h2>
+    <h2>Create New Technician</h2>
     <!-- Success Message -->
     <div *ngIf="successMessage" class="alert success"> {{ successMessage }} </div>
     <!-- Error Message -->
@@ -41,6 +41,6 @@
             <small *ngIf="f['dailyCapacity'].touched && f['dailyCapacity'].invalid"> Daily capacity must be at least 1
             </small>
         </div>
-        <button type="submit" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Worker' }} </button>
+        <button type="submit" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Technician' }} </button>
     </form>
 </div>
