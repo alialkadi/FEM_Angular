@@ -65,7 +65,6 @@ const routes: Routes = [
     ],
   },
   { path: 's/:slug', component: ServiceAdvertisedDetailComponent },
-  { path: 'login', component: LoginComponent },
   { path: '', redirectTo: 'FenetrationMaintainence', pathMatch: 'full' },
   { path: '**', redirectTo: 'FenetrationMaintainence' },
 ];

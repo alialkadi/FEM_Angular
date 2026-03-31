@@ -5,11 +5,11 @@
     <section class="section services" aria-label="Services">
         <div class="container">
             <header class="section-head">
-                <div class="kicker">
+                <!-- <div class="kicker">
                     <span class="dot" aria-hidden="true"></span>
                     <span>Our Core Services</span>
-                </div>
-                <h2 class="section-title">Fenestration Services</h2>
+                </div> -->
+                <h2 class="section-title ">Fenestration <span style="color: var(--link-hover);">Services</span></h2>
                 <p class="section-subtitle"> Everything you need for windows & doors — installation, replacement, and
                     long-term maintenance. </p>
             </header>
@@ -18,10 +18,10 @@
                     <div class="service-media">
                         <img class="service-img" [src]="s.imageUrl" [alt]="s.title" loading="lazy" />
                         <div class="service-overlay" aria-hidden="true"></div>
-                        <div class="service-chip">
+                        <!-- <div class="service-chip">
                             <span class="chip-dot" aria-hidden="true"></span>
                             <span>Fenestration</span>
-                        </div>
+                        </div> -->
                     </div>
                     <div class="service-body">
                         <h3 class="service-title">{{ s.title }}</h3>
@@ -30,17 +30,69 @@
                             <a class="link" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']"> Explore
                                 <span aria-hidden="true">→</span>
                             </a>
-                            <a class="mini-btn" [routerLink]="['/public/FenestrationMaintainence/contact']"> Quote </a>
+                            <!-- <a class="mini-btn" [routerLink]="['/public/FenestrationMaintainence/contact']"> Quote </a> -->
                         </div>
                     </div>
                 </article>
             </div>
             <!-- Optional bottom note -->
             <div class="section-foot">
-                <div class="note">
+                <!-- <div class="note">
                     <span class="note-icon" aria-hidden="true">★</span>
                     <span>Professional results, clean finishing, and long-lasting performance.</span>
+                </div> -->
+            </div>
+        </div>
+    </section>
+    <section class="section advertised-services" aria-label="Featured Requestable Services" *ngIf="data.length">
+        <div class="container">
+            <header class="section-head">
+                <div class="kicker">
+                    <span class="dot" aria-hidden="true"></span>
+                    <span>Featured Services</span>
                 </div>
+                <h2 class="section-title"> Request a <span style="color: var(--link-hover)">Featured Service</span>
+                </h2>
+                <p class="section-subtitle"> Explore highlighted services with a clean visual presentation and request
+                    the one that fits your project. </p>
+            </header>
+            <div class="advertised-carousel-wrap">
+                <button type="button" class="carousel-nav prev" (click)="prevSlide()" aria-label="Previous services">
+                    &#10094; </button>
+                <div class="advertised-carousel">
+                    <div class="advertised-track" [style.transform]="trackTranslate">
+                        <article class="advertised-card" *ngFor="let item of data; trackBy: trackByAdvertised">
+                            <div class="advertised-card__media">
+                                <img [src]="item.fileUrl" [alt]="item.name" loading="lazy" />
+                                <div class="advertised-card__overlay"></div>
+                                <div class="advertised-card__badge"> Featured </div>
+                            </div>
+                            <div class="advertised-card__body">
+                                <div class="advertised-card__head">
+                                    <h3>{{ item.name }}</h3>
+                                </div>
+                                <p class="advertised-card__desc"> {{ item.description }} </p>
+                                <div class="advertised-card__footer">
+                                    <button type="button" class="btn btn--primary"
+                                        (click)="requestAdvertisedService(item)"> Request Now </button>
+                                    <button type="button" class="cart-btn" [class.active]="isWishlisted(item.id)"
+                                        (click)="toggleWishlist(item)">
+                                        <span class="icon"> {{ isWishlisted(item.id) ? '🛒' : '＋' }} </span>
+                                        <span class="text"> {{ isWishlisted(item.id) ? 'Added' : 'Add to Cart' }}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <button type="button" class="carousel-nav next" (click)="nextSlide()" aria-label="Next services">
+                    &#10095; </button>
+            </div>
+            <div class="carousel-dots" *ngIf="visibleDots.length > 1">
+                <button type="button" class="dot-btn" *ngFor="let dot of visibleDots"
+                    [class.active]="dot === currentSlide" (click)="goToSlide(dot)"
+                    [attr.aria-label]="'Go to group ' + (dot + 1)"></button>
             </div>
         </div>
     </section>

@@ -340,7 +340,7 @@ export class EditServiceGeneralComponent implements OnInit {
     if (this.selectedFile) {
       formData.append('File', this.selectedFile);
     }
-
+    console.log('Form', formData);
     this.serviceService
       .updateServiceGeneral(this.serviceId, formData)
       .subscribe({

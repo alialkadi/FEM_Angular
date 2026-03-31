@@ -6,7 +6,8 @@
                 <span class="brand__mark">
                     <img src="./assets/landing-page/icon.jpeg" />
                 </span>
-                <span class="brand__name"> Fenestration <strong style="color: var(--link-hover);">Services</strong>
+                <span class="brand__name"> <span style="color: black;">Fenestration</span> <strong
+                        style="color: var(--link-hover);">Services</strong>
                 </span>
             </a>
             <!-- Desktop Navigation -->
@@ -20,7 +21,7 @@
                 <a *ngFor="let section of sections" [routerLink]="section.route" routerLinkActive="active-link"
                     [routerLinkActiveOptions]="{ exact: true }" class="nav-item"> {{ section.title }} </a>
                 <!-- ✅ Login Button -->
-                <a routerLink="/login" routerLinkActive="active-link" class="login-btn"> Sign In </a>
+                <a [routerLink]="loginRoute" routerLinkActive="active-link" class="login-btn"> Sign In </a>
             </div>
             <!-- CTA / Hamburger -->
             <div class="nav__right">

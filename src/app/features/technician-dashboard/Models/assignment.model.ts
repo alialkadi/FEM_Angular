@@ -1,4 +1,4 @@
-import { ApiResponse } from "../../Models/ApiResponse";
+import { ApiResponse } from '../../Models/ApiResponse';
 
 export interface TechnicianAssignmentService {
   serviceId: number;
@@ -25,5 +25,6 @@ export interface TechnicianAssignmentsListResponse {
   response: TechnicianAssignmentResponse[];
 }
 
-export type GetTechnicianAssignmentsApiResponse =
-  ApiResponse<TechnicianAssignmentsListResponse>;
+export type GetTechnicianAssignmentsApiResponse = ApiResponse<
+  TechnicianAssignmentResponse[]
+>;

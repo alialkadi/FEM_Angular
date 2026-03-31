@@ -35,6 +35,7 @@ import { GroupByPipe } from '../../core/Pipes/groupByPipe';
 import { EditServiceGeneralComponent } from './pages/Service/edit-service-general/edit-service-general.component';
 import { EditServiceMetadataComponent } from './pages/Service/edit-service-metadata/edit-service-metadata.component';
 import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/edit-service-inputs.component';
+import { StaticsComponent } from './pages/statics/statics.component';
 
 @NgModule({
   declarations: [
@@ -66,6 +67,7 @@ import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/
     EditServiceGeneralComponent,
     EditServiceMetadataComponent,
     EditServiceInputsComponent,
+    StaticsComponent,
   ],
   imports: [
     SharedModule,

@@ -10,6 +10,7 @@ import { ServiceRequestReviewComponent } from './pages/service-request-review/se
 import { ServiceUserFormComponent } from './pages/service-user-form/service-user-form.component';
 import { WishlistComponent } from './pages/Wishlist/wishlist.component';
 import { ServiceAdvertisedDetailComponent } from './pages/service-advertised-detail/service-advertised-detail.component';
+import { LoginComponent } from '../login/login.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'Home', pathMatch: 'full' },
@@ -22,6 +23,7 @@ const routes: Routes = [
       { path: 'service-review', component: ServiceRequestReviewComponent },
       { path: 'service-user-form', component: ServiceUserFormComponent },
       { path: 'Wishlist', component: WishlistComponent },
+      { path: 'login', component: LoginComponent },
       { path: 's/:slug', component: ServiceAdvertisedDetailComponent },
     ],
   },

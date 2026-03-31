@@ -72,11 +72,14 @@ export class ServiceListComponent implements OnInit {
       });
   }
 
-  onDelete(id: number): void {
+  onDelete(id: number, name?: string): void {
     const confirmRef = this.dialog.open(ConfirmDialogComponent, {
-      width: `350px`,
-      data: { message: `Are you sure you want to delete "${name}"` },
+      width: '350px',
+      data: {
+        message: `Are you sure you want to delete "${name ?? 'this service'}"?`,
+      },
     });
+
     confirmRef.afterClosed().subscribe((result) => {
       if (result) {
         this.serviceService.deleteService(id).subscribe(() => {
@@ -396,9 +399,81 @@ export class ServiceListComponent implements OnInit {
   // ---------------------------------------------------------
   // UPDATE SERVICE BREAKDOWN
   // ---------------------------------------------------------
-  openMenu: number | null = null;
+  menuState = {
+    open: false,
+    top: 0,
+    left: 0,
+    serviceId: null as number | null,
+    service: null as ServiceResponse | null,
+  };
 
-  toggleMenu(id: number) {
-    this.openMenu = this.openMenu === id ? null : id;
+  toggleMenu(event: MouseEvent, service: ServiceResponse): void {
+    event.stopPropagation();
+
+    const button = event.currentTarget as HTMLElement;
+    const rect = button.getBoundingClientRect();
+
+    const menuWidth = 190;
+    const menuHeight = 220;
+    const gap = 8;
+
+    let left = rect.right - menuWidth;
+    let top = rect.bottom + gap;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    if (left < 8) {
+      left = 8;
+    }
+
+    if (left + menuWidth > viewportWidth - 8) {
+      left = viewportWidth - menuWidth - 8;
+    }
+
+    if (top + menuHeight > viewportHeight - 8) {
+      top = rect.top - menuHeight - gap;
+    }
+
+    if (top < 8) {
+      top = 8;
+    }
+
+    if (this.menuState.open && this.menuState.serviceId === service.id) {
+      this.closeMenu();
+      return;
+    }
+
+    this.menuState = {
+      open: true,
+      top,
+      left,
+      serviceId: service.id ?? null,
+      service,
+    };
+  }
+
+  closeMenu(): void {
+    this.menuState = {
+      open: false,
+      top: 0,
+      left: 0,
+      serviceId: null,
+      service: null,
+    };
+  }
+
+  onMenuSteps(): void {
+    if (this.menuState.service) {
+      this.openStepsModal(this.menuState.service);
+    }
+    this.closeMenu();
+  }
+
+  onMenuDelete(): void {
+    if (this.menuState.serviceId != null) {
+      this.onDelete(this.menuState.serviceId, this.menuState.service?.name);
+    }
+    this.closeMenu();
   }
 }

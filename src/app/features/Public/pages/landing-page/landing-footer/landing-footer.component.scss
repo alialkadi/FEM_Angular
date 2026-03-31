@@ -50,7 +50,7 @@
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: 0.2px;
-
+  color: black;
   strong {
     font-weight: 900;
   }
@@ -208,9 +208,9 @@
   display: grid;
   gap: 12px;
   padding: 16px;
-  border: 1px solid var(--border);
+  // border: 1px solid var(--border);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.025);
+  // background: rgba(255, 255, 255, 0.025);
 }
 
 .contact-row {

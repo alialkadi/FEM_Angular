@@ -16,7 +16,8 @@ export class LandingNavbarComponent {
 
   // routes (adjust to your real app)
   homeRoute = ['/public/FenestrationMaintainence/home'];
-  cartRoute = ['/FenetrationMaintainence/Home/Wishlist']; // TODO: change to your real Cart route
+  cartRoute = ['/FenetrationMaintainence/Home/Wishlist'];
+  loginRoute = ['/FenetrationMaintainence/Home/login'];
   quoteRoute = ['/public/FenestrationMaintainence/contact'];
 
   constructor(private wishlist: WishlistService) {}

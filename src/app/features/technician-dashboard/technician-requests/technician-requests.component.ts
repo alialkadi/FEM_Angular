@@ -1,14 +1,16 @@
 import { Component } from '@angular/core';
-import { TechnicianAssignmentResponse, GetTechnicianAssignmentsApiResponse } from '../Models/assignment.model';
+import {
+  TechnicianAssignmentResponse,
+  GetTechnicianAssignmentsApiResponse,
+} from '../Models/assignment.model';
 import { AssignmentsService } from '../Services/assignments.service';
 
 @Component({
   selector: 'app-technician-requests',
   templateUrl: './technician-requests.component.html',
-  styleUrl: './technician-requests.component.scss'
+  styleUrl: './technician-requests.component.scss',
 })
 export class TechnicianRequestsComponent {
-
   assignments: TechnicianAssignmentResponse[] = [];
   loading = true;
   errorMessage = '';
@@ -27,8 +29,8 @@ export class TechnicianRequestsComponent {
       next: (res: GetTechnicianAssignmentsApiResponse) => {
         this.loading = false;
 
-        if (res.success && res.data.isSuccessful) {
-          this.assignments = res.data.response;
+        if (res.success) {
+          this.assignments = res.data;
         } else {
           this.errorMessage = 'Unable to load your jobs.';
         }
@@ -36,7 +38,7 @@ export class TechnicianRequestsComponent {
       error: (err) => {
         this.loading = false;
         this.errorMessage = 'Something went wrong. Please try again.';
-      }
+      },
     });
   }
 }

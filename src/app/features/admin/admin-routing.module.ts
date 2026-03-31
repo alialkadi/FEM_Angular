@@ -25,6 +25,7 @@ import { InputDefinitionComponent } from './pages/input-definition/input-definit
 import { EditServiceGeneralComponent } from './pages/Service/edit-service-general/edit-service-general.component';
 import { EditServiceMetadataComponent } from './pages/Service/edit-service-metadata/edit-service-metadata.component';
 import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/edit-service-inputs.component';
+import { StaticsComponent } from './pages/statics/statics.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -32,6 +33,7 @@ const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     children: [
+      { path: '', component: StaticsComponent },
       { path: 'manage-users', component: ManageUsersComponent },
       { path: 'Categories', component: CategoriesListComponent },
       { path: 'CategoryTypes', component: CategoryTypesComponent },

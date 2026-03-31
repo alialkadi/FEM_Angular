@@ -74,7 +74,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     roles: ['Admin'],
   },
   {
-    title: 'create technician',
+    title: 'Create technician',
     icon: 'add_circle',
     route: '/admin/dashboard/create-worker',
     roles: ['Admin'],
@@ -86,7 +86,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     roles: ['Admin'],
   },
   {
-    title: 'Requsts',
+    title: 'Requests',
     icon: 'group',
     route: '/technician/dashboard/requests',
     roles: ['Worker'],
