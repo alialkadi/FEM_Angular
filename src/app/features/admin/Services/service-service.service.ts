@@ -1,3 +1,4 @@
+import { UpdateServiceStep } from './../../Models/service.Model';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environment.prod';
@@ -155,7 +156,12 @@ export class ServiceService {
       data,
     );
   }
-
+  updateStep(data: UpdateServiceStep): Observable<ApiResponse<ServiceStep>> {
+    return this._http.put<ApiResponse<ServiceStep>>(
+      `${this.baseurl}/ServiceStep/${data.id}`,
+      data,
+    );
+  }
   DeleteStep(id: number): Observable<ApiResponse<boolean>> {
     return this._http.delete<ApiResponse<boolean>>(
       `${this.baseurl}/ServiceStep/${id}`,

@@ -4,6 +4,7 @@ import {
   CreateServiceStep,
   ServiceResponse,
   ServiceStep,
+  UpdateServiceStep,
 } from '../../../../Models/service.Model';
 import { ServiceService } from '../../../Services/service-service.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
@@ -30,6 +31,7 @@ export class ServiceListComponent implements OnInit {
   publicBaseUrl = window.location.origin; // or environment.frontUrl if you have
   advertiseSortOrderInput: Record<number, number> = {};
   copySuccessMessage: string | null = null;
+  editingStepId: any;
 
   constructor(
     private serviceService: ServiceService,
@@ -130,12 +132,34 @@ export class ServiceListComponent implements OnInit {
     this.loadServices();
   }
 
-  // ===============================================
-  // Load Steps (Reusable Function)
-  // ===============================================
-  loadSteps(serviceId: number) {
+  // =========================
+  // STEPS MANAGEMENT
+  // =========================
+  CreateStepForm: FormGroup = new FormGroup({
+    description: new FormControl('', Validators.required),
+    serviceId: new FormControl(0, Validators.required),
+  });
+
+  EditStepForm: FormGroup = new FormGroup({
+    id: new FormControl(0, Validators.required),
+    serviceId: new FormControl(0, Validators.required),
+    description: new FormControl('', Validators.required),
+  });
+
+  newStep: CreateServiceStep = {
+    description: '',
+    serviceId: 0,
+  };
+
+  updatedStep: UpdateServiceStep = {
+    id: 0,
+    description: '',
+    serviceId: 0,
+  };
+
+  loadSteps(serviceId: number): void {
     this.serviceService.getStepsByServiceId(serviceId).subscribe({
-      next: (res) => {
+      next: (res: ApiResponse<any>) => {
         if (res.success && res.data?.serviceSteps) {
           this.serviceSteps = res.data.serviceSteps;
         } else {
@@ -149,40 +173,38 @@ export class ServiceListComponent implements OnInit {
     });
   }
 
-  // ===============================================
-  // Open Steps Modal
-  // ===============================================
-  openStepsModal(service: any) {
+  openStepsModal(service: ServiceResponse): void {
     this.selectedService = service;
     this.showStepsModal = true;
 
-    // Load steps for selected service
-    this.loadSteps(service.id);
+    this.CreateStepForm.patchValue({
+      serviceId: service.id || 0,
+      description: '',
+    });
+
+    this.editingStepId = null;
+    this.loadSteps(service.id!);
   }
 
-  // ===============================================
-  // Close Modal
-  // ===============================================
-  closeStepsModal() {
+  closeStepsModal(): void {
     this.showStepsModal = false;
     this.selectedService = null;
     this.serviceSteps = [];
+    this.editingStepId = null;
+
+    this.CreateStepForm.reset({
+      description: '',
+      serviceId: 0,
+    });
+
+    this.EditStepForm.reset({
+      id: 0,
+      serviceId: 0,
+      description: '',
+    });
   }
 
-  // ===============================================
-  // Reactive Form
-  // ===============================================
-  CreateStepForm: FormGroup = new FormGroup({
-    description: new FormControl('', Validators.required),
-    serviceId: new FormControl(0, Validators.required),
-  });
-
-  newStep: CreateServiceStep = { description: '', serviceId: 0 };
-
-  // ===============================================
-  // Add Step + Refresh Steps
-  // ===============================================
-  onAddStep(form: FormGroup) {
+  onAddStep(form: FormGroup): void {
     if (!form.valid) {
       form.markAllAsTouched();
       return;
@@ -190,28 +212,21 @@ export class ServiceListComponent implements OnInit {
 
     this.newStep = form.value;
 
-    // Ensure serviceId is set correctly
-    if (!this.newStep.serviceId && this.selectedService) {
+    if (!this.newStep.serviceId && this.selectedService?.id) {
       this.newStep.serviceId = this.selectedService.id;
     }
 
     this.serviceService.CreateStep(this.newStep).subscribe({
-      next: (res) => {
+      next: (res: ApiResponse<any>) => {
         if (res.success) {
-          console.log('✅ Step created:', res.data);
-
-          // ✅ Reload the steps inside the modal immediately
-          if (this.selectedService) {
+          if (this.selectedService?.id) {
             this.loadSteps(this.selectedService.id);
           }
 
-          // Reset the form
           this.CreateStepForm.reset({
             description: '',
             serviceId: this.selectedService?.id || 0,
           });
-        } else {
-          console.warn('Step creation failed:', res.message);
         }
       },
       error: (err) => {
@@ -220,12 +235,73 @@ export class ServiceListComponent implements OnInit {
     });
   }
 
-  deleteStep(id: number, serviceId: number) {
-    if (confirm('Are you sure you want to delete this step?')) {
-      this.serviceService.DeleteStep(id).subscribe(() => {
-        this.loadSteps(serviceId);
-      });
+  startEditStep(step: ServiceStep): void {
+    this.editingStepId = step.id || null;
+
+    this.EditStepForm.patchValue({
+      id: step.id || 0,
+      serviceId: step.serviceId || this.selectedService?.id || 0,
+      description: step.description || '',
+    });
+  }
+
+  cancelEditStep(): void {
+    this.editingStepId = null;
+    this.EditStepForm.reset({
+      id: 0,
+      serviceId: 0,
+      description: '',
+    });
+  }
+
+  onUpdateStep(): void {
+    if (!this.EditStepForm.valid) {
+      this.EditStepForm.markAllAsTouched();
+      return;
     }
+
+    this.updatedStep = this.EditStepForm.value;
+
+    this.serviceService.updateStep(this.updatedStep).subscribe({
+      next: (res: ApiResponse<any>) => {
+        if (res.success) {
+          this.editingStepId = null;
+
+          if (this.selectedService?.id) {
+            this.loadSteps(this.selectedService.id);
+          }
+
+          this.EditStepForm.reset({
+            id: 0,
+            serviceId: 0,
+            description: '',
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error updating step:', err);
+      },
+    });
+  }
+
+  deleteStep(id?: number, serviceId?: number): void {
+    if (!id || !serviceId) return;
+
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: {
+        message: 'Are you sure you want to delete this step?',
+      },
+    });
+
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.serviceService.DeleteStep(id).subscribe({
+          next: () => this.loadSteps(serviceId),
+          error: (err) => console.error('Error deleting step:', err),
+        });
+      }
+    });
   }
 
   //////////////    Filters /////////////////////////

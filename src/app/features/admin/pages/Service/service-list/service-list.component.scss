@@ -436,3 +436,144 @@
     transform: translateY(0) scale(1);
   }
 }
+
+.steps-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 1000;
+}
+
+.steps-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: min(760px, 92vw);
+  max-height: 88vh;
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.22);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+}
+
+.steps-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 22px;
+  border-bottom: 1px solid #e5e7eb;
+
+  h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .close-btn {
+    border: none;
+    background: #f8fafc;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 22px;
+    cursor: pointer;
+  }
+}
+
+.steps-modal-body {
+  padding: 20px;
+  overflow: auto;
+  background: #f8fafc;
+}
+
+.step-form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+
+  .form-row {
+    margin-bottom: 12px;
+  }
+
+  textarea {
+    width: 100%;
+    resize: vertical;
+    min-height: 90px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    outline: none;
+
+    &:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+    }
+  }
+}
+
+.form-actions,
+.step-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.steps-list {
+  display: grid;
+  gap: 12px;
+}
+
+.step-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.step-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.step-description {
+  margin: 0 0 14px;
+  color: #334155;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.empty-steps {
+  text-align: center;
+  padding: 24px;
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  color: #64748b;
+}

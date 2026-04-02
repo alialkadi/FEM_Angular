@@ -116,3 +116,51 @@
     <button class="dropdown-item danger-item" (click)="onMenuDelete()"> Delete </button>
 </div>
 <div class="floating-menu-backdrop" *ngIf="menuState.open" (click)="closeMenu()"></div>
+<div class="steps-modal-backdrop" *ngIf="showStepsModal" (click)="closeStepsModal()"></div>
+<div class="steps-modal" *ngIf="showStepsModal">
+    <div class="steps-modal-header">
+        <div>
+            <h3>Service Steps</h3>
+            <p *ngIf="selectedService"> {{ selectedService.name }} </p>
+        </div>
+        <button type="button" class="close-btn" (click)="closeStepsModal()">×</button>
+    </div>
+    <div class="steps-modal-body">
+        <form [formGroup]="CreateStepForm" (ngSubmit)="onAddStep(CreateStepForm)" class="step-form">
+            <input type="hidden" formControlName="serviceId" />
+            <div class="form-row">
+                <textarea formControlName="description" rows="3" placeholder="Enter step description">
+        </textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="primary-btn">Add Step</button>
+            </div>
+        </form>
+        <div class="steps-list">
+            <div class="step-card" *ngFor="let step of serviceSteps">
+                <div *ngIf="editingStepId !== step.id; else editMode" class="step-view">
+                    <div class="step-top">
+                        <span class="step-badge">Step {{ step.stepOrder || '-' }}</span>
+                    </div>
+                    <p class="step-description"> {{ step.description }} </p>
+                    <div class="step-actions">
+                        <button type="button" class="ghost-btn" (click)="startEditStep(step)">Edit</button>
+                        <button type="button" class="danger-btn" (click)="deleteStep(step.id, step.serviceId)"> Delete
+                        </button>
+                    </div>
+                </div>
+                <ng-template #editMode>
+                    <form [formGroup]="EditStepForm" class="step-form edit-form">
+                        <textarea formControlName="description" rows="3" placeholder="Update step description">
+            </textarea>
+                        <div class="step-actions">
+                            <button type="button" class="primary-btn" (click)="onUpdateStep()">Save</button>
+                            <button type="button" class="ghost-btn" (click)="cancelEditStep()">Cancel</button>
+                        </div>
+                    </form>
+                </ng-template>
+            </div>
+            <div class="empty-steps" *ngIf="!serviceSteps?.length"> No steps found for this service. </div>
+        </div>
+    </div>
+</div>

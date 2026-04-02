@@ -32,12 +32,12 @@
   .header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: .5rem;
+    margin-bottom: 0.5rem;
 
     .status {
-      padding: .2rem .7rem;
+      padding: 0.2rem 0.7rem;
       border-radius: 6px;
-      font-size: .8rem;
+      font-size: 0.8rem;
       text-transform: capitalize;
 
       &.pending {
@@ -57,11 +57,11 @@
 
   .view-btn {
     background: #2e7dff;
-    padding: .5rem 1rem;
+    padding: 0.5rem 1rem;
     color: #fff;
     border-radius: 6px;
     border: none;
-    margin-top: .7rem;
+    margin-top: 0.7rem;
     cursor: pointer;
 
     &:hover {
@@ -81,11 +81,15 @@
   padding: 1.5rem;
   border-left: 1px solid #333;
   overflow-y: auto;
-  animation: slideIn .3s ease;
+  animation: slideIn 0.3s ease;
 
   @keyframes slideIn {
-    from { right: -100%; }
-    to { right: 0; }
+    from {
+      right: -100%;
+    }
+    to {
+      right: 0;
+    }
   }
 
   .details-header {
@@ -107,7 +111,7 @@
 
     select {
       width: 100%;
-      padding: .6rem;
+      padding: 0.6rem;
       border-radius: 6px;
       border: none;
       background: #2a2a2a;
@@ -117,12 +121,12 @@
 
   .service-card {
     background: #262626;
-    padding: .8rem;
+    padding: 0.8rem;
     border-radius: 10px;
     margin-top: 1rem;
 
     h5 {
-      margin-bottom: .4rem;
+      margin-bottom: 0.4rem;
     }
 
     .fees {
@@ -131,8 +135,8 @@
         justify-content: space-between;
 
         .global-badge {
-          font-size: .75rem;
-          padding: .2rem .5rem;
+          font-size: 0.75rem;
+          padding: 0.2rem 0.5rem;
           background: #ff7a00;
           border-radius: 4px;
           color: black;
@@ -140,4 +144,151 @@
       }
     }
   }
+}
+
+.card-actions,
+.details-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pdf-btn {
+  border: none;
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.pdf-btn:hover {
+  background: #1e293b;
+}
+
+.pdf-render-area {
+  position: fixed;
+  left: -99999px;
+  top: 0;
+  width: 900px;
+  z-index: -1;
+}
+
+.receipt-sheet {
+  width: 850px;
+  background: #fff;
+  color: #111827;
+  padding: 32px;
+  font-family: Arial, sans-serif;
+}
+
+.receipt-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.receipt-top h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+.muted {
+  margin: 0;
+  color: #6b7280;
+}
+
+.receipt-meta p {
+  margin: 4px 0;
+  text-align: right;
+}
+
+.receipt-section {
+  margin-bottom: 24px;
+}
+
+.receipt-section h3 {
+  margin-bottom: 12px;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.receipt-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 20px;
+}
+
+.receipt-service {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #f9fafb;
+}
+
+.receipt-service-head h4 {
+  margin: 0 0 12px;
+  color: #111827;
+}
+
+.receipt-subsection {
+  margin-top: 14px;
+}
+
+.receipt-subsection h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.receipt-subsection ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.receipt-subsection li {
+  margin-bottom: 6px;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.receipt-table th,
+.receipt-table td {
+  border: 1px solid #d1d5db;
+  padding: 10px;
+  text-align: left;
+  font-size: 13px;
+}
+
+.receipt-table th {
+  background: #f3f4f6;
+}
+
+.receipt-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0f172a;
+  color: #fff;
+  padding: 16px 18px;
+  border-radius: 14px;
+  margin-top: 28px;
+  font-size: 18px;
+}
+
+.receipt-footer {
+  margin-top: 20px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
 }
