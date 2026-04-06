@@ -3,8 +3,8 @@
     <section class="fe-card">
         <div class="fe-card__head">
             <div>
-                <h2 class="fe-title">Structures</h2>
-                <p class="fe-subtitle">Filter and manage structures in your system.</p>
+                <h2 class="fe-title">Components</h2>
+                <p class="fe-subtitle">Filter and manage Components in your system.</p>
             </div>
             <button class="fe-btn fe-btn--ghost" type="button" (click)="clearFilters()">
                 <i class="fa-solid fa-rotate-left"></i> Clear </button>
@@ -31,7 +31,7 @@
                 <label>Search</label>
                 <!-- <i class="fa-solid fa-magnifying-glass"></i> -->
                 <input type="text" [value]="searchText" (input)="onSearchChange(($any($event.target)).value)"
-                    placeholder="Search by structure / type / category..." />
+                    placeholder="Search by Component / type / category..." />
             </div>
         </div>
     </section>
@@ -41,7 +41,7 @@
         <section class="fe-card">
             <div class="fe-card__head">
                 <div>
-                    <h3 class="fe-card__title">Structure List</h3>
+                    <h3 class="fe-card__title">Component List</h3>
                     <p class="fe-card__sub">Showing {{ totalCount }} result(s)</p>
                 </div>
                 <div class="fe-pill"> Page {{ pageIndex }} / {{ totalPage }} </div>
@@ -50,7 +50,7 @@
                 <table class="fe-table">
                     <thead>
                         <tr>
-                            <th>Structure Name</th>
+                            <th>Component Name</th>
                             <th>Description</th>
                             <th class="fe-col-image">Image</th>
                             <th>Type Name</th>
@@ -67,7 +67,7 @@
                                 <div class="fe-strong">{{ item.description }}</div>
                             </td>
                             <td>
-                                <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="fe-thumb" alt="Structure image" />
+                                <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="fe-thumb" alt="Component image" />
                                 <span *ngIf="!item.fileUrl" class="fe-muted">No image</span>
                             </td>
                             <td>{{ item.typeName }}</td>
@@ -116,14 +116,14 @@
         <section class="fe-card">
             <div class="fe-card__head">
                 <div>
-                    <h3 class="fe-card__title">Add New Structure</h3>
-                    <p class="fe-card__sub">Create a structure and upload an image.</p>
+                    <h3 class="fe-card__title">Add New Component</h3>
+                    <p class="fe-card__sub">Create a Component and upload an image.</p>
                 </div>
             </div>
             <form class="fe-form" [formGroup]="crateForm" (ngSubmit)="onSave()">
                 <!-- Name -->
                 <div class="fe-field">
-                    <label>Structure Name <span class="fe-required">*</span></label>
+                    <label>Component Name <span class="fe-required">*</span></label>
                     <input type="text" formControlName="name" placeholder="e.g., Window Frame" />
                     <p class="fe-error"
                         *ngIf="crateForm.get('name')?.hasError('required') && crateForm.get('name')?.touched"> Name is
@@ -131,7 +131,7 @@
                 </div>
                 <!-- description -->
                 <div class="fe-field">
-                    <label>Structure description </label>
+                    <label>Component description </label>
                     <input type="text" formControlName="description" placeholder="e.g., Window Frame" />
                 </div>
                 <!-- Category (CREATE) -->
