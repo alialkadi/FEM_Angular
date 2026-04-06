@@ -10,14 +10,15 @@
     <form [formGroup]="form" (ngSubmit)="submit()">
         <label>Name</label>
         <input type="text" formControlName="name" />
+        <br>
         <label>Description</label>
         <textarea formControlName="description"></textarea>
         <label>
             <input type="checkbox" formControlName="isFilterable" /> Filterable </label>
         <label>
             <input type="checkbox" formControlName="isVisibleToUser" /> Visible to user </label>
-        <label>
-            <input type="checkbox" formControlName="affectsPricing" /> Affects pricing </label>
+        <!-- <label>
+            <input type="checkbox" formControlName="affectsPricing" /> Affects pricing </label> -->
         <label>
             <input type="checkbox" formControlName="isActive" /> Active </label>
         <button type="submit" [disabled]="form.invalid || loading"> {{ loading ? 'Saving…' : 'Save Changes' }} </button>

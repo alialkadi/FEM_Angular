@@ -1,22 +1,41 @@
 import { Component } from '@angular/core';
-import { LandingPageNavbar_SECTIONS, LandingPageNavbarSection } from './Landing-navbar-section';
+import {
+  LandingPageNavbar_SECTIONS,
+  LandingPageNavbarSection,
+} from './Landing-navbar-section';
 import { WishlistService } from '../../../Services/wishlist.service';
 
 @Component({
   selector: 'app-landing-navbar',
   templateUrl: './landing-navbar.component.html',
-  styleUrl: './landing-navbar.component.scss'
+  styleUrl: './landing-navbar.component.scss',
 })
 export class LandingNavbarComponent {
   sections: LandingPageNavbarSection[] = [];
-  constructor(private wishlist: WishlistService) { }
+  mobileOpen = false;
+
+  // routes (adjust to your real app)
+  homeRoute = ['/public/FenestrationMaintainence/home'];
+  cartRoute = ['/FenetrationMaintainence/Home/Wishlist'];
+  loginRoute = ['/FenetrationMaintainence/Home/login'];
+  quoteRoute = ['/public/FenestrationMaintainence/contact'];
+
+  constructor(private wishlist: WishlistService) {}
+
   ngOnInit(): void {
-    
     this.sections = LandingPageNavbar_SECTIONS;
-    
   }
-  get wishlistCount(): number {
+
+  // rename for UI (still uses your existing wishlist storage/service)
+  get cartCount(): number {
     return this.wishlist.count();
   }
+
+  toggleMenu(): void {
+    this.mobileOpen = !this.mobileOpen;
+  }
+
+  closeMenu(): void {
+    this.mobileOpen = false;
+  }
 }
- 

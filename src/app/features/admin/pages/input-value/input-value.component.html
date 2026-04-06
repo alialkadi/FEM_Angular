@@ -1,0 +1,43 @@
+<div class="admin-card">
+    <h3>Create Input Value</h3>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="row">
+            <input placeholder="Code (double, triple)" formControlName="code" />
+            <input placeholder="Display Name" formControlName="displayName" />
+            <input type="number" placeholder="Sort Order" formControlName="sortOrder" />
+        </div>
+        <button [disabled]="submitting">Add Value</button>
+    </form>
+</div>
+<div class="admin-card">
+    <h3>Input Values</h3>
+    <table *ngIf="values.length; else empty">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Display Name</th>
+                <th>Order</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let v of values">
+                <td>{{ v.code }}</td>
+                <td>{{ v.displayName }}</td>
+                <td>{{ v.sortOrder }}</td>
+                <td>
+                    <span class="status" [class.active]="v.isActive" [class.inactive]="!v.isActive"> {{ v.isActive ?
+                        'Active' : 'Inactive' }} </span>
+                </td>
+                <td class="actions">
+                    <button (click)="toggleActive(v)"> {{ v.isActive ? 'Disable' : 'Enable' }} </button>
+                    <button class="danger" (click)="delete(v)">Delete</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <ng-template #empty>
+        <p class="empty">No input values defined.</p>
+    </ng-template>
+</div>

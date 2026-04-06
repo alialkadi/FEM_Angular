@@ -1,32 +1,45 @@
 import { CategoryTypeService } from './../../../Services/categoryTypeService.service';
 import { Component } from '@angular/core';
-import { CategoryType, CreateCategoryType } from '../../../../Models/CategoryType';
+import {
+  CategoryType,
+  CreateCategoryType,
+} from '../../../../Models/CategoryType';
 import { Category } from '../../../../Models/Category';
 import { CategoryService } from '../../../Services/CategoryService';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { EditCateogyTypeComponent } from '../../../../../shared/Dialogs/edit-cateogy-type/edit-cateogy-type.component';
 import { ToastService } from '../../../../../shared/Services/toast.service';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-category-types',
   templateUrl: './category-types.component.html',
-  styleUrl: './category-types.component.scss'
+  styleUrl: './category-types.component.scss',
 })
 export class CategoryTypesComponent {
-
   createType: FormGroup;
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
 
+  /* ================= DATA ================= */
+  allCategoryTypes: CategoryType[] = []; // full dataset
+  filteredCategoryTypes: CategoryType[] = []; // after filters
+  categoryTypes: CategoryType[] = []; // paginated view
+
+  categories: Category[] = [];
+
+  /* ================= FILTER STATE ================= */
+  selectedCategoryId?: number;
+  searchText = '';
+
+  /* ================= PAGINATION ================= */
   totalCount = 0;
   pageIndex = 1;
-  pageSize = 5;
-  pageSizes = [5, 10, 25];
+  pageSize = 15;
+  pageSizes = [15, 25, 50, 100];
 
-  categoryTypes: CategoryType[] = [];
-  categories: Category[] = [];
-  newType: CreateCategoryType = { name: '', categoryId: 0 };
+  newType: CreateCategoryType = { name: '', categoryId: 0, description: '' };
 
   get totalPages(): number {
     return Math.ceil(this.totalCount / this.pageSize) || 1;
@@ -36,119 +49,170 @@ export class CategoryTypesComponent {
     private dialog: MatDialog,
     private _catogryTypeService: CategoryTypeService,
     private categoryService: CategoryService,
-    private toast: ToastService
+    private toast: ToastService,
+    private confirmDialog: MatDialog,
   ) {
     this.createType = new FormGroup({
       name: new FormControl('', Validators.required),
       categoryId: new FormControl('', Validators.required),
+      description: new FormControl(''),
     });
   }
 
   ngOnInit(): void {
-    this.loadCategoryTypes();
     this.loadCategories();
+    this.loadAllCategoryTypes(); // ✅ load all once
   }
 
+  /* ================= FILE ================= */
+
   onFileSelected(event: any) {
-    this.selectedFile = event.target.files[0];
-    if (this.selectedFile) {
-      const reader = new FileReader();
-      reader.onload = () => (this.previewUrl = reader.result);
-      reader.readAsDataURL(this.selectedFile);
-    }
+    this.selectedFile = event.target.files?.[0] ?? null;
+    if (!this.selectedFile) return;
+
+    const reader = new FileReader();
+    reader.onload = () => (this.previewUrl = reader.result);
+    reader.readAsDataURL(this.selectedFile);
   }
+
+  /* ================= LOADERS ================= */
 
   loadCategories(): void {
     this.categoryService.getAllCategories(true).subscribe({
       next: (res) => {
-        if (res.success) {
-          this.categories = res.data.categories;
-          this.totalCount = res.data.totalCount;
-          this.toast.show(res.message, 'success');
-        } else {
+        if (!res.success) {
           this.toast.show(res.message, 'error');
+          return;
         }
+        this.categories = res.data.categories ?? [];
       },
-      error: () => {
-        this.toast.show('Failed to load categories.', 'error');
-      }
+      error: () => this.toast.show('Failed to load categories.', 'error'),
     });
   }
 
-  loadCategoryTypes(): void {
-    this._catogryTypeService
-      .getAllCategoriestypes(false, this.pageIndex, this.pageSize)
-      .subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.categoryTypes = res.data.categoryTypes;
-            this.totalCount = res.data.totalCount;
-            // this.toast.show(res.message, 'success');
-          } else {
-            this.toast.show(res.message, 'error');
-          }
-        },
-        error: () => {
-          this.toast.show('Failed to load category types.', 'error');
+  loadAllCategoryTypes(): void {
+    // ✅ same pattern as PartList: get all, filter + paginate locally
+    this._catogryTypeService.getAllCategoriestypes(true, 1, 1000).subscribe({
+      next: (res) => {
+        if (!res.success) {
+          this.toast.show(res.message, 'error');
+          return;
         }
-      });
+
+        this.allCategoryTypes = res.data.categoryTypes ?? [];
+        this.applyFilters();
+      },
+      error: () => this.toast.show('Failed to load category types.', 'error'),
+    });
+  }
+
+  /* ================= FILTERS ================= */
+
+  onCategoryFilterChange(event: Event): void {
+    this.selectedCategoryId =
+      +(event.target as HTMLSelectElement).value || undefined;
+    this.applyFilters();
+  }
+
+  onSearchChange(value: string): void {
+    this.searchText = value;
+    this.applyFilters();
+  }
+
+  clearFilters(): void {
+    this.selectedCategoryId = undefined;
+    this.searchText = '';
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    const s = (this.searchText || '').trim().toLowerCase();
+
+    this.filteredCategoryTypes = this.allCategoryTypes.filter((t) => {
+      if (this.selectedCategoryId && t.categoryId !== this.selectedCategoryId)
+        return false;
+
+      if (s) {
+        const hay = `${t.name ?? ''} ${t.categoryName ?? ''}`.toLowerCase();
+        if (!hay.includes(s)) return false;
+      }
+
+      return true;
+    });
+
+    this.totalCount = this.filteredCategoryTypes.length;
+    this.pageIndex = 1;
+    this.updatePagedData();
+  }
+
+  /* ================= PAGINATION ================= */
+
+  updatePagedData(): void {
+    const start = (this.pageIndex - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.categoryTypes = this.filteredCategoryTypes.slice(start, end);
   }
 
   onPageChange(newPage: number) {
-    if (newPage >= 1 && newPage <= this.totalPages) {
-      this.pageIndex = newPage;
-      this.loadCategoryTypes();
-    }
+    if (newPage < 1 || newPage > this.totalPages) return;
+    this.pageIndex = newPage;
+    this.updatePagedData();
   }
 
   onPageSizeChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.pageSize = +select.value;
+    this.pageSize = +(event.target as HTMLSelectElement).value;
     this.pageIndex = 1;
-    this.loadCategoryTypes();
+    this.updatePagedData();
   }
+
+  /* ================= CRUD ================= */
 
   onSave() {
-    if (this.createType.valid) {
-      const formData = new FormData();
-      formData.append('name', this.createType.value.name);
-      formData.append('categoryId', this.createType.value.categoryId);
+    if (!this.createType.valid) return;
 
-      if (this.selectedFile) {
-        formData.append('file', this.selectedFile);
-      }
+    const formData = new FormData();
+    formData.append('name', this.createType.value.name);
+    formData.append('categoryId', this.createType.value.categoryId);
+    formData.append('description', this.createType.value.description);
 
-      this._catogryTypeService.CreateCategoryType(formData).subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.toast.show(res.message, 'success');
-            this.loadCategoryTypes();
-            this.createType.reset();
-            this.previewUrl = null;
-            this.selectedFile = null;
-          } else {
-            this.toast.show(res.message, 'error');
-          }
-        },
-        error: () => {
-          this.toast.show('Failed to create category type.', 'error');
-        },
-      });
-    }
-  }
+    if (this.selectedFile) formData.append('file', this.selectedFile);
 
-  onDelete(id: number) {
-    this._catogryTypeService.deleteCategoryType(id).subscribe({
+    this._catogryTypeService.CreateCategoryType(formData).subscribe({
       next: (res) => {
         if (res.success) {
           this.toast.show(res.message, 'success');
-          this.loadCategoryTypes();
+          this.loadAllCategoryTypes(); // ✅ refresh full list
+          this.createType.reset();
+          this.previewUrl = null;
+          this.selectedFile = null;
         } else {
           this.toast.show(res.message, 'error');
         }
       },
-      error: () => {
-        this.toast.show('Failed to delete category type.', 'error');
+      error: () => this.toast.show('Failed to create category type.', 'error'),
+    });
+  }
+
+  onDelete(id: number, name: string) {
+    const confirmRef = this.confirmDialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this._catogryTypeService.deleteCategoryType(id).subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.toast.show(res.message, 'success');
+              this.loadAllCategoryTypes();
+            } else {
+              this.toast.show(res.message, 'error');
+            }
+          },
+          error: () =>
+            this.toast.show('Failed to delete category type.', 'error'),
+        });
       }
     });
   }
@@ -159,31 +223,34 @@ export class CategoryTypesComponent {
         id: categoryType.id,
         name: categoryType.name,
         file: categoryType.fileUrl,
-        categoryId: categoryType.categoryId
-      }
+        categoryId: categoryType.categoryId,
+        description: categoryType.description,
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (!result) return;
 
       const formData = new FormData();
       formData.append('name', result.name);
-      formData.append('file', result.file);
+      if (result.file) formData.append('file', result.file);
       formData.append('categoryId', result.categoryId);
+      formData.append('description', result.description);
 
-      this._catogryTypeService.updateCategoryType(result.id, formData).subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.toast.show(res.message, 'success');
-            this.loadCategoryTypes();
-          } else {
-            this.toast.show(res.message, 'error');
-          }
-        },
-        error: () => {
-          this.toast.show('Failed to update category type.', 'error');
-        }
-      });
+      this._catogryTypeService
+        .updateCategoryType(result.id, formData)
+        .subscribe({
+          next: (res) => {
+            if (res.success) {
+              this.toast.show(res.message, 'success');
+              this.loadAllCategoryTypes();
+            } else {
+              this.toast.show(res.message, 'error');
+            }
+          },
+          error: () =>
+            this.toast.show('Failed to update category type.', 'error'),
+        });
     });
   }
 }

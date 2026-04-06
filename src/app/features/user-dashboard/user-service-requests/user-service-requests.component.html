@@ -5,22 +5,26 @@
         <div class="spinner"></div>
     </div>
     <!-- Requests List -->
-    <div *ngIf="!loading" class="requests-list">
-        <div class="request-card" *ngFor="let req of response.requests" (click)="openRequest(req)">
-            <div class="header">
-                <h3>Request #{{ req.requestId }}</h3>
-                <span class="status" [ngClass]="req.statusName | lowercase"> {{ req.statusName }} </span>
-            </div>
-            <p><strong>Date:</strong> {{ req.requestedDate | date:'medium' }}</p>
-            <p><strong>Total:</strong> {{ getServiceTotal(req.requestedServices) | currency }}</p>
+    <div class="request-card" *ngFor="let req of response.requests" (click)="openRequest(req)">
+        <div class="header">
+            <h3>Request #{{ req.requestId }}</h3>
+            <span class="status" [ngClass]="req.statusName | lowercase"> {{ req.statusName }} </span>
+        </div>
+        <p><strong>Date:</strong> {{ req.requestedDate | date:'medium' }}</p>
+        <p><strong>Total:</strong> {{ getServiceTotal(req.requestedServices) | currency }}</p>
+        <div class="card-actions">
             <button class="view-btn" (click)="openRequest(req); $event.stopPropagation()">View Details</button>
+            <button class="pdf-btn" (click)="downloadReceipt(req); $event.stopPropagation()"> Download Receipt </button>
         </div>
     </div>
     <!-- Request Details Drawer -->
     <div class="details-panel" *ngIf="selectedRequest as s">
         <div class="details-header">
             <h3>Request #{{ s.requestId }}</h3>
-            <button class="close-btn" (click)="closeDetails()">✕</button>
+            <div class="details-actions">
+                <button class="pdf-btn" (click)="downloadReceipt(s)">Download Receipt</button>
+                <button class="close-btn" (click)="closeDetails()">✕</button>
+            </div>
         </div>
         <div class="details-body">
             <div class="info">
@@ -51,5 +55,73 @@
                 </ul>
             </div>
         </div>
+    </div>
+</div>
+<!-- Hidden PDF Receipt Template -->
+<div class="pdf-render-area">
+    <div #receiptContent class="receipt-sheet" *ngIf="printableRequest as r">
+        <div class="receipt-top">
+            <div>
+                <h1>Service Receipt</h1>
+                <p class="muted">Fenestration Express Maintenance</p>
+            </div>
+            <div class="receipt-meta">
+                <p><strong>Receipt #:</strong> {{ r.requestId }}</p>
+                <p><strong>Date:</strong> {{ r.requestedDate | date:'mediumDate' }}</p>
+                <p><strong>Status:</strong> {{ r.statusName }}</p>
+            </div>
+        </div>
+        <div class="receipt-section">
+            <h3>Client Information</h3>
+            <div class="receipt-grid">
+                <div><strong>Name:</strong> {{ r.fullName }}</div>
+                <div><strong>Email:</strong> {{ r.email }}</div>
+                <div><strong>Phone:</strong> {{ r.phoneNumber }}</div>
+                <div><strong>Address:</strong> {{ r.address || 'N/A' }}</div>
+            </div>
+        </div>
+        <div class="receipt-section">
+            <h3>Requested Services</h3>
+            <div class="receipt-service" *ngFor="let d of r.requestedServices; let i = index">
+                <div class="receipt-service-head">
+                    <h4>{{ i + 1 }}. {{ d.serviceName }}</h4>
+                </div>
+                <div class="receipt-grid service-prices">
+                    <div><strong>Base Cost:</strong> {{ d.baseCost | currency }}</div>
+                    <div><strong>Fees Total:</strong> {{ getFeesTotal(d.fees) | currency }}</div>
+                    <div><strong>Calculated Total:</strong> {{ d.calculatedTotal | currency }}</div>
+                </div>
+                <div class="receipt-subsection" *ngIf="d.steps?.length">
+                    <h5>Steps</h5>
+                    <ul>
+                        <li *ngFor="let st of d.steps"> {{ st.stepOrder }}. {{ st.description }} </li>
+                    </ul>
+                </div>
+                <div class="receipt-subsection" *ngIf="d.fees?.length">
+                    <h5>Fees</h5>
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th>Fee</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let f of d.fees">
+                                <td>{{ f.name }}</td>
+                                <td>{{ f.isGlobal ? 'Global' : 'Service' }}</td>
+                                <td>{{ f.amount | currency }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="receipt-total">
+            <span>Grand Total</span>
+            <strong>{{ getServiceTotal(r.requestedServices) | currency }}</strong>
+        </div>
+        <div class="receipt-footer"> Thank you for choosing Fenestration Express Maintenance. </div>
     </div>
 </div>

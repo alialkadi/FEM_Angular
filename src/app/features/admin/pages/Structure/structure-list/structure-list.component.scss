@@ -158,10 +158,12 @@ select {
   margin-top: 8px;
 }
 
-
 .icon-btn.metadata {
   background: #eef2ff;
   color: #4338ca;
 }
 
-
+.fe-field input,
+.fe-field select {
+  height: auto !important;
+}

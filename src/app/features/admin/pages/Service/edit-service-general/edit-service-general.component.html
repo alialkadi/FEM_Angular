@@ -1,0 +1,184 @@
+<div class="edit-service-page">
+    <div class="page-header">
+        <div>
+            <h2>Edit Service General</h2>
+            <p>Update service details and pricing mode.</p>
+        </div>
+    </div>
+    <!-- CURRENT ASSIGNMENT SUMMARY -->
+    <div class="assignment-summary-card">
+        <div class="summary-header">
+            <h3>Current Assignment</h3>
+            <span class="linkage-badge" [ngClass]="activeLinkage.toLowerCase()"> {{ activeLinkage }} </span>
+        </div>
+        <div class="summary-grid">
+            <div class="summary-item" *ngIf="getSelectedCategoryName()">
+                <span class="label">Category</span>
+                <span class="value">{{ getSelectedCategoryName() }}</span>
+            </div>
+            <div class="summary-item" *ngIf="getSelectedCategoryTypeName()">
+                <span class="label">Category Type</span>
+                <span class="value">{{ getSelectedCategoryTypeName() }}</span>
+            </div>
+            <div class="summary-item" *ngIf="getSelectedStructureName()">
+                <span class="label">Structure</span>
+                <span class="value">{{ getSelectedStructureName() }}</span>
+            </div>
+            <div class="summary-item" *ngIf="getSelectedPartName()">
+                <span class="label">Part</span>
+                <span class="value">{{ getSelectedPartName() }}</span>
+            </div>
+            <div class="summary-item" *ngIf="getSelectedPartOptionName()">
+                <span class="label">Part Option</span>
+                <span class="value">{{ getSelectedPartOptionName() }}</span>
+            </div>
+        </div>
+    </div>
+    <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+            <!-- LEFT: HIERARCHY (READ ONLY) -->
+            <div class="panel-card linkage-card">
+                <div class="card-head">
+                    <h3>Service Assignment</h3>
+                    <p>This hierarchy is fixed and cannot be changed after creation.</p>
+                </div>
+                <div class="tab-buttons disabled-tabs">
+                    <button type="button" [class.active]="activeLinkage === 'Structure'" disabled> Structure </button>
+                    <button type="button" [class.active]="activeLinkage === 'Part'" disabled> Part </button>
+                    <button type="button" [class.active]="activeLinkage === 'PartOption'" disabled> Part Option
+                    </button>
+                </div>
+                <div class="field-group">
+                    <label>Category</label>
+                    <select formControlName="categoryId">
+                        <option value="">Select Category</option>
+                        <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+                    </select>
+                </div>
+                <div class="field-group" *ngIf="categoryTypes.length">
+                    <label>Category Type</label>
+                    <select formControlName="categoryTypeId">
+                        <option value="">Select Category Type</option>
+                        <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
+                    </select>
+                </div>
+                <div class="field-group" *ngIf="structures.length">
+                    <label>Structure</label>
+                    <select formControlName="structureId">
+                        <option value="">Select Structure</option>
+                        <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                    </select>
+                </div>
+                <div class="field-group" *ngIf="parts.length">
+                    <label>Part</label>
+                    <select formControlName="partId">
+                        <option value="">Select Part</option>
+                        <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+                    </select>
+                </div>
+                <div class="field-group" *ngIf="partOptions.length">
+                    <label>Part Option</label>
+                    <select formControlName="partOptionId">
+                        <option value="">Select Part Option</option>
+                        <option *ngFor="let o of partOptions" [value]="o.id">{{ o.name }}</option>
+                    </select>
+                </div>
+            </div>
+            <!-- RIGHT: GENERAL DATA -->
+            <div class="panel-card service-card">
+                <div class="card-head">
+                    <h3>Edit Service Data</h3>
+                    <p>Update service general information.</p>
+                </div>
+                <div class="field-group">
+                    <label>Service Name</label>
+                    <input formControlName="name" type="text" />
+                </div>
+                <div class="field-group">
+                    <label>Description</label>
+                    <textarea formControlName="description" rows="4"></textarea>
+                </div>
+                <div class="triple-grid">
+                    <div class="field-group">
+                        <label>Labors</label>
+                        <input type="number" formControlName="labors" />
+                    </div>
+                    <div class="field-group checkbox-field">
+                        <label class="checkbox-label">
+                            <input type="checkbox" formControlName="applyGlobalFees" />
+                            <span>Apply Global Fees</span>
+                        </label>
+                    </div>
+                    <div class="field-group checkbox-field">
+                        <label class="checkbox-label">
+                            <input type="checkbox" formControlName="applyLogistics" />
+                            <span>Apply Logistics</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label>Replace Image</label>
+                    <div class="file-box">
+                        <input type="file" (change)="onFileSelected($event)" />
+                    </div>
+                    <div class="preview-box" *ngIf="previewUrl || existingImageUrl">
+                        <img [src]="previewUrl || existingImageUrl" class="preview-img" alt="Service Preview" />
+                    </div>
+                </div>
+                <div class="pricing-mode-card">
+                    <h4>Pricing Mode</h4>
+                    <div class="pricing-mode-options">
+                        <label class="mode-option" [class.selected]="pricingMode === 'Static'">
+                            <input type="radio" name="pricingMode" [checked]="pricingMode === 'Static'"
+                                (change)="pricingMode = 'Static'" />
+                            <div>
+                                <strong>Static Pricing</strong>
+                                <small>Fixed base cost</small>
+                            </div>
+                        </label>
+                        <label class="mode-option" [class.selected]="pricingMode === 'Dynamic'">
+                            <input type="radio" name="pricingMode" [checked]="pricingMode === 'Dynamic'"
+                                (change)="pricingMode = 'Dynamic'" />
+                            <div>
+                                <strong>Dynamic Pricing</strong>
+                                <small>Uses pricing inputs and base rate</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div class="inline-fields">
+                    <div class="field-group" *ngIf="pricingMode === 'Static'">
+                        <label>Base Cost</label>
+                        <input type="number" formControlName="baseCost" />
+                    </div>
+                    <div class="field-group" *ngIf="pricingMode === 'Dynamic'">
+                        <label>Base Rate</label>
+                        <input type="number" formControlName="baseRate" />
+                    </div>
+                    <div class="field-group">
+                        <label>Warranty Duration</label>
+                        <input type="number" formControlName="warrantyDuration" />
+                    </div>
+                    <div class="field-group">
+                        <label>Warranty Unit</label>
+                        <select formControlName="warrantyUnit">
+                            <option value="Days">Days</option>
+                            <option value="Weeks">Weeks</option>
+                            <option value="Months">Months</option>
+                            <option value="Years">Years</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Delivery Days</label>
+                        <input type="number" formControlName="deliveryDays" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn-secondary" [routerLink]="['/admin/dashboard/Services']"> Cancel </button>
+            <button type="submit" class="btn-primary" [disabled]="isSubmitting"> {{ isSubmitting ? 'Saving…' : 'Update
+                General' }} </button>
+        </div>
+    </form>
+</div>

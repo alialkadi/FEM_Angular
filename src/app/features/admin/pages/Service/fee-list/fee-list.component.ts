@@ -4,18 +4,18 @@ import { FeeService } from '../../../Services/fee.service';
 import { EditFeeDialogComponent } from '../../../../../shared/Dialogs/edit-fee-dialog/edit-fee-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastService } from '../../../../../shared/Services/toast.service';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-fee-list',
   templateUrl: './fee-list.component.html',
-  styleUrl: './fee-list.component.scss'
+  styleUrl: './fee-list.component.scss',
 })
 export class FeeListComponent {
-
   fees: FeeResponse[] = [];
   totalCount = 0;
   page = 1;
-  pageSize = 10;
+  pageSize = 50;
   searchTerm = '';
   isLoading = false;
 
@@ -25,7 +25,7 @@ export class FeeListComponent {
   constructor(
     private feeService: FeeService,
     private dialog: MatDialog,
-    private toast: ToastService
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -35,16 +35,18 @@ export class FeeListComponent {
   // ❌ DO NOT TOUCH – data loading stays as-is
   loadFees(): void {
     this.isLoading = true;
-    this.feeService.getAll(this.page, this.pageSize, this.searchTerm).subscribe({
-      next: (res) => {
-        this.fees = res.data.fees;
-        this.totalCount = res.data.totalCount;
-        this.isLoading = false;
-      },
-      error: () => {
-        this.isLoading = false;
-      },
-    });
+    this.feeService
+      .getAll(this.page, this.pageSize, this.searchTerm)
+      .subscribe({
+        next: (res) => {
+          this.fees = res.data.fees;
+          this.totalCount = res.data.totalCount;
+          this.isLoading = false;
+        },
+        error: () => {
+          this.isLoading = false;
+        },
+      });
   }
 
   onSearch(): void {
@@ -62,15 +64,24 @@ export class FeeListComponent {
   }
 
   confirmDelete(fee: FeeResponse): void {
-    if (!confirm(`Are you sure you want to delete "${fee.name}"?`)) return;
-
-    this.feeService.delete(fee.id).subscribe({
-      next: () => {
-        this.toast.show(`Fee "${fee.name}" deleted successfully`, 'success');
-        this.loadFees();
-      },
-      error: () => {
-        this.toast.show(`Failed to delete fee "${fee.name}"`, 'error');
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.feeService.delete(fee.id).subscribe({
+          next: () => {
+            this.toast.show(
+              `Fee "${fee.name}" deleted successfully`,
+              'success',
+            );
+            this.loadFees();
+          },
+          error: () => {
+            this.toast.show(`Failed to delete fee "${fee.name}"`, 'error');
+          },
+        });
       }
     });
   }
@@ -80,12 +91,12 @@ export class FeeListComponent {
       width: '600px',
       data: { fee, mode },
       disableClose: true,
-      panelClass: 'fee-edit-dialog'
+      panelClass: 'fee-edit-dialog',
     });
 
     dialogRef.afterClosed().subscribe((updatedFee: FeeResponse | null) => {
       if (updatedFee) {
-        const index = this.fees.findIndex(f => f.id === updatedFee.id);
+        const index = this.fees.findIndex((f) => f.id === updatedFee.id);
         if (index !== -1) {
           this.fees[index] = updatedFee;
         }

@@ -1,5 +1,5 @@
-export interface PartOption{
-     id: number;
+export interface PartOption {
+  id: number;
   name: string;
   mainPartName: string;
   mainPartId: number;
@@ -8,8 +8,9 @@ export interface PartOption{
   categoryTypeName?: string;
   categoryTypeId?: number;
   categoryName?: string;
-  fileUrl?: string,
+  fileUrl?: string;
   categoryId?: number;
+  description: string;
 }
 
 export interface PartOptionList {
@@ -17,7 +18,7 @@ export interface PartOptionList {
   partOptions: PartOption[];
 }
 
-export interface createUpdatePartOption{
-    name?: string,
-    mainPartId?: number
+export interface createUpdatePartOption {
+  name?: string;
+  mainPartId?: number;
 }

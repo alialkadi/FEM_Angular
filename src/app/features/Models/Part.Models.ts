@@ -1,21 +1,22 @@
-export interface Part{
-    id: number,
-    name: string,
-    strucutreName: string,
-    structureId: number,
-    categoryName: string,
-    categoryId: number,
-    categoryTypeName: string,
-    categoryTypeId: number,
-    fileUrl?: string
+export interface Part {
+  id: number;
+  name: string;
+  strucutreName: string;
+  structureId: number;
+  categoryName: string;
+  categoryId: number;
+  categoryTypeName: string;
+  categoryTypeId: number;
+  fileUrl?: string;
+  description: string;
 }
 
-export interface PartListResponse{
-    totalNumber: number,
-    parts: Part[]
+export interface PartListResponse {
+  totalNumber: number;
+  parts: Part[];
 }
 
-export interface createUpdatePart{
-    id?: number, 
-    name: string
+export interface createUpdatePart {
+  id?: number;
+  name: string;
 }

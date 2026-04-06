@@ -34,6 +34,7 @@
         </select>
         <button class="clear-btn" (click)="clearFilters()">Clear</button>
     </div>
+    <div class="copy-toast" *ngIf="copySuccessMessage"> {{ copySuccessMessage }} </div>
     <!-- ================= TABLE ================= -->
     <table class="service-table" *ngIf="!isLoading; else loading">
         <thead>
@@ -77,11 +78,18 @@
                     </div>
                 </td>
                 <!-- ACTIONS -->
-                <td class="actions-cell">
-                    <button class="ghost-btn" (click)="openStepsModal(service)">Steps</button>
-                    <button class="ghost-btn" [routerLink]="['/admin/dashboard/editservice', service.id]"> Edit
-                    </button>
-                    <button class="danger-btn" (click)="onDelete(service.id!)"> Delete </button>
+                <td class="actions-cell d-flex flex-row align-content-center">
+                    <div class="advertise-actions">
+                        <ng-container *ngIf="service.isAdvertised; else notAdvertised">
+                            <button class="success-btn" (click)="onCopyLink(service)">Copy Link</button>
+                            <button class="warn-btn" (click)="onUnAdvertise(service)">Remove Home</button>
+                        </ng-container>
+                        <ng-template #notAdvertised>
+                            <button class="primary-btn small" (click)="onAdvertise(service)"> Add Home + Link </button>
+                        </ng-template>
+                    </div>
+                    <button class="actions-trigger" type="button" (click)="toggleMenu($event,service)"
+                        aria-label="Open actions menu"> ⋮ </button>
                 </td>
             </tr>
         </tbody>
@@ -94,5 +102,65 @@
         <button (click)="onPageChange(page - 1)" [disabled]="page === 1">Prev</button>
         <span>Page {{ page }}</span>
         <button (click)="onPageChange(page + 1)" [disabled]="services.length < pageSize"> Next </button>
+    </div>
+</div>
+<div class="floating-actions-menu" *ngIf="menuState.open" [style.top.px]="menuState.top"
+    [style.left.px]="menuState.left">
+    <button class="dropdown-item" (click)="onMenuSteps()">Steps</button>
+    <button class="dropdown-item" [routerLink]="['/admin/dashboard/services/edit-general', menuState.serviceId]"
+        (click)="closeMenu()"> Edit General </button>
+    <button class="dropdown-item" [routerLink]="['/admin/dashboard/services/edit-metadata', menuState.serviceId]"
+        (click)="closeMenu()"> Edit Metadata </button>
+    <button class="dropdown-item" [routerLink]="['/admin/dashboard/services/edit-inputs', menuState.serviceId]"
+        (click)="closeMenu()"> Edit Inputs </button>
+    <button class="dropdown-item danger-item" (click)="onMenuDelete()"> Delete </button>
+</div>
+<div class="floating-menu-backdrop" *ngIf="menuState.open" (click)="closeMenu()"></div>
+<div class="steps-modal-backdrop" *ngIf="showStepsModal" (click)="closeStepsModal()"></div>
+<div class="steps-modal" *ngIf="showStepsModal">
+    <div class="steps-modal-header">
+        <div>
+            <h3>Service Steps</h3>
+            <p *ngIf="selectedService"> {{ selectedService.name }} </p>
+        </div>
+        <button type="button" class="close-btn" (click)="closeStepsModal()">×</button>
+    </div>
+    <div class="steps-modal-body">
+        <form [formGroup]="CreateStepForm" (ngSubmit)="onAddStep(CreateStepForm)" class="step-form">
+            <input type="hidden" formControlName="serviceId" />
+            <div class="form-row">
+                <textarea formControlName="description" rows="3" placeholder="Enter step description">
+        </textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="primary-btn">Add Step</button>
+            </div>
+        </form>
+        <div class="steps-list">
+            <div class="step-card" *ngFor="let step of serviceSteps">
+                <div *ngIf="editingStepId !== step.id; else editMode" class="step-view">
+                    <div class="step-top">
+                        <span class="step-badge">Step {{ step.stepOrder || '-' }}</span>
+                    </div>
+                    <p class="step-description"> {{ step.description }} </p>
+                    <div class="step-actions">
+                        <button type="button" class="ghost-btn" (click)="startEditStep(step)">Edit</button>
+                        <button type="button" class="danger-btn" (click)="deleteStep(step.id, step.serviceId)"> Delete
+                        </button>
+                    </div>
+                </div>
+                <ng-template #editMode>
+                    <form [formGroup]="EditStepForm" class="step-form edit-form">
+                        <textarea formControlName="description" rows="3" placeholder="Update step description">
+            </textarea>
+                        <div class="step-actions">
+                            <button type="button" class="primary-btn" (click)="onUpdateStep()">Save</button>
+                            <button type="button" class="ghost-btn" (click)="cancelEditStep()">Cancel</button>
+                        </div>
+                    </form>
+                </ng-template>
+            </div>
+            <div class="empty-steps" *ngIf="!serviceSteps?.length"> No steps found for this service. </div>
+        </div>
     </div>
 </div>

@@ -212,3 +212,86 @@
   background: #9ca3af;
   cursor: not-allowed;
 }
+.pricing-readonly {
+  margin-top: 20px;
+}
+
+.pricing-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  background: #fff;
+}
+
+.group-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.group-header h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.behavior-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 12px;
+  background: #1976d2;
+  color: #fff;
+}
+
+.flags {
+  display: flex;
+  gap: 8px;
+}
+
+.flag {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: #eee;
+  color: #777;
+}
+
+.flag.on {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.pricing-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pricing-table th,
+.pricing-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.pricing-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #666;
+  background: #fafafa;
+}
+
+.pricing-table tr:last-child td {
+  border-bottom: none;
+}
+
+.amount {
+  font-weight: 600;
+}
+
+.muted {
+  color: #999;
+  font-style: italic;
+}

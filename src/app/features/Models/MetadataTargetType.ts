@@ -1,5 +1,5 @@
 export enum MetadataTargetType {
-  Service = 1
+  Service = 1,
 }
 export interface MetadataAssignmentSaveRequest {
   targetType: MetadataTargetType;
@@ -27,8 +27,8 @@ export interface MetadataAttributeValueDto {
 }
 
 export enum MetadataDataType {
-  Select = 1,
+  Select = 4,
   Number = 2,
   Boolean = 3,
-  Text = 4
+  Text = 1,
 }

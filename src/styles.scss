@@ -1,8 +1,27 @@
 @import "../node_modules/@fortawesome/fontawesome-free/css/fontawesome.css";
 @import "../node_modules/@fortawesome/fontawesome-free/css/solid.css";
-@import '../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css';
+@import "../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css";
 @import "bootstrap/scss/bootstrap";
 @import "bootstrap-icons/font/bootstrap-icons.css";
+
+:root {
+  --bg: #023969; // change the navbar and the box-shadow
+  --surface: #0f0f0f;
+  --surface-soft: #151515;
+
+  --text: #ffffff;
+  --text-muted: #bfbfbf;
+
+  --border: #222222;
+  --border-light: #2a2a2a;
+
+  --link-hover: #b59060; // ⭐ NEW GLOBAL HOVER COLOR
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
 
 /* ===== Dialog Container ===== */
 mat-dialog-content {
@@ -93,7 +112,9 @@ h2[mat-dialog-title] {
     border-radius: 15px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     border: 2px solid #ddd;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
   }
 
   .preview-img:hover {
@@ -193,7 +214,6 @@ h2[mat-dialog-title] {
   }
 }
 
-
 // Toaster
 
 .toast-success {
@@ -210,7 +230,6 @@ h2[mat-dialog-title] {
   background: #1565c0;
   color: #fff;
 }
-
 
 // for parts and part options
 
@@ -355,8 +374,12 @@ select:focus {
   font-size: 14px;
 }
 
-.icon-btn.edit { color: #2563eb; }
-.icon-btn.delete { color: #dc2626; }
+.icon-btn.edit {
+  color: #2563eb;
+}
+.icon-btn.delete {
+  color: #dc2626;
+}
 
 /* ===== FOOTER ===== */
 .table-footer {

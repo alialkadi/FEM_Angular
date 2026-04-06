@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { createUpdateStructure, Structure } from '../../../../Models/Structure.Model';
+import { Structure } from '../../../../Models/Structure.Model';
 import { CategoryType } from '../../../../Models/CategoryType';
 import { StructureService } from '../../../Services/structure-service.service';
 import { CategoryTypeService } from '../../../Services/categoryTypeService.service';
@@ -9,190 +9,319 @@ import { MatDialog } from '@angular/material/dialog';
 import { CategoryService } from '../../../Services/CategoryService';
 import { Category } from '../../../../Models/Category';
 import { MetadataTargetType } from '../../../../Models/MetadataTargetType';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-structure-list',
   templateUrl: './structure-list.component.html',
-  styleUrl: './structure-list.component.scss'
+  styleUrl: './structure-list.component.scss',
 })
 export class StructureListComponent {
-selectedStructureForMetadata: any | null = null;
-MetadataTargetType = MetadataTargetType; // expose enum to template
+  selectedStructureForMetadata: any | null = null;
+  MetadataTargetType = MetadataTargetType;
 
+  /* ================= DATA ================= */
+  allStructures: Structure[] = [];
+  filteredStructures: Structure[] = [];
+  structures: Structure[] = [];
+
+  categories: Category[] = [];
+
+  // ✅ filter dropdown types
+  filterCategoryTypes: CategoryType[] = [];
+
+  // ✅ create form dropdown types
+  createCategoryTypes: CategoryType[] = [];
+
+  /* ================= FILTER STATE (TABLE) ================= */
+  selectedCategoryId?: number;
+  selectedCategoryTypeId?: number;
+  searchText: string = '';
+
+  /* ================= CREATE STATE (FORM) ================= */
+  createSelectedCategoryId?: number;
+
+  /* ================= PAGINATION ================= */
   totalCount = 0;
   pageIndex = 1;
-  pageSize = 5;
-  pageSizes = [5, 10, 25];
-  structures: Structure[] = []
-  categoryTypes: CategoryType[] = [];
-  newStructure: createUpdateStructure = { name: '', typeId: 0 };
-  categories: Category[] = [];
-  get totalPage(): number{
+  pageSize = 15;
+  pageSizes = [15, 25, 50, 100];
+
+  get totalPage(): number {
     return Math.ceil(this.totalCount / this.pageSize) || 1;
   }
 
-  constructor(private dialog: MatDialog,
+  constructor(
+    private dialog: MatDialog,
     private _structureService: StructureService,
     private _categoryTypeService: CategoryTypeService,
-    private _categoryServie : CategoryService) { }
+    private _categoryServie: CategoryService,
+  ) {}
 
   ngOnInit(): void {
-    this.loadStructures();
-    this.loadCategories()
-    
+    this.loadAllStructures();
+    this.loadCategories();
   }
-  loadCategories() {
+
+  /* ================= LOADERS ================= */
+
+  loadAllStructures(): void {
+    this._structureService.getAllStructures(true, 1, 1000).subscribe({
+      next: (res) => {
+        this.allStructures = res.data?.structures ?? [];
+        console.log(res);
+        this.applyFilters();
+      },
+      error: () => console.log('Failed to load structures'),
+    });
+  }
+
+  loadCategories(): void {
     this._categoryServie.getAllCategories(true).subscribe({
       next: (res) => {
-        console.log("Categories From Structure", res)
-        this.categories = res.data.categories;
-      }
-    })
+        this.categories = res.data?.categories ?? [];
+      },
+    });
   }
-openMetadata(structure: any): void {
-  this.selectedStructureForMetadata = structure;
-}
 
-closeMetadata(): void {
-  this.selectedStructureForMetadata = null;
-}
+  /* ================= FILTER HANDLERS (TABLE ONLY) ================= */
 
-  onCategoryChange(event: Event) {
-    console.log("changing category from structure ", event);
-    console.log("event target form strucutre ", event.target);
-    const categoryId = Number((event.target as HTMLSelectElement)?.value);
-    if (!categoryId) return;
+  onFilterCategoryChange(event: Event): void {
+    const categoryId = +(event.target as HTMLSelectElement).value || undefined;
 
-    this._categoryTypeService.getTypesByCategory(categoryId).subscribe({
-      next: (res) => {
-        console.log(`Fetching types by category id: ${categoryId}`, res);
-        if (res.success && res.data) {
-          this.categoryTypes = res.data.categoryTypes;
+    this.selectedCategoryId = categoryId;
+    this.selectedCategoryTypeId = undefined;
+    this.filterCategoryTypes = [];
+
+    if (!this.selectedCategoryId) {
+      this.applyFilters();
+      return;
+    }
+
+    this._categoryTypeService
+      .getTypesByCategory(this.selectedCategoryId)
+      .subscribe({
+        next: (res) => {
+          if (res.success)
+            this.filterCategoryTypes = res.data.categoryTypes ?? [];
+          this.applyFilters();
+        },
+        error: () => this.applyFilters(),
+      });
+  }
+
+  onFilterCategoryTypeChange(event: Event): void {
+    this.selectedCategoryTypeId =
+      +(event.target as HTMLSelectElement).value || undefined;
+
+    this.applyFilters();
+  }
+
+  onSearchChange(value: string): void {
+    this.searchText = value;
+    this.applyFilters();
+  }
+
+  clearFilters(): void {
+    this.selectedCategoryId = undefined;
+    this.selectedCategoryTypeId = undefined;
+    this.searchText = '';
+    this.filterCategoryTypes = [];
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    const search = (this.searchText || '').trim().toLowerCase();
+
+    this.filteredStructures = this.allStructures.filter((s) => {
+      // Category filter
+      if (this.selectedCategoryId) {
+        const sid = (s as any).categoryId as number | undefined;
+        const sname = (s as any).categoryName as string | undefined;
+
+        if (typeof sid === 'number') {
+          if (sid !== this.selectedCategoryId) return false;
+        } else {
+          const selectedCategoryName =
+            this.categories
+              .find((c) => c.id === this.selectedCategoryId)
+              ?.name?.toLowerCase() ?? '';
+          if (
+            selectedCategoryName &&
+            (sname ?? '').toLowerCase() !== selectedCategoryName
+          )
+            return false;
         }
       }
-    })
-  }
 
-  loadCategoryTypes(): void{
-     this._categoryTypeService.getAllCategoriestypes(true).subscribe({
-      next: (res) => {
-         console.log(res);
-         this.categoryTypes = res.data.categoryTypes;
-         this.totalCount = res.data.totalCount;
-          
-      },
-      error: (err) => {
-        console.error('Error loading categoryTypes:', err)
+      // Type filter
+      if (this.selectedCategoryTypeId) {
+        if ((s as any).typeId !== this.selectedCategoryTypeId) return false;
       }
-    })
-  }
-  loadStructures(): void{
-    this._structureService.getAllStructures(false, this.pageIndex, this.pageSize).subscribe({
-      next: (res) => {
-        console.log(res)
-        this.structures = res.data.structures
-        this.totalCount = res.data.totalCount
-      },
-      error(err) {
-          console.log(err)
-      },
-    })
+
+      // Search
+      if (search) {
+        const hay =
+          `${s.name ?? ''} ${(s as any).typeName ?? ''} ${(s as any).categoryName ?? ''}`.toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+
+      return true;
+    });
+
+    this.totalCount = this.filteredStructures.length;
+    this.pageIndex = 1;
+    this.updatePagedData();
   }
 
-  onPageChange(newPage: number) {
-    if (newPage >= 1 && newPage <= this.totalPage) {
-      this.pageIndex = newPage;
-      this.loadStructures();
-    }
+  /* ================= PAGINATION ================= */
+
+  updatePagedData(): void {
+    const start = (this.pageIndex - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.structures = this.filteredStructures.slice(start, end);
   }
-  onPageSizeChange(event: Event):void {
-    const select = event.target as HTMLSelectElement;
-    this.pageSize = +select.value;
+
+  onPageChange(newPage: number): void {
+    if (newPage < 1 || newPage > this.totalPage) return;
+    this.pageIndex = newPage;
+    this.updatePagedData();
+  }
+
+  onPageSizeChange(event: Event): void {
+    this.pageSize = +(event.target as HTMLSelectElement).value;
     this.pageIndex = 1;
-    this.loadStructures();
+    this.updatePagedData();
   }
-      
+
+  /* ================= CREATE FORM (NO FILTERING) ================= */
+
   crateForm: FormGroup = new FormGroup({
     name: new FormControl('', Validators.required),
-    typeId: new FormControl('')
-  })
- selectedFile: File | null = null;
-previewUrl: string | ArrayBuffer | null = null;
+    categoryId: new FormControl('', Validators.required),
+    typeId: new FormControl('', Validators.required),
+    description: new FormControl(''),
+  });
 
-onFileSelected(event: any) {
-  this.selectedFile = event.target.files[0];
-  if (this.selectedFile) {
-    const reader = new FileReader();
+  selectedFile: File | null = null;
+  previewUrl: string | ArrayBuffer | null = null;
 
-    reader.onload = () => {
-      this.previewUrl = reader.result;
-    };
+  onCreateCategoryChange(event: Event): void {
+    const categoryId = +(event.target as HTMLSelectElement).value || undefined;
 
-    reader.readAsDataURL(this.selectedFile); 
-  }
-}
-  onSave() {
-   if (this.crateForm.valid) {
-      const formData = new FormData();
-      formData.append('name', this.crateForm.value.name);
-      formData.append('typeId', this.crateForm.value.typeId);
-      if (this.selectedFile) {
-        formData.append('file',this.selectedFile)
-      }
-      this._structureService.CreateStructure(formData).subscribe({
-        next:(value) => {
-          console.log(value)
-          this.loadStructures();
-          this.crateForm.reset();
-          this.previewUrl = null;
-          this.selectedFile = null;
+    this.createSelectedCategoryId = categoryId;
+    this.createCategoryTypes = [];
+
+    // reset type when category changes
+    this.crateForm.patchValue({ typeId: '' });
+
+    if (!this.createSelectedCategoryId) return;
+
+    this._categoryTypeService
+      .getTypesByCategory(this.createSelectedCategoryId)
+      .subscribe({
+        next: (res) => {
+          if (res.success)
+            this.createCategoryTypes = res.data.categoryTypes ?? [];
         },
-        error: (err) => {
-          console.log(err)
-        }
-      })
-    }
+      });
   }
-  onEdit(structure: Structure): void {
-    console.log(structure )
-      const dialogRef = this.dialog.open(EditStructureDialogComponent, {
-        data: { id: structure.id, name: structure.name, file: structure.fileUrl, typeId: structure.typeId }
-        
-      });
-  
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          const formData = new FormData();
-          console.log("Fron update Formdata", result)
-          formData.append('name', result.name);
-          formData.append('file', result.file);
-          formData.append('typeId', result.typeId);
-          console.log("formdata after result", formData)
-          this._structureService.updateStructure(result.id, formData).subscribe({
-            next: (res) => {
-              if (res.success) {
-                console.log("formdata after result res", formData)
-  
-                const index = this.structures.findIndex(c => c.id === result.id);
-                if (index !== -1) {
-                  this.loadStructures()
-                }
-              }
-            }
-          });
-        }
-      });
-    }
-  onDelete(id: number) {
-    this._structureService.deleteStructure(id).subscribe({
-      next: (res) => {
-        console.log("delete structure Success", res);
-        this.loadCategoryTypes();
-        this.loadStructures()
+
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files?.[0] ?? null;
+    if (!this.selectedFile) return;
+
+    const reader = new FileReader();
+    reader.onload = () => (this.previewUrl = reader.result);
+    reader.readAsDataURL(this.selectedFile);
+  }
+
+  onSave() {
+    if (!this.crateForm.valid) return;
+
+    const formData = new FormData();
+    formData.append('name', this.crateForm.value.name);
+    formData.append('typeId', this.crateForm.value.typeId);
+    formData.append('description', this.crateForm.value.description);
+
+    if (this.selectedFile) formData.append('file', this.selectedFile);
+
+    this._structureService.CreateStructure(formData).subscribe({
+      next: () => {
+        this.loadAllStructures();
+        this.crateForm.reset();
+        this.previewUrl = null;
+        this.selectedFile = null;
+        this.createSelectedCategoryId = undefined;
+        this.createCategoryTypes = [];
       },
-      error: (err) => {
-        console.log("delete structure Failed",err)
+      error: (err) => console.log(err),
+    });
+  }
+
+  onCancelCreate(): void {
+    this.crateForm.reset();
+    this.previewUrl = null;
+    this.selectedFile = null;
+    this.createSelectedCategoryId = undefined;
+    this.createCategoryTypes = [];
+  }
+
+  /* ================= CRUD (same logic) ================= */
+
+  onEdit(item: any): void {
+    console.log(item);
+    const dialogRef = this.dialog.open(EditStructureDialogComponent, {
+      data: {
+        id: item.id,
+        name: item.name,
+        file: item.fileUrl,
+        description: item.description,
+        // ✅ MUST exist on the item (prefer backend returns it)
+        categoryId: item.categoryId,
+        typeId: item.typeId,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result) return;
+
+      const formData = new FormData();
+      formData.append('name', result.name);
+      formData.append('typeId', result.typeId);
+      formData.append('description', result.description);
+      if (result.file) formData.append('file', result.file);
+
+      this._structureService.updateStructure(result.id, formData).subscribe({
+        next: (res) => res.success && this.loadAllStructures(),
+      });
+    });
+  }
+
+  onDelete(id: number) {
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete "${name}"` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this._structureService.deleteStructure(id).subscribe({
+          next: (res) => {
+            if (res.success) this.loadAllStructures();
+          },
+          error: (err) => console.log(err),
+        });
       }
-    })
+    });
+  }
+
+  /* ================= METADATA PANEL ================= */
+
+  openMetadata(structure: any): void {
+    this.selectedStructureForMetadata = structure;
+  }
+
+  closeMetadata(): void {
+    this.selectedStructureForMetadata = null;
   }
 }

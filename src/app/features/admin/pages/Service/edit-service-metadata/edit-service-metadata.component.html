@@ -1,0 +1,11 @@
+<div class="service-card">
+    <h3>Edit Metadata</h3>
+    <p *ngIf="serviceName"><strong>{{ serviceName }}</strong></p>
+    <app-attribute-assignment [targetType]="metadataTargetType" [targetId]="serviceId"
+        (metadataChange)="onMetadataChange($event)">
+    </app-attribute-assignment>
+    <div class="actions">
+        <button type="button" [disabled]="saving" (click)="onSubmit()"> {{ saving ? 'Saving…' : 'Save Metadata' }}
+        </button>
+    </div>
+</div>

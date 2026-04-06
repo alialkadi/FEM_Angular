@@ -4,7 +4,7 @@ import { AdminRoutingModule } from './admin-routing.module';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ManageUsersComponent } from './pages/manage-users/manage-users.component';
 import { DashboradNavComponent } from './pages/dashboard/dashborad-nav/dashborad-nav.component';
-import { MatIcon } from "@angular/material/icon";
+import { MatIcon } from '@angular/material/icon';
 import { CategoryTypesComponent } from './pages/Categories/category-types/category-types.component';
 import { CommonModule } from '@angular/common';
 import { CategoriesListComponent } from './pages/Categories/categories-list/categories-list.component';
@@ -29,9 +29,17 @@ import { MetadataAssignValueComponent } from './pages/Metadata-values/metadata-a
 import { AttributeAssignmentComponent } from './pages/Metadata-values/attribute-assignment/attribute-assignment.component';
 import { UpdateServiceComponent } from './pages/Service/update-service/update-service.component';
 import { MetadataUpdateAttributeComponent } from './pages/Metadata/metadata-update-attribute/metadata-update-attribute.component';
+import { InputDefinitionComponent } from './pages/input-definition/input-definition.component';
+import { InputValueComponent } from './pages/input-value/input-value.component';
+import { GroupByPipe } from '../../core/Pipes/groupByPipe';
+import { EditServiceGeneralComponent } from './pages/Service/edit-service-general/edit-service-general.component';
+import { EditServiceMetadataComponent } from './pages/Service/edit-service-metadata/edit-service-metadata.component';
+import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/edit-service-inputs.component';
+import { StaticsComponent } from './pages/statics/statics.component';
 
 @NgModule({
-  declarations: [DashboardComponent,
+  declarations: [
+    DashboardComponent,
     ManageUsersComponent,
     DashboradNavComponent,
     CategoryTypesComponent,
@@ -52,13 +60,24 @@ import { MetadataUpdateAttributeComponent } from './pages/Metadata/metadata-upda
     MetadataAssignValueComponent,
     AttributeAssignmentComponent,
     UpdateServiceComponent,
-    MetadataUpdateAttributeComponent],
-  imports: [SharedModule,
-            AdminRoutingModule,
-            MatIcon,CommonModule ,
-            MatPaginatorModule,
-            FormsModule,
-            ReactiveFormsModule ,
-            MatFormFieldModule]
+    MetadataUpdateAttributeComponent,
+    InputDefinitionComponent,
+    InputValueComponent,
+    GroupByPipe,
+    EditServiceGeneralComponent,
+    EditServiceMetadataComponent,
+    EditServiceInputsComponent,
+    StaticsComponent,
+  ],
+  imports: [
+    SharedModule,
+    AdminRoutingModule,
+    MatIcon,
+    CommonModule,
+    MatPaginatorModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+  ],
 })
 export class AdminModule {}

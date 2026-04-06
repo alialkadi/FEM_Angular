@@ -1,138 +1,271 @@
-<div class="service-explorer">
-    <!-- HEADER -->
-    <header class="explorer-header">
-        <h2>Service Explorer</h2>
+<section class="shop-explorer">
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <h2>Service Explorer</h2>
+            <p>Browse step-by-step and select the services you want to request.</p>
+        </div>
+        <div class="topbar-right">
+            <button class="btn-outline" type="button" (click)="goBack()" *ngIf="breadcrumbs.length"> ← Back </button>
+            <button class="btn-primary" type="button" (click)="requestServices()" *ngIf="selectedServices.length">
+                Continue <span class="pill">{{ selectedServices.length }}</span>
+            </button>
+        </div>
     </header>
-    <!-- ===============================
-       BREADCRUMBS + BACK
-  =============================== -->
-    <div class="nav-bar" *ngIf="breadcrumbs.length">
-        <button class="back-btn" (click)="goBack()"> ← Back </button>
-        <nav class="breadcrumbs">
-            <a *ngFor="let c of breadcrumbs; let last = last" href="javascript:void(0)" class="crumb"
-                [class.active]="last" (click)="!last && goToCrumb(c.level)"> {{ c.label }} <span class="sep"
-                    *ngIf="!last">›</span>
-            </a>
-        </nav>
+    <!-- BREADCRUMBS -->
+    <div class="crumbbar" *ngIf="breadcrumbs.length">
+        <button *ngFor="let c of breadcrumbs; let last = last" class="crumb" type="button" [class.active]="last"
+            (click)="!last && goToCrumb(c.level)"> {{ c.label }} <span class="sep" *ngIf="!last">›</span>
+        </button>
     </div>
-    <!-- ===============================
-       CATEGORY
-  =============================== -->
-    <section *ngIf="!selectedCategory">
-        <h3>Choose Category</h3>
-        <div class="grid">
-            <div class="card" *ngFor="let c of categories" (click)="selectCategory(c)">
-                <img *ngIf="c.fileUrl; else noImg" [src]="c.fileUrl" />
-                <ng-template #noImg>
-                    <div class="placeholder"></div>
-                </ng-template>
-                <div class="card-title">{{ c.name }}</div>
-                <span class="badge category">Category</span>
-            </div>
-        </div>
-    </section>
-    <!-- ===============================
-       CATEGORY TYPE
-  =============================== -->
-    <section *ngIf="selectedCategory && !selectedType">
-        <h3>Choose Type</h3>
-        <div class="grid">
-            <div class="card" *ngFor="let t of types" (click)="selectType(t)">
-                <img *ngIf="t.fileUrl; else noImg" [src]="t.fileUrl" />
-                <ng-template #noImg>
-                    <div class="placeholder"></div>
-                </ng-template>
-                <div class="card-title">{{ t.name }}</div>
-                <span class="badge type">Type</span>
-            </div>
-        </div>
-    </section>
-    <!-- ===============================
-       STRUCTURES
-  =============================== -->
-    <section *ngIf="structures.length">
-        <h3>Structures</h3>
-        <div class="grid">
-            <div class="card" *ngFor="let s of structures" (click)="selectItem(s)">
-                <img *ngIf="s.fileUrl; else noImg" [src]="s.fileUrl" />
-                <ng-template #noImg>
-                    <div class="placeholder"></div>
-                </ng-template>
-                <div class="card-title">{{ s.name }}</div>
-                <span class="badge structure">Structure</span>
-            </div>
-        </div>
-    </section>
-    <!-- ===============================
-       PARTS + OPTIONS
-  =============================== -->
-    <section *ngIf="parts.length || options.length">
-        <h3>Components</h3>
-        <p class="hint">Parts and options may appear together</p>
-        <div class="grid">
-            <div class="card" *ngFor="let p of parts" (click)="selectItem(p)">
-                <img *ngIf="p.fileUrl; else noImg" [src]="p.fileUrl" />
-                <ng-template #noImg>
-                    <div class="placeholder"></div>
-                </ng-template>
-                <div class="card-title">{{ p.name }}</div>
-                <span class="badge part">Part</span>
-            </div>
-            <div class="card" *ngFor="let o of options" (click)="selectItem(o)">
-                <img *ngIf="o.fileUrl; else noImg" [src]="o.fileUrl" />
-                <ng-template #noImg>
-                    <div class="placeholder"></div>
-                </ng-template>
-                <div class="card-title">{{ o.name }}</div>
-                <span class="badge option">Option</span>
-            </div>
-        </div>
-    </section>
-    <!-- ===============================
-       FILTERS
-  =============================== -->
-    <section *ngIf="filters.length">
-        <details class="filters">
-            <summary>Filter Services</summary>
-            <div class="filter-group" *ngFor="let f of filters">
-                <strong>{{ f.name }}</strong>
-                <label *ngFor="let v of f.values">
-                    <input type="checkbox" (change)="toggleFilter(f.code, v.id)"
-                        [checked]="selectedFilters[f.code]?.includes(v.id)" /> {{ v.displayName }} </label>
-            </div>
-        </details>
-    </section>
-    <!-- ===============================
-       SERVICES
-  =============================== -->
-    <!-- ===============================
-     SERVICES
-=============================== -->
-    <section *ngIf="services.length">
-        <h3>Services</h3>
-        <div class="grid services-grid">
-            <div class="card service-card" *ngFor="let s of services" (click)="selectItem(s)"
-                [class.selected]="isServiceSelected(s)">
-                <!-- IMAGE -->
-                <img *ngIf="s.fileUrl; else noServiceImg" [src]="s.fileUrl" class="card-img" />
-                <ng-template #noServiceImg>
-                    <div class="card-img placeholder"></div>
-                </ng-template>
-                <!-- TITLE -->
-                <div class="card-title">{{ s.name }}</div>
-                <!-- METADATA -->
-                <div class="meta" *ngIf="s.metadata?.length">
-                    <span class="chip" *ngFor="let m of s.metadata"> {{ m.valueText || m.value }} </span>
+    <!-- MAIN LAYOUT -->
+    <div class="layout">
+        <!-- LEFT FILTERS (DESKTOP) -->
+        <!-- LEFT FILTERS (DESKTOP) -->
+        <aside class="filters-side" *ngIf="hasFilters">
+            <div class="filters-card">
+                <div class="filters-head">
+                    <h3>Filters</h3>
+                    <button class="clear" type="button" (click)="clearFilters()" [disabled]="!hasSelectedFilters"> Clear
+                    </button>
                 </div>
-                <!-- BADGE -->
-                <span class="badge service">Service</span>
+                <div class="filters-body">
+                    <section class="filter" *ngFor="let f of filters">
+                        <div class="filter-title">{{ f.name }}</div>
+                        <div class="filter-chips">
+                            <label class="filter-chip" *ngFor="let v of f.values"
+                                [class.active]="selectedFilters[f.code]?.includes(v.id)">
+                                <input type="checkbox" (change)="toggleFilter(f.code, v.id)"
+                                    [checked]="selectedFilters[f.code]?.includes(v.id)" />
+                                <span>{{ v.displayName }}</span>
+                            </label>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </aside>
+        <!-- CONTENT -->
+        <main class="content">
+            <!-- SERVICES HINT / CALLOUT -->
+            <!-- SERVICES HINT / CALLOUT (ONLY ON SERVICE LEVEL) -->
+            <div class="services-callout" *ngIf="services.length">
+                <div class="callout-icon" aria-hidden="true">🛠️</div>
+                <div class="callout-body">
+                    <div class="callout-title">Select services to request</div>
+                    <div class="callout-text"> Tap one or more services below. You can continue anytime to review your
+                        request. </div>
+                </div>
+                <div class="callout-actions" *ngIf="selectedServices.length">
+                    <button class="btn-primary" type="button" (click)="requestServices()"> Continue <span
+                            class="pill">{{ selectedServices.length }}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- CATEGORY -->
+            <section class="block" *ngIf="!selectedCategory">
+                <div class="block-head">
+                    <div>
+                        <h3>Choose Category</h3>
+                        <p class="muted">Start by selecting a category.</p>
+                    </div>
+                    <span class="step">Step 1</span>
+                </div>
+                <div class="cards">
+                    <button class="hcard" *ngFor="let c of categories" type="button" (click)="selectCategory(c)">
+                        <div class="hcard-img">
+                            <img *ngIf="c.fileUrl; else catPh" [src]="c.fileUrl" [alt]="c.name" />
+                            <ng-template #catPh>
+                                <div class="ph"></div>
+                            </ng-template>
+                        </div>
+                        <div class="hcard-body">
+                            <div class="hcard-title">{{ c.name }}</div>
+                            <div class="hcard-sub">{{c.description}}</div>
+                            <div class="hcard-sub">Structures, parts, and services inside this category.</div>
+                            <div class="hcard-foot">
+                                <span class="tag">Category</span>
+                                <span class="chev" aria-hidden="true">›</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </section>
+            <!-- TYPE -->
+            <section class="block" *ngIf="selectedCategory && !selectedType">
+                <div class="block-head">
+                    <div>
+                        <h3>Choose Type</h3>
+                        <p class="muted">Choose a type inside {{ selectedCategory?.name }}.</p>
+                    </div>
+                    <span class="step">Step 2</span>
+                </div>
+                <div class="cards">
+                    <button class="hcard" *ngFor="let t of types" type="button" (click)="selectType(t)">
+                        <div class="hcard-img">
+                            <img *ngIf="t.fileUrl; else typePh" [src]="t.fileUrl" [alt]="t.name" />
+                            <ng-template #typePh>
+                                <div class="ph"></div>
+                            </ng-template>
+                        </div>
+                        <div class="hcard-body">
+                            <div class="hcard-title">{{ t.name }}</div>
+                            <div class="hcard-sub">Available structures & services under this type.</div>
+                            <div class="hcard-sub">{{t.description}}</div>
+                            <div class="hcard-foot">
+                                <span class="tag tag--blue">Type</span>
+                                <span class="chev" aria-hidden="true">›</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </section>
+            <!-- STRUCTURES -->
+            <section class="block" *ngIf="structures.length">
+                <div class="block-head">
+                    <div>
+                        <h3>Structures</h3>
+                        <p class="muted">Pick the structure you need.</p>
+                    </div>
+                    <span class="step">Step 3</span>
+                </div>
+                <div class="cards">
+                    <button class="hcard" *ngFor="let s of structures" type="button" (click)="selectItem(s)">
+                        <div class="hcard-img">
+                            <img *ngIf="s.fileUrl; else stPh" [src]="s.fileUrl" [alt]="s.name" />
+                            <ng-template #stPh>
+                                <div class="ph"></div>
+                            </ng-template>
+                        </div>
+                        <div class="hcard-body">
+                            <div class="hcard-title">{{ s.name }}</div>
+                            <div class="hcard-sub">Continue to parts/options or directly to services.</div>
+                            <div class="hcard-sub">{{s.description}}</div>
+                            <div class="hcard-foot">
+                                <span class="tag tag--indigo">Structure</span>
+                                <span class="chev" aria-hidden="true">›</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </section>
+            <!-- PARTS + OPTIONS -->
+            <section class="block" *ngIf="parts.length || options.length">
+                <div class="block-head">
+                    <div>
+                        <h3>Components</h3>
+                        <p class="muted">Parts and options may appear together.</p>
+                    </div>
+                    <span class="step">Step 4</span>
+                </div>
+                <div class="cards">
+                    <button class="hcard" *ngFor="let p of parts" type="button" (click)="selectItem(p)">
+                        <div class="hcard-img">
+                            <img *ngIf="p.fileUrl; else pPh" [src]="p.fileUrl" [alt]="p.name" />
+                            <ng-template #pPh>
+                                <div class="ph"></div>
+                            </ng-template>
+                        </div>
+                        <div class="hcard-body">
+                            <div class="hcard-title">{{ p.name }}</div>
+                            <div class="hcard-sub">Select to see options and services.</div>
+                            <div class="hcard-sub">{{p.description}}</div>
+                            <div class="hcard-foot">
+                                <span class="tag tag--green">Part</span>
+                                <span class="chev" aria-hidden="true">›</span>
+                            </div>
+                        </div>
+                    </button>
+                    <button class="hcard" *ngFor="let o of options" type="button" (click)="selectItem(o)">
+                        <div class="hcard-img">
+                            <img *ngIf="o.fileUrl; else oPh" [src]="o.fileUrl" [alt]="o.name" />
+                            <ng-template #oPh>
+                                <div class="ph"></div>
+                            </ng-template>
+                        </div>
+                        <div class="hcard-body">
+                            <div class="hcard-title">{{ o.name }}</div>
+                            <div class="hcard-sub">Select to see services under this option.</div>
+                            <div class="hcard-sub">{{o.description}}</div>
+                            <div class="hcard-foot">
+                                <span class="tag tag--purple">Option</span>
+                                <span class="chev" aria-hidden="true">›</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </section>
+            <!-- SERVICES -->
+            <section class="block" *ngIf="services.length">
+                <div class="block-head">
+                    <div>
+                        <h3>Services</h3>
+                        <p class="muted">Tap to select. Selected services become your request items.</p>
+                    </div>
+                    <div class="selected-chip" *ngIf="selectedServices.length"> Selected: <strong>{{
+                            selectedServices.length }}</strong>
+                    </div>
+                </div>
+                <div class="cards">
+                    <button class="hcard hcard--service" *ngFor="let s of services" type="button"
+                        (click)="selectItem(s)" [class.selected]="isServiceSelected(s)">
+                        <div class="hcard-img">
+                            <img *ngIf="s.fileUrl; else sPh" [src]="s.fileUrl" [alt]="s.name" />
+                            <ng-template #sPh>
+                                <div class="ph"></div>
+                            </ng-template>
+                        </div>
+                        <div class="hcard-body">
+                            <div class="hcard-title">{{ s.name }}</div>
+                            <div class="hcard-title">{{ s.description }}</div>
+                            <!-- <div class="chips" *ngIf="s.metadata?.length">
+                                <span class="chip" *ngFor="let m of s.metadata">{{ m.valueText || m.value }}</span>
+                            </div> -->
+                            <div class="hcard-foot">
+                                <span class="tag tag--dark">Service</span>
+                                <span class="request-badge">Requested item</span>
+                            </div>
+                        </div>
+                        <span class="check" aria-hidden="true">✓</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- MOBILE FILTER FAB -->
+    <button class="filters-fab" type="button" *ngIf="hasFilters" (click)="toggleFiltersSheet()">
+        <span class="fab-icon">⚙️</span>
+        <span class="fab-text">Filters</span>
+        <span class="fab-dot" *ngIf="hasSelectedFilters" aria-hidden="true"></span>
+    </button>
+    <!-- MOBILE FILTER SHEET -->
+    <div class="sheet-backdrop" *ngIf="filtersSheetOpen" (click)="closeFiltersSheet()"></div>
+    <!-- MOBILE FILTER SHEET -->
+    <section class="sheet" [class.open]="filtersSheetOpen" *ngIf="hasFilters">
+        <div class="sheet-head">
+            <h3>Filters</h3>
+            <div class="sheet-actions">
+                <button class="clear" type="button" (click)="clearFilters()" [disabled]="!hasSelectedFilters"> Clear
+                </button>
+                <button class="btn-primary" type="button" (click)="closeFiltersSheet()">Done</button>
             </div>
         </div>
+        <div class="sheet-body">
+            <section class="filter" *ngFor="let f of filters">
+                <div class="filter-title">{{ f.name }}</div>
+                <div class="filter-chips">
+                    <label class="filter-chip" *ngFor="let v of f.values"
+                        [class.active]="selectedFilters[f.code]?.includes(v.id)">
+                        <input type="checkbox" (change)="toggleFilter(f.code, v.id)"
+                            [checked]="selectedFilters[f.code]?.includes(v.id)" />
+                        <span>{{ v.displayName }}</span>
+                    </label>
+                </div>
+            </section>
+        </div>
     </section>
-    <!-- ===============================
-       FOOTER
-  =============================== -->
-    <footer class="summary-footer" *ngIf="selectedServices.length">
-        <button (click)="requestServices()"> Continue ({{ selectedServices.length }}) </button>
-    </footer>
-</div>
+    <!-- MOBILE BOTTOM CONTINUE BAR -->
+    <div class="mobile-summary" *ngIf="selectedServices.length">
+        <div class="sum"><strong>{{ selectedServices.length }}</strong> selected</div>
+        <button class="btn-primary" type="button" (click)="requestServices()">Continue</button>
+    </div>
+</section>

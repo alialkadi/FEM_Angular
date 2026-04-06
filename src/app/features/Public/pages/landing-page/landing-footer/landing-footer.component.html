@@ -1,56 +1,93 @@
-<footer class="landing-footer">
-    <!-- Contact / CTA Section -->
-    <div class="contact-section">
-        <h2>Get in Touch With Us</h2>
-        <p> Have questions or need a service appointment? Our team is ready to provide the assistance you need. Reach
-            out today! </p>
-        <button class="contact-btn">Contact Our Team</button>
-        <div class="contact-details">
-            <span><i class="bi bi-telephone"></i> +1 (555) 123-4567</span>
-            <span><i class="bi bi-envelope"></i> info&#64;fenestrationexpress.com</span>
-            <span><i class="bi bi-geo-alt"></i> 123 Maintenance Way, City, State 12345</span>
-        </div>
-    </div>
-    <!-- Main Footer -->
-    <div class="footer-main">
+<footer class="site-footer" aria-label="Site Footer">
+    <div class="container">
+        <!-- Top strip -->
         <div class="footer-top">
-            <div class="footer-logo">
-                <h3>Fenestration Express Maintenance</h3>
-                <p> Your trusted partner for comprehensive window and door maintenance services. Ensuring durability,
-                    performance, and aesthetic appeal. </p>
-                <div class="social-icons">
-                    <a href="#"><i class="bi bi-facebook"></i></a>
-                    <a href="#"><i class="bi bi-instagram"></i></a>
-                    <a href="#"><i class="bi bi-linkedin"></i></a>
-                </div>
-            </div>
-            <div class="footer-links">
-                <div class="column">
-                    <h4>Company</h4>
-                    <a routerLink="/public/FenestrationMaintainence/about">About Us</a>
-                    <a routerLink="/public/FenestrationMaintainence/services">Services</a>
-                    <a href="#">Careers</a>
-                    <a href="#">Press</a>
-                </div>
-                <div class="column">
-                    <h4>Support</h4>
-                    <a routerLink="/public/FenestrationMaintainence/contact">Contact</a>
-                    <a href="#">FAQ</a>
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
-                </div>
-                <div class="column">
-                    <h4>Resources</h4>
-                    <a href="#">Blog</a>
-                    <a href="#">Case Studies</a>
-                    <a href="#">Partnerships</a>
-                    <a href="#">Testimonials</a>
+            <a class="footer-brand" [routerLink]="['/']" aria-label="Go to homepage">
+                <!-- <span class="brand-mark" aria-hidden="true"></span> -->
+                <span class="brand-text">Fenestration <strong style="color: var(--link-hover);">Services</strong></span>
+            </a>
+            <div class="footer-cta">
+                <p class="cta-text">Need a quick quote or help choosing the right service?</p>
+                <div class="cta-actions">
+                    <a class="btn btn--primary" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">
+                        Explore Services </a>
+                    <a class="btn btn--ghost" [routerLink]="['/public/FenestrationMaintainence/contact']"> Request a
+                        Quote </a>
                 </div>
             </div>
         </div>
-        <!-- Bottom Footer -->
+        <div class="divider" aria-hidden="true"></div>
+        <!-- Links grid -->
+        <div class="footer-grid">
+            <!-- Services -->
+            <section class="footer-col" aria-label="Services links">
+                <h3 class="col-title">Services</h3>
+                <ul class="col-links">
+                    <li><a [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">Replacement Services</a>
+                    </li>
+                    <li><a [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">Inspection Services</a></li>
+                    <li><a [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">Maintenance Services</a>
+                    </li>
+                    <li><a [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">Installation Services</a>
+                    </li>
+                </ul>
+            </section>
+            <!-- Areas -->
+            <section class="footer-col" aria-label="Areas we serve">
+                <h3 class="col-title">Areas We Serve</h3>
+                <ul class="col-links">
+                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Calgary</a></li>
+                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Airdrie</a></li>
+                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Cochrane</a></li>
+                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Okotoks</a></li>
+                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Chestermere</a></li>
+                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Rocky View County</a></li>
+                </ul>
+            </section>
+            <!-- Contact -->
+            <section class="footer-col" aria-label="Contact information">
+                <h3 class="col-title">Contact</h3>
+                <div class="contact-card">
+                    <div class="contact-row">
+                        <span class="label">Email</span>
+                        <a class="value"
+                            href="mailto:sales@fenestrationservices.ca">sales&#64;fenestrationservices.ca</a>
+                    </div>
+                    <div class="contact-row">
+                        <span class="label">Phone</span>
+                        <a class="value" href="tel:+10000000000">+1 (000) 000-0000</a>
+                    </div>
+                    <div class="contact-row">
+                        <span class="label">Hours</span>
+                        <span class="value muted">Mon–Fri • 8:00 AM – 8:00 PM</span>
+                    </div>
+                    <div class="contact-row">
+                        <span class="label">Address</span>
+                        <span class="value muted">Calgary, AB</span>
+                    </div>
+                </div>
+            </section>
+            <!-- Help -->
+            <section class="footer-col" aria-label="Help links">
+                <h3 class="col-title">Help</h3>
+                <ul class="col-links">
+                    <li><a [routerLink]="['/public/FenestrationMaintainence/how-it-works']">How it works</a></li>
+                    <li><a [routerLink]="['/public/FenestrationMaintainence/quote']">Get a real-time quote</a></li>
+                    <li><a [routerLink]="['/public/FenestrationMaintainence/measure-guide']">How to measure</a></li>
+                    <li><a [routerLink]="['/public/FenestrationMaintainence/hardware-guide']">Identify hardware</a></li>
+                    <li><a [routerLink]="['/public/FenestrationMaintainence/book']">How to book a service</a></li>
+                </ul>
+            </section>
+        </div>
+        <div class="divider" aria-hidden="true"></div>
+        <!-- Bottom bar -->
         <div class="footer-bottom">
-            <p>© {{ currentYear }} Fenestration Express Maintenance. All rights reserved.</p>
+            <p class="copyright"> © {{ currentYear }} Fenestration Services. All rights reserved. </p>
+            <div class="bottom-links">
+                <a [routerLink]="['/public/FenestrationMaintainence/privacy']">Privacy</a>
+                <span class="sep" aria-hidden="true">•</span>
+                <a [routerLink]="['/public/FenestrationMaintainence/terms']">Terms</a>
+            </div>
         </div>
     </div>
 </footer>

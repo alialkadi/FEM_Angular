@@ -1,3 +1,4 @@
+import { ToastService } from './../../shared/Services/toast.service';
 import { Component } from '@angular/core';
 import { AuthService } from '../../core/Auth/auth.service';
 import { Router } from '@angular/router';
@@ -7,28 +8,31 @@ import { LoginResponse } from './Models/LoginResponse';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+  styleUrl: './login.component.scss',
 })
 export class LoginComponent {
-
   email: string = '';
   phoneNumber: string = '';
   error: string = '';
   loading: boolean = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private toastService: ToastService,
+  ) {}
 
   login() {
     this.loading = true;
 
     const request: LoginRequest = {
       email: this.email,
-      phoneNumber: this.phoneNumber
+      phoneNumber: this.phoneNumber,
     };
 
     this.auth.login(request).subscribe({
       next: (res) => {
-        console.log(res);
+        // console.log(res);
 
         if (res.data?.isSuccessful && res.data?.token) {
           localStorage.setItem('app_token', res.data.token);
@@ -49,9 +53,30 @@ export class LoginComponent {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.error?.errors?.[0] || 'Something went wrong';
+        // console.log('Full error:', err);
         this.loading = false;
-      }
+        const backendError = err?.error;
+
+        // 1. Validation errors (ModelState)
+        if (backendError?.errors) {
+          const messages: string[] = [];
+
+          Object.keys(backendError.errors).forEach((field) => {
+            messages.push(...backendError.errors[field]);
+          });
+
+          this.toastService.show(messages.join(' | '));
+          return;
+        }
+
+        // 2. General error message (fallback)
+        const message =
+          backendError?.message ||
+          backendError?.title ||
+          'Something went wrong';
+
+        this.toastService.show(message);
+      },
     });
   }
 }

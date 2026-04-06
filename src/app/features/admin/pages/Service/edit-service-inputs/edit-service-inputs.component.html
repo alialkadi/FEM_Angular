@@ -1,0 +1,121 @@
+<div class="pricing-page-card">
+    <div class="pricing-page-header">
+        <div>
+            <h2>Edit Pricing Inputs</h2>
+            <p class="page-subtitle"> Configure dynamic pricing rules for this service. </p>
+        </div>
+        <div class="service-badge" *ngIf="serviceName">
+            <span class="label">Service</span>
+            <strong>{{ serviceName }}</strong>
+        </div>
+    </div>
+    <div *ngIf="pricingMode === 'Static'" class="pricing-state static">
+        <div class="state-icon">ℹ</div>
+        <div>
+            <h4>Static Pricing Enabled</h4>
+            <p> This service uses <strong>Static</strong> pricing. Pricing inputs are not applicable. </p>
+        </div>
+    </div>
+    <div class="pricing-manager" *ngIf="pricingMode === 'Dynamic'">
+        <div class="pricing-toolbar">
+            <div>
+                <h3>Dynamic Pricing Rules</h3>
+                <p class="toolbar-subtitle"> Add inputs and define how each value affects pricing. </p>
+            </div>
+            <div class="add-input-wrapper">
+                <select #inputSelect class="input-select">
+                    <option value="">Select input</option>
+                    <option *ngFor="let def of inputDefinitions" [value]="def.id"> {{ def.label }} </option>
+                </select>
+                <button type="button" class="btn-primary" (click)="addInputFromSelect(inputSelect.value)"> + Add Input
+                </button>
+            </div>
+        </div>
+        <div class="empty-state" *ngIf="pricingInputs.length === 0">
+            <div class="empty-icon">🧩</div>
+            <h4>No pricing inputs added yet</h4>
+            <p>Select an input from the dropdown and add it to start building pricing rules.</p>
+        </div>
+        <div class="pricing-inputs" *ngIf="pricingInputs.length > 0">
+            <div class="input-card" *ngFor="let input of pricingInputs; let i = index">
+                <div class="input-card-header">
+                    <div class="title-group">
+                        <span class="input-index">#{{ i + 1 }}</span>
+                        <div>
+                            <h4>{{ input.label }}</h4>
+                            <p class="input-meta"> Type: <strong> {{ input.dataType === MetadataDataType.Select ?
+                                    'Select' : input.dataType === MetadataDataType.Number ? 'Number' : input.dataType
+                                    === MetadataDataType.Text ? 'Text' : 'Boolean' }} </strong>
+                            </p>
+                        </div>
+                    </div>
+                    <button class="icon-btn danger" type="button" (click)="removePricingInput(i)"> ✕ </button>
+                </div>
+                <div class="input-settings">
+                    <label class="checkbox-row">
+                        <input type="checkbox" [(ngModel)]="input.isRequired" />
+                        <span>Required for pricing</span>
+                    </label>
+                    <div class="setting-chip"> Behavior: <strong> {{ input.pricingBehavior === PricingInputBehavior.Rate
+                            ? 'Rate-based' : 'Fixed/Other' }} </strong>
+                    </div>
+                </div>
+                <div *ngIf="input.dataType === MetadataDataType.Select" class="values-block">
+                    <div class="value-card" *ngFor="let v of inputValuesMap[input.inputDefinitionId]">
+                        <div class="value-header">
+                            <div class="value-title">
+                                <strong>{{ v.displayName || v.value }}</strong>
+                                <span class="value-sub">Option value</span>
+                            </div>
+                        </div>
+                        <div class="rate-table">
+                            <div class="rate-table-head">
+                                <div>Rate</div>
+                                <div *ngIf="input.pricingBehavior === PricingInputBehavior.Rate">Apply when</div>
+                                <div class="actions-col">Action</div>
+                            </div>
+                            <div class="rate-row" *ngFor="let r of v.rates; let ri = index">
+                                <div class="rate-cell">
+                                    <label>Rate</label>
+                                    <input type="number" [(ngModel)]="r.amount" placeholder="Enter amount" />
+                                </div>
+                                <div class="rate-cell" *ngIf="shouldShowDependency(input, v, r)">
+                                    <label>Apply when</label>
+                                    <select [ngModel]="r.dependsOnValueId"
+                                        (ngModelChange)="onDependencyValueChange(r, $event)">
+                                        <option [ngValue]="undefined">Always</option>
+                                        <ng-container *ngFor="let opt of getDependencyOptions(input)">
+                                            <option [ngValue]="opt.value.id"> {{ opt.parent.label }} = {{
+                                                opt.value.displayName || opt.value.value }} </option>
+                                        </ng-container>
+                                    </select>
+                                </div>
+                                <div class="rate-actions">
+                                    <button type="button" class="icon-btn danger" (click)="removeRateRow(v, ri)"> ✕
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-link" (click)="addRateRow(v)"> + Add pricing condition
+                        </button>
+                    </div>
+                </div>
+                <div *ngIf="input.dataType !== MetadataDataType.Select" class="single-rule-block">
+                    <div class="rate-row">
+                        <div class="rate-cell">
+                            <label> {{ input.pricingBehavior === PricingInputBehavior.Fixed ? 'Amount' :
+                                input.pricingBehavior === PricingInputBehavior.Dimensional ? 'Base factor' : 'Amount' }}
+                            </label>
+                            <input type="number" [(ngModel)]="input.amount" placeholder="Enter amount"
+                                (ngModelChange)="calculatePreview()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <button type="button" class="btn-save" [disabled]="saving" (click)="onSubmit()"> {{ saving ? 'Saving…' :
+                'Save Inputs' }} </button>
+        </div>
+    </div>
+</div>

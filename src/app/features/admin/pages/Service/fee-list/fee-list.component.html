@@ -1,7 +1,7 @@
 <div class="fee-list-container">
     <!-- ================= Header ================= -->
     <div class="header">
-        <h2>Fees Management</h2>
+        <h2>Fee Management</h2>
         <div class="actions">
             <input type="text" placeholder="Search by fee name..." [(ngModel)]="searchTerm"
                 (keyup.enter)="onSearch()" />
@@ -49,7 +49,7 @@
     </div>
     <!-- ================= Loading / Empty States ================= -->
     <ng-template #loading>
-        <div class="loading"> {{ isLoading ? 'Loading fees...' : 'No fees found.' }} </div>
+        <div class="loading"> {{ isLoading ? 'Loading fees...' : 'No fee found.' }} </div>
     </ng-template>
     <!-- ================= Linked Services Modal ================= -->
     <div class="custom-modal-overlay" *ngIf="showModal">

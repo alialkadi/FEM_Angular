@@ -84,66 +84,128 @@
     </footer>
 </section>
 <!-- Details Popup -->
+<!-- DETAILS POPUP -->
 <div class="overlay" *ngIf="popupVisible">
-    <div class="popup">
-        <header class="popup-header">
-            <h3>Request #{{ selectedRequest?.id }}</h3>
+    <div class="popup popup-lg">
+        <!-- HEADER -->
+        <header class="popup-header sticky">
+            <div>
+                <h3>Service Request #{{ selectedRequest?.id }}</h3>
+                <span class="status-pill"> {{ selectedRequest?.statusName }} </span>
+            </div>
             <button class="close-btn" (click)="closePopup()">×</button>
         </header>
+        <!-- LOADING -->
         <div *ngIf="loading" class="popup-loading">
             <div class="spinner"></div>
             <p>Loading details...</p>
         </div>
-        <div *ngIf="!loading && selectedRequest" class="popup-content">
-            <h4>User Information</h4>
-            <ul class="user-info">
-                <li><strong>Name:</strong> {{ selectedRequest.fullName }}</li>
-                <li><strong>Email:</strong> {{ selectedRequest.email }}</li>
-                <li><strong>Phone:</strong> {{ selectedRequest.phoneNumber }}</li>
-                <li><strong>Address:</strong> {{ selectedRequest.address }}</li>
-            </ul>
-            <h4>Request Details</h4>
-            <ul class="meta">
-                <li><strong>Status:</strong> {{ selectedRequest.statusName }}</li>
-                <li>
-                    <strong>Requested On:</strong> {{ selectedRequest.requestedDate | date: 'short' }}
-                </li>
-                <li><strong>Total Cost:</strong> {{ selectedRequest.totalCost | currency }}</li>
-                <li *ngIf="selectedRequest.notes">
-                    <strong>Notes:</strong> {{ selectedRequest.notes }}
-                </li>
-                <!-- Assigned workers (inside details popup) -->
-                <li>
-                    <div>
-                        <h4>Assigned Workers</h4>
-                        <ul class="assigned-workers">
-                            <li *ngFor="let a of selectedRequest.serviceRequestAssignmentResponses">
-                                <strong>{{ a.workerName }}</strong>
-                                <span class="muted"> — assigned on {{ a.assignmentDate | date: 'short' }}</span>
+        <!-- CONTENT -->
+        <div *ngIf="!loading && selectedRequest" class="popup-body">
+            <!-- USER SUMMARY -->
+            <section class="info-card">
+                <h4>User Information</h4>
+                <div class="info-grid">
+                    <div><label>Name</label><span>{{ selectedRequest.fullName }}</span></div>
+                    <div><label>Email</label><span>{{ selectedRequest.email }}</span></div>
+                    <div><label>Phone</label><span>{{ selectedRequest.phoneNumber }}</span></div>
+                    <div class="full"><label>Address</label><span>{{ selectedRequest.address }}</span></div>
+                </div>
+            </section>
+            <!-- REQUEST META -->
+            <section class="info-card">
+                <h4>Request Summary</h4>
+                <div class="info-grid">
+                    <div><label>Requested On</label><span>{{ selectedRequest.requestedDate | date:'short' }}</span>
+                    </div>
+                    <div><label>Total Cost</label><span class="highlight">{{ selectedRequest.totalCost | currency
+                            }}</span></div>
+                    <div class="full" *ngIf="selectedRequest.notes">
+                        <label>Notes</label>
+                        <span>{{ selectedRequest.notes }}</span>
+                    </div>
+                </div>
+            </section>
+            <!-- SERVICES -->
+            <section class="services-section">
+                <h3>Requested Services</h3>
+                <article class="service-card" *ngFor="let s of selectedRequest.requestedServices">
+                    <!-- SERVICE HEADER -->
+                    <div class="service-head">
+                        <div>
+                            <h4>{{ s.serviceName }}</h4>
+                            <p class="muted">{{ s.description || 'No description provided' }}</p>
+                        </div>
+                        <div class="price-box">
+                            <span>Base {{ s.baseCost | currency }}</span>
+                            <strong>{{ s.calculatedTotal | currency }}</strong>
+                        </div>
+                    </div>
+                    <!-- INPUTS -->
+                    <section *ngIf="s.inputs?.length" class="service-block">
+                        <h5>Inputs</h5>
+                        <table class="clean-table">
+                            <thead>
+                                <tr>
+                                    <th>Input</th>
+                                    <th>Value</th>
+                                    <th>Pricing</th>
+                                    <th>Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let i of s.inputs">
+                                    <td>{{ i.inputLabel }}</td>
+                                    <!-- ✅ Correct “Value” -->
+                                    <td>{{ formatInputValue(i) }}</td>
+                                    <!-- ✅ Correct “Pricing” -->
+                                    <td>
+                                        <span class="pill" [class.dim]="i.pricingBehavior === 1"
+                                            [class.rate]="i.pricingBehavior === 2"
+                                            [class.fixed]="i.pricingBehavior === 3"
+                                            [class.none]="i.pricingBehavior === 0"> {{
+                                            getBehaviorLabel(i.pricingBehavior) }} </span>
+                                        <small class="muted" style="display:block; margin-top:4px;"> {{ formatPricing(i)
+                                            }} </small>
+                                    </td>
+                                    <!-- ✅ Correct “Cost” -->
+                                    <td>{{ i.calculatedCost | currency }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    <!-- METADATA -->
+                    <section *ngIf="s.metadata?.length" class="service-block">
+                        <h5>Metadata</h5>
+                        <div class="tag-list">
+                            <span class="tag" *ngFor="let m of s.metadata">
+                                <strong>{{ m.attributeCode }}:</strong> {{ m.valueText || m.value }} </span>
+                        </div>
+                    </section>
+                    <!-- FEES -->
+                    <section *ngIf="s.fees?.length" class="service-block">
+                        <h5>Applied Fees</h5>
+                        <ul class="fee-list">
+                            <li *ngFor="let f of s.fees">
+                                <span>{{ f.name }}</span>
+                                <small>{{ f.amount | currency }}</small>
+                                <span class="pill global" *ngIf="f.isGlobal">Global</span>
+                                <span class="pill local" *ngIf="!f.isGlobal">Service</span>
                             </li>
                         </ul>
-                    </div>
-                </li>
-            </ul>
-            <h4>Requested Services</h4>
-            <table class="services-table">
-                <thead>
-                    <tr>
-                        <th>Service Name</th>
-                        <th>Description</th>
-                        <th>Base Cost</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let s of selectedRequest.requestedServices">
-                        <td>{{ s.serviceName }}</td>
-                        <td>{{ s.description || '—' }}</td>
-                        <td>{{ s.baseCost | currency }}</td>
-                        <td>{{ s.calculatedTotal | currency }}</td>
-                    </tr>
-                </tbody>
-            </table>
+                    </section>
+                    <!-- STEPS -->
+                    <section *ngIf="s.steps?.length" class="service-block">
+                        <h5>Service Steps</h5>
+                        <ol class="steps">
+                            <li *ngFor="let st of s.steps">
+                                <strong>Step {{ st.stepOrder }}</strong>
+                                <span>{{ st.descriptionAtTime }}</span>
+                            </li>
+                        </ol>
+                    </section>
+                </article>
+            </section>
         </div>
     </div>
 </div>

@@ -5,19 +5,15 @@ import {
   EventEmitter,
   OnInit,
   OnChanges,
-  SimpleChanges
+  SimpleChanges,
 } from '@angular/core';
 
-import {
-  FormGroup,
-  FormBuilder,
-  FormArray
-} from '@angular/forms';
+import { FormGroup, FormBuilder, FormArray } from '@angular/forms';
 
 import {
   MetadataTargetType,
   MetadataAssignmentItemRequest,
-  MetadataAssignmentSaveRequest
+  MetadataAssignmentSaveRequest,
 } from '../../../../Models/MetadataTargetType';
 
 import { MetadataAttribute } from '../../../../Models/MetadataAttribute';
@@ -30,18 +26,17 @@ import { ToastService } from '../../../../../shared/Services/toast.service';
 @Component({
   selector: 'app-attribute-assignment',
   templateUrl: './attribute-assignment.component.html',
-  styleUrls: ['./attribute-assignment.component.scss']
+  styleUrls: ['./attribute-assignment.component.scss'],
 })
-export class AttributeAssignmentComponent
-  implements OnInit, OnChanges {
-
+export class AttributeAssignmentComponent implements OnInit, OnChanges {
   // ================= INPUTS =================
   @Input() targetType!: MetadataTargetType;
   @Input() targetId!: number;
 
   // ================= OUTPUT =================
-  @Output() metadataChange =
-    new EventEmitter<MetadataAssignmentItemRequest[]>();
+  @Output() metadataChange = new EventEmitter<
+    MetadataAssignmentItemRequest[]
+  >();
 
   // ================= STATE =================
   attributes: MetadataAttribute[] = [];
@@ -58,23 +53,22 @@ export class AttributeAssignmentComponent
     private fb: FormBuilder,
     private attributesService: MetadataAttributeService,
     private assignmentService: MetadataAssignmentService,
-    private toast: ToastService
+    private toast: ToastService,
   ) {}
 
   // ================= INIT =================
   ngOnInit(): void {
-  this.form = this.fb.group({
-    attributes: this.fb.array([])
-  });
+    this.form = this.fb.group({
+      attributes: this.fb.array([]),
+    });
 
-  // 🔥 THIS IS THE MISSING PIECE
-  this.form.valueChanges.subscribe(() => {
-    this.emitMetadata();
-  });
+    // 🔥 THIS IS THE MISSING PIECE
+    this.form.valueChanges.subscribe(() => {
+      this.emitMetadata();
+    });
 
-  this.loadData();
-}
-
+    this.loadData();
+  }
 
   // ================= INPUT CHANGES =================
   ngOnChanges(changes: SimpleChanges): void {
@@ -106,7 +100,7 @@ export class AttributeAssignmentComponent
     this.loading = true;
 
     this.attributesService.getAll().subscribe({
-      next: attrRes => {
+      next: (attrRes) => {
         this.attributes = attrRes.data.data ?? [];
 
         // CREATE MODE
@@ -118,26 +112,24 @@ export class AttributeAssignmentComponent
         }
 
         // EDIT MODE
-        this.assignmentService
-          .getByTarget(this.targetId)
-          .subscribe({
-            next: assignRes => {
-              this.assignedValues = assignRes.data ?? [];
-              this.buildForm();
-              this.toast.show(assignRes.message, 'success');
-              this.loading = false;
-            },
-            error: () => {
-              this.buildForm();
-              this.toast.show('Failed to load metadata assignments.', 'error');
-              this.loading = false;
-            }
-          });
+        this.assignmentService.getByTarget(this.targetId).subscribe({
+          next: (assignRes) => {
+            this.assignedValues = assignRes.data ?? [];
+            this.buildForm();
+            this.toast.show(assignRes.message, 'success');
+            this.loading = false;
+          },
+          error: () => {
+            this.buildForm();
+            this.toast.show('Failed to load metadata assignments.', 'error');
+            this.loading = false;
+          },
+        });
       },
       error: () => {
         this.toast.show('Failed to load metadata attributes.', 'error');
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -146,19 +138,16 @@ export class AttributeAssignmentComponent
     this.attributesForm.clear();
 
     for (const attr of this.attributes) {
-      const assigned = this.assignedValues
-        .find(x => x.metadataAttributeId === attr.id);
+      const assigned = this.assignedValues.find(
+        (x) => x.metadataAttributeId === attr.id,
+      );
 
       const group: any = {
-        metadataAttributeId: [attr.id]
+        metadataAttributeId: [attr.id],
       };
 
       if (attr.dataType === MetadataDataType.Select) {
-        group.valueIds = [
-          attr.allowMultipleValues
-            ? assigned?.valueIds ?? []
-            : assigned?.valueIds?.[0] ?? null
-        ];
+        group.valueIds = [assigned?.valueIds?.[0] ?? null];
         group.valueText = [null];
       } else {
         group.valueText = [assigned?.valueText ?? null];
@@ -176,7 +165,7 @@ export class AttributeAssignmentComponent
     index: number,
     valueId: number,
     isMulti: boolean,
-    event: Event
+    event: Event,
   ): void {
     const checked = (event.target as HTMLInputElement).checked;
     const control = this.attributesForm.at(index);
@@ -186,43 +175,53 @@ export class AttributeAssignmentComponent
       control.patchValue({
         valueIds: checked
           ? [...current, valueId]
-          : current.filter(x => x !== valueId)
+          : current.filter((x) => x !== valueId),
       });
     } else {
       control.patchValue({
-        valueIds: checked ? valueId : null
+        valueIds: checked ? valueId : null,
       });
     }
 
     // this.emitMetadata();
   }
 
-  isChecked(index: number, valueId: number, isMulti: boolean): boolean {
+  isChecked(index: number, valueId: number): boolean {
     const valueIds = this.attributesForm.at(index)?.value?.valueIds;
-    return isMulti
-      ? Array.isArray(valueIds) && valueIds.includes(valueId)
-      : valueIds === valueId;
+    return valueIds === valueId;
   }
+  onSingleSelectToggle(index: number, valueId: number): void {
+    const control = this.attributesForm.at(index);
+    const currentValue = control.value?.valueIds;
 
+    control.patchValue({
+      valueIds: currentValue === valueId ? null : valueId,
+    });
+  }
   // ================= EMIT METADATA =================
   private emitMetadata(): void {
-    const normalized: MetadataAssignmentItemRequest[] =
-    this.form.value.attributes
+    const normalized: MetadataAssignmentItemRequest[] = (
+      this.form.value.attributes ?? []
+    )
       .filter((x: any) => this.hasValue(x))
-        .map((x: any) => ({
-          metadataAttributeId: x.metadataAttributeId,
-          valueIds: Array.isArray(x.valueIds) ? x.valueIds : null,
+      .map((x: any) => {
+        const valueIds =
+          x.valueIds !== null && x.valueIds !== undefined
+            ? [Number(x.valueIds)]
+            : [];
+
+        return {
+          metadataAttributeId: Number(x.metadataAttributeId),
+          valueIds: valueIds.length ? valueIds : null,
           valueText:
             x.valueText === null || x.valueText === undefined
               ? ''
-              : String(x.valueText).trim()
+              : String(x.valueText).trim(),
+        };
+      });
 
-
-        }));
-
-  this.metadataChange.emit(normalized);
-console.log('EMITTED METADATA', normalized);
-
+    this.metadataChange.emit(normalized);
+    console.log('EMITTED METADATA', normalized);
   }
 
   // ================= SAVE =================
@@ -233,14 +232,20 @@ console.log('EMITTED METADATA', normalized);
     const payload: MetadataAssignmentSaveRequest = {
       targetType: this.targetType,
       targetId: this.targetId,
-      attributes: this.form.value.attributes
-  .filter((x: any) => this.hasValue(x))
-  .map((x: any) => ({
-    metadataAttributeId: x.metadataAttributeId,
-    valueIds: Array.isArray(x.valueIds) ? x.valueIds : null,
-    valueText: String(x.valueText ?? '')
-  }))
+      attributes: (this.form.value.attributes ?? [])
+        .filter((x: any) => this.hasValue(x))
+        .map((x: any) => {
+          const valueIds =
+            x.valueIds !== null && x.valueIds !== undefined
+              ? [Number(x.valueIds)]
+              : [];
 
+          return {
+            metadataAttributeId: Number(x.metadataAttributeId),
+            valueIds: valueIds.length ? valueIds : null,
+            valueText: String(x.valueText ?? ''),
+          };
+        }),
     };
 
     this.saving = true;
@@ -253,27 +258,22 @@ console.log('EMITTED METADATA', normalized);
       error: () => {
         this.toast.show('Failed to save metadata assignments.', 'error');
         this.saving = false;
-      }
+      },
     });
   }
 
   // ================= HELPERS =================
   private hasValue(item: any): boolean {
-  // SELECT
-  if (Array.isArray(item.valueIds)) {
-    return item.valueIds.length > 0;
+    if (item.valueIds !== null && item.valueIds !== undefined) {
+      return true;
+    }
+
+    return (
+      item.valueText !== null &&
+      item.valueText !== undefined &&
+      item.valueText !== ''
+    );
   }
-
-  // SINGLE SELECT
-  if (item.valueIds !== null && item.valueIds !== undefined) {
-    return true;
-  }
-
-  // TEXT / NUMBER / BOOLEAN
-  return item.valueText !== null && item.valueText !== undefined && item.valueText !== '';
-
-}
-
 
   trackByAttrId(_: number, attr: MetadataAttribute) {
     return attr.id;
@@ -281,11 +281,16 @@ console.log('EMITTED METADATA', normalized);
 
   getDataTypeLabel(type: MetadataDataType): string {
     switch (type) {
-      case MetadataDataType.Select: return 'Select';
-      case MetadataDataType.Number: return 'Number';
-      case MetadataDataType.Boolean: return 'Boolean';
-      case MetadataDataType.Text: return 'Text';
-      default: return '';
+      case MetadataDataType.Select:
+        return 'Select';
+      case MetadataDataType.Number:
+        return 'Number';
+      case MetadataDataType.Boolean:
+        return 'Boolean';
+      case MetadataDataType.Text:
+        return 'Text';
+      default:
+        return '';
     }
   }
 }

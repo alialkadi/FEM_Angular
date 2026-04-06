@@ -40,6 +40,10 @@
   padding: 1.5rem !important;
 }
 
+::ng-deep .cdk-overlay-pane {
+  z-index: 100000000 !important;
+}
+
 @media (max-width: 600px) {
   ::ng-deep .mat-dialog-container {
     width: 95vw !important;

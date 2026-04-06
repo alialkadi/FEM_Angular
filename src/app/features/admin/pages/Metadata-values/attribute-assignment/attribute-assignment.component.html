@@ -22,8 +22,8 @@
                     <ng-container *ngIf="attr.dataType === MetadataDataType.Select">
                         <div class="checkbox-grid">
                             <label class="checkbox-item" *ngFor="let v of attr.values">
-                                <input type="checkbox" [checked]="isChecked(i, v.id, attr.allowMultipleValues)"
-                                    (change)="onCheckboxChange(i, v.id, attr.allowMultipleValues, $event)" />
+                                <input type="radio" [checked]="isChecked(i, v.id)"
+                                    (click)="onSingleSelectToggle(i, v.id)" />
                                 <span>{{ v.displayName }}</span>
                             </label>
                         </div>

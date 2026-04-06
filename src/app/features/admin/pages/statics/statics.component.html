@@ -1,0 +1,91 @@
+<div class="stats-dashboard">
+    <div class="stats-hero">
+        <div class="hero-content">
+            <span class="eyebrow">Dashboard Overview</span>
+            <h2>Service Request Statistics</h2>
+            <p> Track request statuses and monitor the overall distribution of service activity. </p>
+        </div>
+        <div class="hero-summary">
+            <div class="summary-ring">
+                <div class="summary-ring-inner">
+                    <span>Total</span>
+                    <strong>{{ totalRequests }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="loading" class="loading-state">
+        <div class="loader"></div>
+        <p>Loading dashboard statistics...</p>
+    </div>
+    <ng-container *ngIf="!loading">
+        <div class="stats-grid">
+            <div class="stat-card" *ngFor="let card of statCards" [ngClass]="card.className">
+                <div class="stat-card__top">
+                    <div class="stat-icon">{{ card.icon }}</div>
+                    <div class="stat-badge">{{ card.title }}</div>
+                </div>
+                <div class="stat-card__body">
+                    <h3>{{ card.value }}</h3>
+                    <p>{{ card.title }}</p>
+                </div>
+                <div class="stat-card__footer">
+                    <div class="progress-line"></div>
+                </div>
+            </div>
+        </div>
+        <div class="analytics-layout">
+            <div class="chart-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-label">Analytics</span>
+                        <h3>Status Distribution</h3>
+                        <p>Combined request status view in a pie chart.</p>
+                    </div>
+                </div>
+                <div class="chart-shell">
+                    <canvas id="requestsPieChart"></canvas>
+                </div>
+            </div>
+            <div class="legend-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-label">Breakdown</span>
+                        <h3>Quick Summary</h3>
+                        <p>Current numbers across all request stages.</p>
+                    </div>
+                </div>
+                <div class="legend-list">
+                    <div class="legend-item pending">
+                        <div class="legend-left">
+                            <span class="dot"></span>
+                            <span class="label">Pending</span>
+                        </div>
+                        <strong>{{ pendingCount }}</strong>
+                    </div>
+                    <div class="legend-item progress">
+                        <div class="legend-left">
+                            <span class="dot"></span>
+                            <span class="label">In Progress</span>
+                        </div>
+                        <strong>{{ inProgressCount }}</strong>
+                    </div>
+                    <div class="legend-item canceled">
+                        <div class="legend-left">
+                            <span class="dot"></span>
+                            <span class="label">Canceled</span>
+                        </div>
+                        <strong>{{ canceledCount }}</strong>
+                    </div>
+                    <div class="legend-item approved">
+                        <div class="legend-left">
+                            <span class="dot"></span>
+                            <span class="label">Approved</span>
+                        </div>
+                        <strong>{{ approvedCount }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</div>

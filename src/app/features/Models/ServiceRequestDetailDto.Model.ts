@@ -1,14 +1,12 @@
-
 export interface ServiceRequestListDto {
   id: number;
   userFullName: string;
   email: string;
-  requestedDate: string; 
-  statusId: number;      
-  statusName: string;    
+  requestedDate: string;
+  statusId: number;
+  statusName: string;
   totalCost: number;
 }
-
 
 export interface PagedServiceRequestListResponse {
   requests: ServiceRequestListDto[];
@@ -17,15 +15,17 @@ export interface PagedServiceRequestListResponse {
   pageSize: number;
 }
 
-
 export interface ServiceRequestDetailItemDto {
   serviceId: number;
   serviceName: string;
   description?: string;
   baseCost: number;
   calculatedTotal: number;
+  inputs: ServiceRequestInputDto[];
+  fees: ServiceRequestFeeDto[];
+  steps: ServiceRequestStepDto[];
+  metadata: ServiceRequestMetadataDto[];
 }
-
 
 export interface ServiceRequestDetailDto {
   id: number;
@@ -35,20 +35,55 @@ export interface ServiceRequestDetailDto {
   phoneNumber: string;
   address: string;
   requestedDate: string;
-  statusId: number;       
-  statusName: string;     
+  statusId: number;
+  statusName: string;
   totalCost: number;
   notes?: string;
   requestedServices: ServiceRequestDetailItemDto[];
   serviceRequestAssignmentResponses: any[];
 }
 
-
 export interface ServiceRequestResponseDto {
   requestId: number;
   userId: string;
   total: number;
-  statusId: number;       
-  statusName: string;     
+  statusId: number;
+  statusName: string;
   message: string;
+}
+export interface ServiceRequestInputDto {
+  inputCode: string;
+  inputLabel: string;
+
+  // For select / option based inputs
+  inputValueCode: string | null;
+  inputValueLabel: string | null;
+
+  // For numeric / text inputs
+  enteredValue: number | null;
+
+  // Pricing behavior enum from backend
+  pricingBehavior: number;
+
+  appliedRate: number;
+  calculatedCost: number;
+}
+export interface ServiceRequestFeeDto {
+  name: string;
+  amount: number;
+  isGlobal: boolean;
+  description: string | null;
+}
+export interface ServiceRequestStepDto {
+  stepOrder: number;
+  descriptionAtTime: string;
+}
+export interface ServiceRequestMetadataDto {
+  attributeCode: string;
+
+  // For select attributes
+  value: string | null;
+
+  // For text / number / boolean attributes
+  valueText: string | null;
 }

@@ -7,6 +7,7 @@
         <input formControlName="code" />
         <label>Data Type</label>
         <select formControlName="dataType">
+            <option [ngValue]="null">Select Type</option>
             <option *ngFor="let t of dataTypes" [ngValue]="t.value"> {{ t.label }} </option>
         </select>
         <label class="checkbox">
@@ -22,16 +23,15 @@
             <input type="checkbox" formControlName="isVisibleToUser" /> Make attribute visible to end-users </label>
         <label class="checkbox">
             <input type="checkbox" formControlName="isFilterable" /> Allow filtering in service explorer </label>
-        <label class="checkbox">
-            <input type="checkbox" formControlName="affectsPricing" /> This attribute affects pricing </label>
+        <!-- <label class="checkbox">
+            <input type="checkbox" formControlName="affectsPricing" /> This attribute affects pricing </label> -->
         <label class="toggle"> Status (Active / Inactive) <input type="checkbox" formControlName="isActive" />
         </label>
     </div>
     <!-- Pricing (SELECT hint only) -->
     <div class="card" *ngIf="form.get('dataType')?.value === MetadataDataType.Select">
-        <h3>Pricing Rules</h3>
-        <p class="info"> Pricing adjustments are configured per attribute value on the <strong>Manage Values</strong>
-            screen. </p>
+        <h3>Attribute Values</h3>
+        <p class="info"> Attribute Values are added per attribute in the <strong>Manage Values ☰</strong> screen. </p>
     </div>
     <!-- Actions -->
     <div class="actions">

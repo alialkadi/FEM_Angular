@@ -13,7 +13,13 @@
 //     partName?: string,
 //     structureName?: string,
 //     partOptionName?: string
-    
+
+import { MetadataDataType } from './MetadataTargetType';
+import {
+  ServiceInputDefinition,
+  ServiceInputAnswer,
+} from './RequestedInputs.model';
+
 // }
 
 // export interface ServiceListResponse{
@@ -52,7 +58,6 @@
 //     serviceId?: number,
 //     description?: string
 // }
-
 
 // export interface ServiceStepListResponse{
 //     totalCount?: number,
@@ -93,12 +98,13 @@
 //   message: string;
 // }
 
-
 // ========================================================
 //  CORE SERVICE MODELS — already in your system
 // ========================================================
 
 export interface ServiceResponse {
+  requiredInputs?: any[];
+  inputs?: ServiceInputDefinition[];
   id: number;
   name?: string;
   description?: string;
@@ -111,11 +117,20 @@ export interface ServiceResponse {
   partId?: number;
   partOptionId?: number;
   partName?: string;
-  labors?: number,
+  labors?: number;
   structureName?: string;
   partOptionName?: string;
+  applyGlobalFees?: boolean;
+  applyLogistics?: boolean;
+  baseRate?: number;
+  pricingMode?: number;
   calculatedTotal?: number; // added dynamically after cost calculation
   metadata?: ServiceSelectedMetadataDto[];
+
+  // ✅ advertise fields
+  isAdvertised?: boolean;
+  advertiseSlug?: string | null;
+  advertiseSortOrder?: number | null;
 }
 
 export interface ServiceListResponse {
@@ -138,8 +153,7 @@ export interface CreateUpdateServiceRequest {
   structureId?: number;
   partId?: number;
   partOptionId?: number;
-  labors?: number,
-
+  labors?: number;
 }
 
 // ========================================================
@@ -207,9 +221,10 @@ export interface ServiceUserInfo {
 
 export interface RequestedService {
   service: ServiceResponse;
-  calculation: ServiceCalculationResult;
+  calculation: ServiceCalculationResult | null;
   steps: ServiceStep[];
-  
+  // inputs?: ServiceInputDefinition[];
+  answers: ServiceInputAnswer[];
 }
 
 // ========================================================
@@ -248,7 +263,29 @@ export interface ServiceSelectedMetadataDto {
   valueName: string;
   dataType: number;
   affectsPricing: boolean;
-  metadataAttributeId?: number,
-  metadataAttributeValueId: number,
-  valueText? : string
+  metadataAttributeId?: number;
+  metadataAttributeValueId: number;
+  valueText?: string;
+}
+export enum PricingInputBehavior {
+  None = 0,
+  Dimensional = 1,
+  Rate = 2,
+  Fixed = 3,
+}
+
+export interface InputDefinitionDto {
+  id: number;
+  code: string;
+  label: string;
+  dataType: MetadataDataType;
+  pricingBehavior: PricingInputBehavior;
+}
+export interface ExplorerService {
+  id: number;
+  name: string;
+  fileUrl?: string;
+  itemType: number;
+  inputs?: ServiceInputDefinition[];
+  metadata?: any[];
 }

@@ -21,19 +21,27 @@ import { MetadataCreateAttributeComponent } from './pages/Metadata/metadata-crea
 import { MetadataAssignValueComponent } from './pages/Metadata-values/metadata-assign-value/metadata-assign-value.component';
 import { UpdateServiceComponent } from './pages/Service/update-service/update-service.component';
 import { MetadataUpdateAttributeComponent } from './pages/Metadata/metadata-update-attribute/metadata-update-attribute.component';
+import { InputDefinitionComponent } from './pages/input-definition/input-definition.component';
+import { EditServiceGeneralComponent } from './pages/Service/edit-service-general/edit-service-general.component';
+import { EditServiceMetadataComponent } from './pages/Service/edit-service-metadata/edit-service-metadata.component';
+import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/edit-service-inputs.component';
+import { StaticsComponent } from './pages/statics/statics.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   {
-    path: 'dashboard', component: DashboardComponent, children: [
-      {path: 'manage-users', component: ManageUsersComponent},
-      {path: 'Categories', component: CategoriesListComponent },
-      {path: 'CategoryTypes', component: CategoryTypesComponent },
-      {path: 'Structures', component: StructureListComponent },
-      {path: 'Parts', component: PartListComponent },
-      {path: 'PartOptions', component: PartOptionListComponent },
-      {path: 'Services', component: ServiceListComponent },
-      {path: 'createservice', component: CreateServiceComponent },
+    path: 'dashboard',
+    component: DashboardComponent,
+    children: [
+      { path: '', component: StaticsComponent },
+      { path: 'manage-users', component: ManageUsersComponent },
+      { path: 'Categories', component: CategoriesListComponent },
+      { path: 'CategoryTypes', component: CategoryTypesComponent },
+      { path: 'Structures', component: StructureListComponent },
+      { path: 'Parts', component: PartListComponent },
+      { path: 'PartOptions', component: PartOptionListComponent },
+      { path: 'Services', component: ServiceListComponent },
+      { path: 'createservice', component: CreateServiceComponent },
       { path: 'Fee', component: FeeListComponent },
       { path: 'createFee', component: CreateFeeComponent },
       { path: 'ServiceRequests', component: AdminServiceRequestComponent },
@@ -41,22 +49,35 @@ const routes: Routes = [
       { path: 'create-worker', component: CreateWorkerComponent },
       { path: 'workers', component: WorkersListComponent },
       { path: 'metadata', component: MetadataAttributeListComponent },
+      { path: 'input', component: InputDefinitionComponent },
       { path: 'createattribute', component: MetadataCreateAttributeComponent },
       {
         path: 'assignvalue/:attributeId',
-        component: MetadataAssignValueComponent
+        component: MetadataAssignValueComponent,
       },
-      { path: "editservice/:id", component: UpdateServiceComponent },
-      { path: "editattribute/:id", component: MetadataUpdateAttributeComponent }
-      
-
-
-  ]}
+      { path: 'editservice/:id', component: UpdateServiceComponent },
+      {
+        path: 'editattribute/:id',
+        component: MetadataUpdateAttributeComponent,
+      },
+      {
+        path: 'services/edit-general/:id',
+        component: EditServiceGeneralComponent,
+      },
+      {
+        path: 'services/edit-metadata/:id',
+        component: EditServiceMetadataComponent,
+      },
+      {
+        path: 'services/edit-inputs/:id',
+        component: EditServiceInputsComponent,
+      },
+    ],
+  },
 ];
 
-
 @NgModule({
-  imports: [RouterModule.forChild(routes)],   // ✅ forChild only
-  exports: [RouterModule]
+  imports: [RouterModule.forChild(routes)], // ✅ forChild only
+  exports: [RouterModule],
 })
 export class AdminRoutingModule {}

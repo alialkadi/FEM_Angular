@@ -50,7 +50,7 @@
             <ul>
                 <li *ngFor="let item of requestedServices">
                     <span>{{ item.service.name }}</span>
-                    <span>{{ item.calculation.total | currency }}</span>
+                    <span>{{ item.calculation?.total | currency }}</span>
                 </li>
             </ul>
             <div class="summary-total"> Total: <strong *ngFor="let item of requestedServices">

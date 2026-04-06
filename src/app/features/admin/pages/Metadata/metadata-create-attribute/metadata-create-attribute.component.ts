@@ -8,10 +8,9 @@ import { ToastService } from '../../../../../shared/Services/toast.service';
 @Component({
   selector: 'app-metadata-create-attribute',
   templateUrl: './metadata-create-attribute.component.html',
-  styleUrls: ['./metadata-create-attribute.component.scss']
+  styleUrls: ['./metadata-create-attribute.component.scss'],
 })
 export class MetadataCreateAttributeComponent implements OnInit {
-
   form!: FormGroup;
   loading = false;
 
@@ -21,14 +20,14 @@ export class MetadataCreateAttributeComponent implements OnInit {
     { value: MetadataDataType.Select, label: 'SELECT' },
     { value: MetadataDataType.Number, label: 'NUMBER' },
     { value: MetadataDataType.Boolean, label: 'BOOLEAN' },
-    { value: MetadataDataType.Text, label: 'TEXT' }
+    { value: MetadataDataType.Text, label: 'TEXT' },
   ];
 
   constructor(
     private fb: FormBuilder,
     private service: MetadataAttributeService,
     private router: Router,
-    private toast: ToastService
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -42,22 +41,22 @@ export class MetadataCreateAttributeComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', Validators.required],
       code: ['', Validators.required],
-      dataType: [MetadataDataType.Select, Validators.required],
+      dataType: [null, Validators.required],
       allowMultipleValues: [false],
 
       isFilterable: [true],
       isVisibleToUser: [true],
       affectsPricing: [false],
-      isActive: [true]
+      isActive: [true],
     });
 
-    // Enforce backend rule
-    this.form.get('dataType')!.valueChanges.subscribe(type => {
-      if (type !== MetadataDataType.Select) {
+    this.form.get('dataType')!.valueChanges.subscribe((type) => {
+      if (type === MetadataDataType.Select) {
+        this.form.get('allowMultipleValues')!.enable();
+        this.form.get('allowMultipleValues')!.setValue(true);
+      } else {
         this.form.get('allowMultipleValues')!.setValue(false);
         this.form.get('allowMultipleValues')!.disable();
-      } else {
-        this.form.get('allowMultipleValues')!.enable();
       }
     });
   }
@@ -72,7 +71,7 @@ export class MetadataCreateAttributeComponent implements OnInit {
 
     const payload = {
       ...this.form.value,
-      code: this.form.value.code.trim().toUpperCase()
+      code: this.form.value.code.trim().toUpperCase(),
     };
 
     this.service.create(payload).subscribe({
@@ -84,7 +83,7 @@ export class MetadataCreateAttributeComponent implements OnInit {
       error: () => {
         this.toast.show('Failed to create metadata attribute.', 'error');
         this.loading = false;
-      }
+      },
     });
   }
 }

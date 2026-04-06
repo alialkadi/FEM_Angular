@@ -114,6 +114,24 @@
                     <label>Labors</label>
                     <input type="number" formControlName="labors" />
                 </div>
+                <div class="form-group" style="
+                            width: 100%;
+                            display: inline-flex;
+                            flex-direction: row;
+                            align-items: center;
+                        ">
+                    <input type="checkbox" formControlName="applyGlobalFees" />
+                    <label>Apply Global Fees</label>
+                </div>
+                <div class="form-group" style="
+                            width: 100%;
+                            display: inline-flex;
+                            flex-direction: row;
+                            align-items: center;
+                        ">
+                    <input type="checkbox" formControlName="applyLogistics" />
+                    <label>Apply Logistics</label>
+                </div>
                 <!-- FILE -->
                 <div class="form-group">
                     <input type="file" (change)="onFileSelected($event)" />
@@ -123,9 +141,49 @@
                 </div>
                 <!-- INLINE FIELDS -->
                 <div class="inline-fields">
-                    <div>
-                        <label>Base Cost</label>
-                        <input type="number" formControlName="baseCost" />
+                    <!-- ================= PRICING MODE ================= -->
+                    <div class="pricing-mode-card">
+                        <h4>Pricing Mode</h4>
+                        <p class="hint"> Choose how the price of this service is calculated. </p>
+                        <div class="pricing-mode-options">
+                            <label class="mode-option">
+                                <input type="radio" name="pricingMode" [checked]="pricingMode === 'Static'"
+                                    (change)="pricingMode = 'Static'" />
+                                <div>
+                                    <strong>Static Pricing</strong>
+                                    <small>Fixed price, same for all customers</small>
+                                </div>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="pricingMode" [checked]="pricingMode === 'Dynamic'"
+                                    (change)="pricingMode = 'Dynamic'" />
+                                <div>
+                                    <strong>Dynamic Pricing</strong>
+                                    <small>Price calculated from user inputs</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- ================= STATIC PRICING ================= -->
+                    <div class="static-pricing" *ngIf="pricingMode === 'Static'">
+                        <h4>Base Price</h4>
+                        <p class="hint"> This amount will be used directly as the service base cost. </p>
+                        <input type="number" formControlName="baseCost" placeholder="Enter base cost" />
+                    </div>
+                    <!-- ================= DYNAMIC PRICING OVERVIEW ================= -->
+                    <div class="dynamic-pricing" *ngIf="pricingMode === 'Dynamic'">
+                        <h4>Base Rate</h4>
+                        <p class="hint"> This amount will be used directly as the service base rate. </p>
+                        <input type="number" formControlName="baseRate" placeholder="Enter base Rate" />
+                        <h4>Dynamic Pricing Rules</h4>
+                        <p class="hint"> The service price will be calculated based on the inputs below. </p>
+                        <ul class="pricing-explanation">
+                            <li>Dimensional inputs are multiplied together</li>
+                            <li>Rate inputs are summed and applied to dimensions</li>
+                            <li>BaseRate will be added to the sum of rate inputs</li>
+                            <li>Fixed inputs are added directly</li>
+                            <li>Dependencies control when a rule applies</li>
+                        </ul>
                     </div>
                     <div>
                         <label>Warranty Duration</label>
@@ -137,6 +195,7 @@
                             <option value="Days">Days</option>
                             <option value="Weeks">Weeks</option>
                             <option value="Months">Months</option>
+                            <option value="Years">Years</option>
                         </select>
                     </div>
                     <div>
@@ -167,4 +226,87 @@
             <button type="submit" [disabled]="isSubmitting"> {{ isSubmitting ? 'Saving…' : 'Create Service' }} </button>
         </div>
     </form>
+</div>
+<!-- ================= DYNAMIC PRICING ================= -->
+<div class="pricing-manager" *ngIf="pricingMode === 'Dynamic'">
+    <!-- HEADER -->
+    <div class="pricing-header">
+        <div>
+            <h3>Dynamic Pricing Rules</h3>
+            <p class="hint"> Define pricing per input value. You can add multiple rates with optional conditions. </p>
+        </div>
+        <!-- ADD INPUT -->
+        <div class="add-input-wrapper">
+            <select #inputSelect class="input-select">
+                <option value="">Select input</option>
+                <option *ngFor="let def of inputDefinitions" [value]="def.id"> {{ def.label }} ({{
+                    getPricingTypeLabel(def) }}) </option>
+            </select>
+            <button type="button" class="btn-primary" (click)="addInputFromSelect(inputSelect.value)"> + Add Input
+            </button>
+        </div>
+    </div>
+    <!-- INPUTS -->
+    <div class="pricing-inputs">
+        <div class="input-card" *ngFor="let input of pricingInputs; let i = index">
+            <!-- INPUT HEADER -->
+            <div class="input-card-header">
+                <div class="title">
+                    <h4>{{ input.label }}</h4>
+                    <span class="chip">{{ getPricingTypeLabel(input) }}</span>
+                </div>
+                <button class="icon-btn danger" type="button" (click)="removePricingInput(i)"> ✕ </button>
+            </div>
+            <!-- SETTINGS -->
+            <div class="input-settings">
+                <label class="checkbox-row">
+                    <input type="checkbox" [(ngModel)]="input.isRequired" /> Required for pricing </label>
+                <div *ngIf="input.pricingBehavior === PricingInputBehavior.Dimensional" class="dimension-box">
+                    <label>Preview Value</label>
+                    <input type="number" [(ngModel)]="input.previewNumericValue" (input)="calculatePreview()" />
+                </div>
+            </div>
+            <!-- VALUES -->
+            <div *ngIf="input.dataType === MetadataDataType.Select" class="values-block">
+                <div class="value-card" *ngFor="let v of inputValuesMap[input.inputDefinitionId]">
+                    <!-- VALUE HEADER -->
+                    <div class="value-header">
+                        <strong>{{ v.displayName || v.value }}</strong>
+                    </div>
+                    <!-- RATE ROWS -->
+                    <div class="rate-table">
+                        <div class="rate-row" *ngFor="let r of v.rates; let ri = index">
+                            <div class="rate-cell">
+                                <label>Rate</label>
+                                <input type="number" placeholder="e.g. 25" [(ngModel)]="r.amount"
+                                    (input)="calculatePreview()" />
+                            </div>
+                            <div class="rate-cell" *ngIf="input.pricingBehavior === PricingInputBehavior.Rate">
+                                <label>Apply when</label>
+                                <select [(ngModel)]="r.dependsOnValueId" (change)="calculatePreview()">
+                                    <option [ngValue]="undefined">Always</option>
+                                    <ng-container *ngFor="let parent of pricingInputs">
+                                        <ng-container *ngIf="
+                        parent.inputDefinitionId !== input.inputDefinitionId &&
+                        parent.dataType === MetadataDataType.Select
+                      ">
+                                            <option *ngFor="let pv of inputValuesMap[parent.inputDefinitionId]"
+                                                [ngValue]="pv.id"> {{ parent.label }} = {{ pv.displayName || pv.value }}
+                                            </option>
+                                        </ng-container>
+                                    </ng-container>
+                                </select>
+                            </div>
+                            <div class="rate-actions">
+                                <button type="button" class="icon-btn danger" (click)="removeRateRow(v, ri)"> ✕
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ADD RATE -->
+                    <button type="button" class="btn-link" (click)="addRateRow(v)"> + Add pricing condition </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
