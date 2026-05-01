@@ -1,4 +1,4 @@
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { CategoryService } from '../../../admin/Services/CategoryService';
 import { CategoryTypeService } from '../../../admin/Services/categoryTypeService.service';
@@ -11,6 +11,7 @@ import {
 } from '../../../admin/Services/MetadataExplorerService.service';
 import { Category } from '../../../Models/Category';
 import { CategoryType } from '../../../Models/CategoryType';
+
 interface ExplorerCrumb {
   label: string;
   level: 'category' | 'type' | 'structure' | 'part' | 'option';
@@ -42,28 +43,65 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   selectedServices: ExplorerItem[] = [];
   filtersSheetOpen = false;
 
-  ExplorerItemType = ExplorerItemType; // 👈 expose enum to template
+  ExplorerItemType = ExplorerItemType;
 
   constructor(
     private categoryService: CategoryService,
     private typeService: CategoryTypeService,
     private explorerService: MetadataExplorerService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
-    this.categoryService.getAllCategories(true).subscribe((r) => {
-      this.categories = r.data?.categories ?? [];
-      console.log('explorer : ', r);
+    this.loadCategoriesAndHandleRoute();
+  }
+
+  private loadCategoriesAndHandleRoute(): void {
+    this.categoryService.getAllCategories(true).subscribe({
+      next: (r) => {
+        this.categories = r.data?.categories ?? [];
+        this.handleInitialCategoryFromQuery();
+      },
+      error: () => {
+        this.categories = [];
+      },
     });
   }
 
-  selectCategory(c: Category) {
+  private handleInitialCategoryFromQuery(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const categoryIdParam = params.get('categoryId');
+      const categoryId = categoryIdParam ? Number(categoryIdParam) : 0;
+
+      if (!categoryId) return;
+
+      const matchedCategory = this.categories.find((c) => c.id === categoryId);
+      if (!matchedCategory) return;
+
+      this.selectCategory(matchedCategory, false);
+    });
+  }
+
+  selectCategory(c: Category, updateUrl: boolean = true) {
     this.resetAll();
     this.selectedCategory = c;
 
-    this.typeService.getTypesByCategory(c.id!).subscribe((r) => {
-      this.types = r.data?.categoryTypes ?? [];
+    if (updateUrl && c?.id) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { categoryId: c.id },
+        queryParamsHandling: 'merge',
+      });
+    }
+
+    this.typeService.getTypesByCategory(c.id!).subscribe({
+      next: (r) => {
+        this.types = r.data?.categoryTypes ?? [];
+      },
+      error: () => {
+        this.types = [];
+      },
     });
   }
 
@@ -117,7 +155,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
         this.explorerItems = res?.items ?? [];
         this.filters = this.normalizeFilters(res?.filters ?? []);
       },
-      error: (_) => {
+      error: () => {
         this.explorerItems = [];
         this.filters = [];
       },
@@ -239,8 +277,8 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.selectedFilters = {};
     this.selectedServices = [];
   }
+
   requestServices() {
-    console.log('before route ', this.selectedServices);
     this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
       state: { selectedServices: this.selectedServices },
     });
@@ -286,6 +324,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
 
     return crumbs;
   }
+
   goToCrumb(level: ExplorerCrumb['level']) {
     switch (level) {
       case 'category':
@@ -325,6 +364,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
         break;
     }
   }
+
   goBack() {
     if (this.optionId) {
       this.optionId = undefined;
@@ -348,6 +388,12 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     } else if (this.selectedCategory) {
       this.selectedCategory = undefined;
       this.types = [];
+
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { categoryId: null },
+        queryParamsHandling: 'merge',
+      });
     }
 
     this.selectedFilters = {};
@@ -370,6 +416,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       (k) => (this.selectedFilters[k]?.length ?? 0) > 0,
     );
   }
+
   private normalizeFilters(filters: MetadataFilter[] = []): MetadataFilter[] {
     const map = new Map<string, MetadataFilter>();
 
@@ -377,23 +424,19 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       if (!f?.code) continue;
 
       if (!map.has(f.code)) {
-        // clone + start fresh values array
         map.set(f.code, { ...f, values: [...(f.values ?? [])] });
         continue;
       }
 
       const existing = map.get(f.code)!;
-      // merge values
       existing.values.push(...(f.values ?? []));
     }
 
-    // Distinct values by id + stable sort (optional)
     const result = Array.from(map.values()).map((f) => ({
       ...f,
       values: this.distinctById(f.values ?? []),
     }));
 
-    // Optional: sort filters by name
     result.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
 
     return result;
@@ -409,12 +452,15 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     }
     return out;
   }
+
   openFiltersSheet() {
     this.filtersSheetOpen = true;
   }
+
   closeFiltersSheet() {
     this.filtersSheetOpen = false;
   }
+
   toggleFiltersSheet() {
     this.filtersSheetOpen = !this.filtersSheetOpen;
   }
@@ -424,7 +470,6 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.loadExplorer();
   }
 
-  // Better empty-state level
   get currentLevel(): 'structure' | 'part' | 'option' | 'service' {
     if (this.optionId) return 'service';
     if (this.partId) return 'option';

@@ -1,0 +1,168 @@
+<div class="consultations-admin-page">
+    <div class="page-header">
+        <div>
+            <h2>Technical Consultations</h2>
+            <p>Manage consultation requests submitted by users.</p>
+        </div>
+        <div class="header-stats">
+            <div class="stat-card">
+                <span class="stat-label">Total Requests</span>
+                <strong>{{ totalCount }}</strong>
+            </div>
+        </div>
+    </div>
+    <div class="toolbar">
+        <div class="search-box">
+            <input type="text" placeholder="Search by name, email, phone, address..." [(ngModel)]="searchTerm"
+                (input)="onSearchChange()" />
+        </div>
+    </div>
+    <div *ngIf="loading" class="state-card loading-state">
+        <div class="spinner"></div>
+        <p>Loading consultation requests...</p>
+    </div>
+    <div *ngIf="!loading && filteredConsultations.length === 0" class="state-card empty-state">
+        <h3>No consultation requests found</h3>
+        <p>There are no consultation submissions to display right now.</p>
+    </div>
+    <div *ngIf="!loading && filteredConsultations.length > 0" class="table-card">
+        <div class="table-responsive">
+            <table class="consultations-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Contact</th>
+                        <th>Portfolio</th>
+                        <th>Address</th>
+                        <th>Scopes</th>
+                        <th>Message</th>
+                        <th class="actions-col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of filteredConsultations; trackBy: trackById">
+                        <td>#{{ item.id }}</td>
+                        <td>
+                            <div class="user-block">
+                                <strong> {{ item.fullName || ((item.firstName || '') + ' ' + (item.lastName || '')) }}
+                                </strong>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="contact-block">
+                                <span>{{ item.email }}</span>
+                                <small>{{ item.phoneNumber }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge portfolio-badge"> {{ item.portfolioType || 'N/A' }} </span>
+                        </td>
+                        <td>
+                            <div class="address-cell"> {{ item.address || 'N/A' }} </div>
+                        </td>
+                        <td>
+                            <div class="scopes-wrap" *ngIf="item.serviceScopes?.length; else noScopes">
+                                <span class="scope-chip" *ngFor="let scope of item.serviceScopes"> {{ scope }} </span>
+                            </div>
+                            <ng-template #noScopes>
+                                <span class="muted">No scopes</span>
+                            </ng-template>
+                        </td>
+                        <td>
+                            <div class="message-cell" [title]="item.message"> {{ item.message || '—' }} </div>
+                        </td>
+                        <td class="actions-col">
+                            <div class="actions">
+                                <button class="btn btn-edit" type="button" (click)="openEditModal(item)"> Edit </button>
+                                <button class="btn btn-delete" type="button" [disabled]="deletingId === item.id"
+                                    (click)="deleteConsultation(item.id)"> {{ deletingId === item.id ? 'Deleting...' :
+                                    'Delete' }} </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination" *ngIf="totalPages > 1">
+            <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"> Previous
+            </button>
+            <button *ngFor="let page of pages" class="page-btn" [class.active]="page === currentPage"
+                (click)="goToPage(page)"> {{ page }} </button>
+            <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"> Next
+            </button>
+        </div>
+    </div>
+</div>
+<!-- EDIT MODAL -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <div>
+                <h3>Edit Consultation</h3>
+                <p>Update consultation request details.</p>
+            </div>
+            <button type="button" class="modal-close" (click)="closeEditModal()">×</button>
+        </div>
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="edit-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" formControlName="firstName" />
+                    <small class="error" *ngIf="getFieldError('firstName')">First name is required.</small>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" formControlName="lastName" />
+                    <small class="error" *ngIf="getFieldError('lastName')">Last name is required.</small>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" formControlName="email" />
+                    <small class="error" *ngIf="getFieldError('email')">Valid email is required.</small>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" formControlName="phoneNumber" />
+                    <small class="error" *ngIf="getFieldError('phoneNumber')">Phone number is required.</small>
+                </div>
+                <div class="form-group full">
+                    <label>Address</label>
+                    <input type="text" formControlName="address" />
+                    <small class="error" *ngIf="getFieldError('address')">Address is required.</small>
+                </div>
+                <div class="form-group">
+                    <label>Portfolio Type</label>
+                    <select formControlName="portfolioType">
+                        <option value="">Select type</option>
+                        <option value="Residential">Residential</option>
+                        <option value="Commercial">Commercial</option>
+                    </select>
+                    <small class="error" *ngIf="getFieldError('portfolioType')"> Portfolio type is required. </small>
+                </div>
+                <div class="form-group">
+                    <label>Place ID</label>
+                    <input type="text" formControlName="placeId" />
+                </div>
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="number" formControlName="latitude" />
+                </div>
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="number" formControlName="longitude" />
+                </div>
+                <div class="form-group full">
+                    <label>Message</label>
+                    <textarea rows="5" formControlName="message"></textarea>
+                    <small class="error" *ngIf="getFieldError('message')">Message is required.</small>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn secondary-btn" (click)="closeEditModal()"> Cancel </button>
+                <button type="submit" class="btn primary-btn" [disabled]="submitting"> {{ submitting ? 'Saving...' :
+                    'Save Changes' }} </button>
+            </div>
+        </form>
+    </div>
+</div>

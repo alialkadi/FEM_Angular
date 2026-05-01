@@ -53,6 +53,7 @@ export class EditServiceMetadataComponent implements OnInit {
         next: (res) => {
           this.saving = false;
           if (res.success) {
+            console.log(res);
             this.toast.show(
               res.message ?? 'Metadata updated successfully',
               'success',

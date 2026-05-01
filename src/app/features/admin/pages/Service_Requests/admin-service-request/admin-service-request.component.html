@@ -67,7 +67,7 @@
                     <td>{{ r.totalCost | currency }}</td>
                     <td>
                         <button class="view-btn" (click)="openDetails(r.id)"> View Details </button>
-                        <button class="assign-btn" (click)="openAssignWorker(r.id)"> Assign Worker </button>
+                        <button class="assign-btn" (click)="openAssignWorker(r.id)"> Assign Technician </button>
                     </td>
                 </tr>
             </tbody>
@@ -131,15 +131,47 @@
                 <h3>Requested Services</h3>
                 <article class="service-card" *ngFor="let s of selectedRequest.requestedServices">
                     <!-- SERVICE HEADER -->
-                    <div class="service-head">
-                        <div>
+                    <div class="service-card-header">
+                        <div class="service-main">
+                            <span class="service-level"> {{ s.hierarchy?.assignedLevel || 'Unknown' }} </span>
                             <h4>{{ s.serviceName }}</h4>
-                            <p class="muted">{{ s.description || 'No description provided' }}</p>
+                            <p class="muted"> {{ s.description || 'No description provided' }} </p>
                         </div>
                         <div class="price-box">
                             <span>Base {{ s.baseCost | currency }}</span>
                             <strong>{{ s.calculatedTotal | currency }}</strong>
                         </div>
+                    </div>
+                    <div class="hierarchy-box" *ngIf="s.hierarchy">
+                        <div class="hierarchy-item">
+                            <span>Category</span>
+                            <strong>{{ s.hierarchy.categoryName || '-' }}</strong>
+                        </div>
+                        <div class="hierarchy-item">
+                            <span>Type</span>
+                            <strong>{{ s.hierarchy.typeName || '-' }}</strong>
+                        </div>
+                        <div class="hierarchy-item">
+                            <span>Structure</span>
+                            <strong>{{ s.hierarchy.structureName || '-' }}</strong>
+                        </div>
+                        <div class="hierarchy-item" *ngIf="s.hierarchy.partName">
+                            <span>Part</span>
+                            <strong>{{ s.hierarchy.partName }}</strong>
+                        </div>
+                        <div class="hierarchy-item" *ngIf="s.hierarchy.partOptionName">
+                            <span>Part Option</span>
+                            <strong>{{ s.hierarchy.partOptionName }}</strong>
+                        </div>
+                    </div>
+                    <div class="assigned-path" *ngIf="s.hierarchy">
+                        <span>Assigned To</span>
+                        <strong *ngIf="s.hierarchy.assignedLevel === 'Structure'"> {{ s.hierarchy.structureName }}
+                        </strong>
+                        <strong *ngIf="s.hierarchy.assignedLevel === 'Part'"> {{ s.hierarchy.partName }} </strong>
+                        <strong *ngIf="s.hierarchy.assignedLevel === 'PartOption'"> {{ s.hierarchy.partOptionName }}
+                        </strong>
+                        <strong *ngIf="s.hierarchy.assignedLevel === 'Unknown'"> Unknown </strong>
                     </div>
                     <!-- INPUTS -->
                     <section *ngIf="s.inputs?.length" class="service-block">
@@ -199,8 +231,7 @@
                         <h5>Service Steps</h5>
                         <ol class="steps">
                             <li *ngFor="let st of s.steps">
-                                <strong>Step {{ st.stepOrder }}</strong>
-                                <span>{{ st.descriptionAtTime }}</span>
+                                <span>{{ st.description }}</span>
                             </li>
                         </ol>
                     </section>

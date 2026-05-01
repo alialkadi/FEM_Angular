@@ -255,193 +255,519 @@ export class CreateServiceComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    const payload = { ...this.serviceForm.value };
-
-    // Enforce single linkage
-    if (this.activeLinkage === 'Structure') {
-      payload.partId = null;
-      payload.partOptionId = null;
-    } else if (this.activeLinkage === 'Part') {
-      payload.structureId = null;
-      payload.partOptionId = null;
-    } else {
-      payload.structureId = null;
-      payload.partId = null;
+    if (!this.validateNumericMinMax()) {
+      this.isSubmitting = false;
+      return;
     }
-
+    const formValue = this.serviceForm.getRawValue();
     const formData = new FormData();
 
-    Object.keys(payload).forEach((key) => {
-      if (payload[key] !== null && payload[key] !== undefined) {
-        formData.append(key, payload[key]);
-      }
-    });
+    // =========================
+    // BASIC SERVICE DATA
+    // =========================
+    formData.append('Name', formValue.name ?? '');
+    formData.append('Description', formValue.description ?? '');
+    formData.append('Series', formValue.series ?? '');
+    formData.append('LockingPoint', formValue.lockingPoint ?? '');
+    formData.append('PointNumber', formValue.pointNumber ?? '');
+    formData.append('Labors', String(formValue.labors ?? 0));
+    formData.append('ApplyGlobalFees', String(!!formValue.applyGlobalFees));
+    formData.append('ApplyLogistics', String(!!formValue.applyLogistics));
+    formData.append(
+      'WarrantyDuration',
+      String(formValue.warrantyDuration ?? 0),
+    );
+    formData.append('WarrantyUnit', formValue.warrantyUnit ?? 'Days');
+    formData.append('DeliveryDays', String(formValue.deliveryDays ?? 0));
 
-    if (this.selectedFile) {
-      formData.append('file', this.selectedFile);
+    // =========================
+    // LINKAGE
+    // =========================
+    if (this.activeLinkage === 'Structure' && formValue.structureId) {
+      formData.append('StructureId', String(formValue.structureId));
     }
+
+    if (this.activeLinkage === 'Part' && formValue.partId) {
+      formData.append('PartId', String(formValue.partId));
+    }
+
+    if (this.activeLinkage === 'PartOption' && formValue.partOptionId) {
+      formData.append('PartOptionId', String(formValue.partOptionId));
+    }
+
+    // =========================
+    // PRICING MODE
+    // =========================
     formData.append('PricingMode', this.pricingMode);
 
-    // ✅ METADATA (CORRECT FORM-DATA BINDING)
-    this.metadataPayload.forEach((m, i) => {
-      formData.append(
-        `Metadata[${i}].MetadataAttributeId`,
-        m.metadataAttributeId.toString(),
-      );
+    if (this.pricingMode === 'Static') {
+      formData.append('BaseCost', formValue.baseCost);
+    } else {
+      formData.append('BaseCost', '0');
 
-      if (m.valueIds?.length) {
-        m.valueIds.forEach((v, j) => {
-          formData.append(`Metadata[${i}].ValueIds[${j}]`, v.toString());
-        });
-      }
+      formData.append('BaseRate', String(formValue.baseRate ?? 0));
+    }
 
-      if (m.valueText !== null && m.valueText !== undefined) {
-        formData.append(
-          `Metadata[${i}].ValueText`,
-          m.valueText === '' ? ' ' : m.valueText,
-        );
-      }
-    });
+    // =========================
+    // FILE
+    // =========================
+    if (this.selectedFile) {
+      formData.append('File', this.selectedFile);
+    }
+
+    // =========================
+    // DYNAMIC PRICING INPUTS
+    // =========================
     if (this.pricingMode === 'Dynamic') {
       let index = 0;
 
-      this.pricingInputs.forEach((input) => {
-        // 🔵 RATE
-        if (input.pricingBehavior === PricingInputBehavior.Rate) {
-          const values = this.inputValuesMap[input.inputDefinitionId] || [];
+      for (const input of this.pricingInputs) {
+        const isSelect = input.dataType === this.MetadataDataType.Select;
+        const isText = input.dataType === this.MetadataDataType.Text;
+        const isNumber = input.dataType === this.MetadataDataType.Number;
+        const isBoolean = input.dataType === this.MetadataDataType.Boolean;
 
-          values.forEach((v) => {
-            v.rates.forEach((rateRow) => {
-              if (!rateRow.amount || rateRow.amount <= 0) return;
+        const behavior = input.pricingBehavior;
+        const values = this.inputValuesMap[input.inputDefinitionId] || [];
 
-              formData.append(
-                `PricingInputs[${index}].InputDefinitionId`,
-                input.inputDefinitionId.toString(),
-              );
-              formData.append(
-                `PricingInputs[${index}].InputValueId`,
-                v.id.toString(),
-              );
-              formData.append(
-                `PricingInputs[${index}].PricingBehavior`,
-                input.pricingBehavior.toString(),
-              );
-              formData.append(
-                `PricingInputs[${index}].Amount`,
-                rateRow.amount.toString(),
-              );
-              formData.append(
-                `PricingInputs[${index}].IsRequired`,
-                String(input.isRequired),
-              );
-              formData.append(
-                `PricingInputs[${index}].Priority`,
-                input.priority.toString(),
-              );
+        // -------------------------
+        // TEXT + NONE
+        // -------------------------
+        if (isText && behavior === this.PricingInputBehavior.None) {
+          this.appendPricingInput(formData, index, {
+            inputDefinitionId: input.inputDefinitionId,
+            pricingBehavior: behavior,
+            amount: 0,
+            isRequired: !!input.isRequired,
+            priority: input.priority ?? 0,
+          });
+          index++;
+          continue;
+        }
 
-              if (rateRow.dependsOnValueId) {
-                const parent = this.findParentByValue(rateRow.dependsOnValueId);
-                formData.append(
-                  `PricingInputs[${index}].DependsOnInputDefinitionId`,
-                  parent.inputDefinitionId.toString(),
-                );
-                formData.append(
-                  `PricingInputs[${index}].DependsOnInputValueId`,
-                  rateRow.dependsOnValueId.toString(),
-                );
+        // -------------------------
+        // NUMBER + NONE
+        // -------------------------
+        if (isNumber && behavior === this.PricingInputBehavior.None) {
+          this.appendPricingInput(formData, index, {
+            inputDefinitionId: input.inputDefinitionId,
+            pricingBehavior: behavior,
+            amount: 0,
+            isRequired: !!input.isRequired,
+            priority: input.priority ?? 0,
+            min: input.min ?? null,
+            max: input.max ?? null,
+          });
+          index++;
+          continue;
+        }
+
+        // -------------------------
+        // NUMBER + DIMENSIONAL
+        // -------------------------
+        if (isNumber && behavior === this.PricingInputBehavior.Dimensional) {
+          this.appendPricingInput(formData, index, {
+            inputDefinitionId: input.inputDefinitionId,
+            pricingBehavior: behavior,
+            amount: 0,
+            isRequired: !!input.isRequired,
+            priority: input.priority ?? 0,
+            min: input.min ?? null,
+            max: input.max ?? null,
+          });
+          index++;
+          continue;
+        }
+
+        // -------------------------
+        // NUMBER + FIXED / RATE
+        // BOOLEAN + FIXED / RATE
+        // -------------------------
+        if (
+          (isNumber || isBoolean) &&
+          (behavior === this.PricingInputBehavior.Fixed ||
+            behavior === this.PricingInputBehavior.Rate)
+        ) {
+          if (input.amount == null || Number(input.amount) < 0) {
+            continue;
+          }
+
+          this.appendPricingInput(formData, index, {
+            inputDefinitionId: input.inputDefinitionId,
+            pricingBehavior: behavior,
+            amount: Number(input.amount),
+            isRequired: !!input.isRequired,
+            priority: input.priority ?? 0,
+            min: isNumber ? (input.min ?? null) : null,
+            max: isNumber ? (input.max ?? null) : null,
+          });
+          index++;
+          continue;
+        }
+
+        // -------------------------
+        // SELECT + FIXED
+        // one amount per value
+        // -------------------------
+        if (isSelect && behavior === this.PricingInputBehavior.Fixed) {
+          for (const v of values) {
+            if (v.value == null || v.value === '' || Number(v.value) < 0) {
+              continue;
+            }
+
+            this.appendPricingInput(formData, index, {
+              inputDefinitionId: input.inputDefinitionId,
+              inputValueId: v.id,
+              pricingBehavior: behavior,
+              amount: Number(v.value),
+              isRequired: !!input.isRequired,
+              priority: input.priority ?? 0,
+            });
+            index++;
+          }
+
+          continue;
+        }
+
+        // -------------------------
+        // SELECT + RATE
+        // multiple rows per value
+        // -------------------------
+        if (isSelect && behavior === this.PricingInputBehavior.Rate) {
+          for (const v of values) {
+            const rows = Array.isArray(v.rates) ? v.rates : [];
+
+            for (const row of rows) {
+              if (row.amount == null || Number(row.amount) < 0) {
+                continue;
               }
 
+              const payload: any = {
+                inputDefinitionId: input.inputDefinitionId,
+                inputValueId: v.id,
+                pricingBehavior: behavior,
+                amount: Number(row.amount),
+                isRequired: !!input.isRequired,
+                priority: input.priority ?? 0,
+              };
+
+              if (row.dependsOnValueId) {
+                const parent = this.findParentByValue(row.dependsOnValueId);
+                if (parent) {
+                  payload.dependsOnInputDefinitionId = parent.inputDefinitionId;
+                  payload.dependsOnInputValueId = row.dependsOnValueId;
+                }
+              }
+
+              this.appendPricingInput(formData, index, payload);
               index++;
-            });
-          });
+            }
+          }
+
+          continue;
         }
-
-        // 🟢 FIXED
-        if (input.pricingBehavior === PricingInputBehavior.Fixed) {
-          if (!input.amount || input.amount <= 0) return;
-
-          formData.append(
-            `PricingInputs[${index}].InputDefinitionId`,
-            input.inputDefinitionId.toString(),
-          );
-          formData.append(
-            `PricingInputs[${index}].PricingBehavior`,
-            input.pricingBehavior.toString(),
-          );
-          formData.append(
-            `PricingInputs[${index}].Amount`,
-            input.amount.toString(),
-          );
-          formData.append(
-            `PricingInputs[${index}].IsRequired`,
-            String(input.isRequired),
-          );
-          formData.append(
-            `PricingInputs[${index}].Priority`,
-            input.priority.toString(),
-          );
-
-          index++;
-        }
-
-        // 🟣 DIMENSIONAL
-        if (input.pricingBehavior === PricingInputBehavior.Dimensional) {
-          if (input.previewNumericValue == null) return;
-
-          formData.append(
-            `PricingInputs[${index}].InputDefinitionId`,
-            input.inputDefinitionId.toString(),
-          );
-          formData.append(
-            `PricingInputs[${index}].PricingBehavior`,
-            input.pricingBehavior.toString(),
-          );
-          formData.append(
-            `PricingInputs[${index}].Amount`,
-            input.previewNumericValue.toString(),
-          );
-          formData.append(
-            `PricingInputs[${index}].IsRequired`,
-            String(input.isRequired),
-          );
-          formData.append(
-            `PricingInputs[${index}].Priority`,
-            input.priority.toString(),
-          );
-
-          index++;
-        }
-      });
+      }
     }
 
+    // =========================
+    // SEND
+    // =========================
     this.serviceService.CreateService(formData).subscribe({
       next: (res) => {
-        console.log(formData);
         this.isSubmitting = false;
-        console.log(formData);
+
         if (res.success) {
-          this.toast.show(
-            res.message ?? 'Service created successfully',
-            'success',
-          );
-          this.reset();
+          // adjust to your current success handling
+          this.toast?.show?.(res.message || 'Service created successfully.');
+          this.serviceForm.reset();
+          this.pricingInputs = [];
+          this.inputValuesMap = {};
+          this.previewUrl = null;
+          this.selectedFile = null;
+          this.pricingMode = 'Static';
         } else {
-          this.toast.show(res.message ?? 'Failed to create service', 'error');
+          this.toast?.show?.(res.message || 'Failed to create service.');
         }
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.toast.show(
-          err.error.message ?? 'Failed to create service',
-          'error',
-        );
+        this.toast?.show?.(err?.error?.message || 'Failed to create service.');
+        console.error(err);
       },
     });
   }
-  private findParentByValue(valueId: number): PricingInputUI {
-    return this.pricingInputs.find((p) =>
-      this.inputValuesMap[p.inputDefinitionId]?.some((v) => v.id === valueId),
-    )!;
+
+  private appendPricingInput(
+    formData: FormData,
+    index: number,
+    item: {
+      inputDefinitionId: number;
+      inputValueId?: number;
+      pricingBehavior: number;
+      amount: number;
+      isRequired: boolean;
+      priority: number;
+      dependsOnInputDefinitionId?: number;
+      dependsOnInputValueId?: number;
+      min?: number | null;
+      max?: number | null;
+    },
+  ): void {
+    formData.append(
+      `PricingInputs[${index}].InputDefinitionId`,
+      String(item.inputDefinitionId),
+    );
+
+    if (item.inputValueId != null) {
+      formData.append(
+        `PricingInputs[${index}].InputValueId`,
+        String(item.inputValueId),
+      );
+    }
+
+    formData.append(
+      `PricingInputs[${index}].PricingBehavior`,
+      String(item.pricingBehavior),
+    );
+
+    formData.append(`PricingInputs[${index}].Amount`, String(item.amount));
+
+    formData.append(
+      `PricingInputs[${index}].IsRequired`,
+      String(item.isRequired),
+    );
+
+    formData.append(`PricingInputs[${index}].Priority`, String(item.priority));
+    if (item.min != null) {
+      formData.append(`PricingInputs[${index}].Min`, String(item.min));
+    }
+
+    if (item.max != null) {
+      formData.append(`PricingInputs[${index}].Max`, String(item.max));
+    }
+    if (item.dependsOnInputDefinitionId != null) {
+      formData.append(
+        `PricingInputs[${index}].DependsOnInputDefinitionId`,
+        String(item.dependsOnInputDefinitionId),
+      );
+    }
+
+    if (item.dependsOnInputValueId != null) {
+      formData.append(
+        `PricingInputs[${index}].DependsOnInputValueId`,
+        String(item.dependsOnInputValueId),
+      );
+    }
+  }
+  // onSubmit(): void {
+  //   if (this.serviceForm.invalid) {
+  //     this.serviceForm.markAllAsTouched();
+  //     return;
+  //   }
+
+  //   this.isSubmitting = true;
+  //   const payload = { ...this.serviceForm.value };
+
+  //   // Enforce single linkage
+  //   if (this.activeLinkage === 'Structure') {
+  //     payload.partId = null;
+  //     payload.partOptionId = null;
+  //   } else if (this.activeLinkage === 'Part') {
+  //     payload.structureId = null;
+  //     payload.partOptionId = null;
+  //   } else {
+  //     payload.structureId = null;
+  //     payload.partId = null;
+  //   }
+
+  //   const formData = new FormData();
+
+  //   Object.keys(payload).forEach((key) => {
+  //     if (payload[key] !== null && payload[key] !== undefined) {
+  //       formData.append(key, payload[key]);
+  //     }
+  //   });
+
+  //   if (this.selectedFile) {
+  //     formData.append('file', this.selectedFile);
+  //   }
+  //   formData.append('PricingMode', this.pricingMode);
+
+  //   // ✅ METADATA (CORRECT FORM-DATA BINDING)
+  //   this.metadataPayload.forEach((m, i) => {
+  //     formData.append(
+  //       `Metadata[${i}].MetadataAttributeId`,
+  //       m.metadataAttributeId.toString(),
+  //     );
+
+  //     if (m.valueIds?.length) {
+  //       m.valueIds.forEach((v, j) => {
+  //         formData.append(`Metadata[${i}].ValueIds[${j}]`, v.toString());
+  //       });
+  //     }
+
+  //     if (m.valueText !== null && m.valueText !== undefined) {
+  //       formData.append(
+  //         `Metadata[${i}].ValueText`,
+  //         m.valueText === '' ? ' ' : m.valueText,
+  //       );
+  //     }
+  //   });
+  //   if (this.pricingMode === 'Dynamic') {
+  //     let index = 0;
+
+  //     this.pricingInputs.forEach((input) => {
+  //       const isSelect = input.dataType === MetadataDataType.Select;
+  //       const values = this.inputValuesMap[input.inputDefinitionId] || [];
+
+  //       // 1) DIMENSIONAL: save rule only, no preview/test value
+  //       if (input.pricingBehavior === PricingInputBehavior.Dimensional) {
+  //         formData.append(
+  //           `PricingInputs[${index}].InputDefinitionId`,
+  //           input.inputDefinitionId.toString(),
+  //         );
+  //         formData.append(
+  //           `PricingInputs[${index}].PricingBehavior`,
+  //           input.pricingBehavior.toString(),
+  //         );
+  //         formData.append(`PricingInputs[${index}].Amount`, '0');
+  //         formData.append(
+  //           `PricingInputs[${index}].IsRequired`,
+  //           String(input.isRequired),
+  //         );
+  //         formData.append(
+  //           `PricingInputs[${index}].Priority`,
+  //           input.priority.toString(),
+  //         );
+  //         index++;
+  //         return;
+  //       }
+
+  //       // 2) SELECT + RATE / FIXED
+  //       if (isSelect) {
+  //         values.forEach((v) => {
+  //           v.rates.forEach((row) => {
+  //             if (row.amount == null || row.amount <= 0) return;
+
+  //             formData.append(
+  //               `PricingInputs[${index}].InputDefinitionId`,
+  //               input.inputDefinitionId.toString(),
+  //             );
+  //             formData.append(
+  //               `PricingInputs[${index}].InputValueId`,
+  //               v.id.toString(),
+  //             );
+  //             formData.append(
+  //               `PricingInputs[${index}].PricingBehavior`,
+  //               input.pricingBehavior.toString(),
+  //             );
+  //             formData.append(
+  //               `PricingInputs[${index}].Amount`,
+  //               row.amount.toString(),
+  //             );
+  //             formData.append(
+  //               `PricingInputs[${index}].IsRequired`,
+  //               String(input.isRequired),
+  //             );
+  //             formData.append(
+  //               `PricingInputs[${index}].Priority`,
+  //               input.priority.toString(),
+  //             );
+
+  //             if (
+  //               input.pricingBehavior === PricingInputBehavior.Rate &&
+  //               row.dependsOnValueId
+  //             ) {
+  //               const parent = this.findParentByValue(row.dependsOnValueId);
+  //               formData.append(
+  //                 `PricingInputs[${index}].DependsOnInputDefinitionId`,
+  //                 parent.inputDefinitionId.toString(),
+  //               );
+  //               formData.append(
+  //                 `PricingInputs[${index}].DependsOnInputValueId`,
+  //                 row.dependsOnValueId.toString(),
+  //               );
+  //             }
+
+  //             index++;
+  //           });
+  //         });
+
+  //         return;
+  //       }
+
+  //       // 3) NON-SELECT + RATE / FIXED
+  //       if (
+  //         input.pricingBehavior === PricingInputBehavior.Rate ||
+  //         input.pricingBehavior === PricingInputBehavior.None ||
+  //         input.pricingBehavior === PricingInputBehavior.Fixed
+  //       ) {
+  //         if (input.amount == null || input.amount <= 0) return;
+
+  //         formData.append(
+  //           `PricingInputs[${index}].InputDefinitionId`,
+  //           input.inputDefinitionId.toString(),
+  //         );
+  //         formData.append(
+  //           `PricingInputs[${index}].PricingBehavior`,
+  //           input.pricingBehavior.toString(),
+  //         );
+  //         formData.append(
+  //           `PricingInputs[${index}].Amount`,
+  //           input.amount.toString(),
+  //         );
+  //         formData.append(
+  //           `PricingInputs[${index}].IsRequired`,
+  //           String(input.isRequired),
+  //         );
+  //         formData.append(
+  //           `PricingInputs[${index}].Priority`,
+  //           input.priority.toString(),
+  //         );
+  //         index++;
+  //       }
+  //     });
+  //   }
+
+  //   this.serviceService.CreateService(formData).subscribe({
+  //     next: (res) => {
+  //       console.log(formData);
+  //       this.isSubmitting = false;
+  //       console.log(formData);
+  //       if (res.success) {
+  //         this.toast.show(
+  //           res.message ?? 'Service created successfully',
+  //           'success',
+  //         );
+  //         this.reset();
+  //       } else {
+  //         this.toast.show(res.message ?? 'Failed to create service', 'error');
+  //       }
+  //     },
+  //     error: (err) => {
+  //       this.isSubmitting = false;
+  //       this.toast.show(
+  //         err.error.message ?? 'Failed to create service',
+  //         'error',
+  //       );
+  //     },
+  //   });
+  // }
+
+  // private findParentByValue(valueId: number): PricingInputUI {
+  //   return this.pricingInputs.find((p) =>
+  //     this.inputValuesMap[p.inputDefinitionId]?.some((v) => v.id === valueId),
+  //   )!;
+  // }
+  private findParentByValue(valueId: number): any | null {
+    for (const input of this.pricingInputs) {
+      const values = this.inputValuesMap[input.inputDefinitionId] || [];
+      const found = values.find((v: any) => v.id === valueId);
+      if (found) {
+        return input;
+      }
+    }
+    return null;
   }
 
   private reset(): void {
@@ -473,19 +799,43 @@ export class CreateServiceComponent implements OnInit {
       label: def.label,
       code: def.code,
       dataType: def.dataType,
-      pricingBehavior: def.pricingBehavior, // READ ONLY
+      pricingBehavior: def.pricingBehavior,
       amount: 0,
       isRequired: true,
       priority: this.pricingInputs.length + 1,
+      min: def.dataType === MetadataDataType.Number ? null : undefined,
+      max: def.dataType === MetadataDataType.Number ? null : undefined,
     };
 
     this.pricingInputs.push(input);
 
     if (def.dataType === MetadataDataType.Select) {
-      this.loadInputValues(def.id);
+      this.loadInputValues(def.id, def.pricingBehavior);
     }
   }
+  private validateNumericMinMax(): boolean {
+    for (const input of this.pricingInputs) {
+      if (input.dataType !== this.MetadataDataType.Number) {
+        input.min = undefined;
+        input.max = undefined;
+        continue;
+      }
 
+      if (
+        input.min != null &&
+        input.max != null &&
+        Number(input.min) > Number(input.max)
+      ) {
+        this.toast.show(
+          `Minimum value cannot be greater than maximum value for "${input.label}".`,
+          'error',
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
   onAddInputChange(event: Event): void {
     const select = event.target as HTMLSelectElement | null;
     if (!select || !select.value) return;
@@ -511,19 +861,26 @@ export class CreateServiceComponent implements OnInit {
     this.pricingInputs.splice(index, 1);
     this.calculatePreview();
   }
-  private loadInputValues(definitionId: number): void {
+  private loadInputValues(
+    definitionId: number,
+    behavior: PricingInputBehavior,
+  ): void {
     if (this.inputValuesMap[definitionId]) return;
 
     this.inputValueService.getByInputDefinition(definitionId).subscribe({
       next: (res) => {
-        if (res.success && res.data) {
-          this.inputValuesMap[definitionId] = (
-            res.data as PricingValueUI[]
-          ).map((v: PricingValueUI) => ({
-            ...v,
-            rates: [],
-          }));
-        }
+        const raw = Array.isArray(res.data)
+          ? res.data
+          : (res.data?.values ?? res.data?.inputValues ?? []);
+
+        this.inputValuesMap[definitionId] = raw.map((v: PricingValueUI) => ({
+          ...v,
+          rates:
+            behavior === PricingInputBehavior.Rate ||
+            behavior === PricingInputBehavior.Fixed
+              ? [{ dependsOnValueId: undefined, amount: 0 }]
+              : [],
+        }));
       },
     });
   }

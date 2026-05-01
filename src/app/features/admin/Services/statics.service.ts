@@ -32,4 +32,36 @@ export class StaticsService {
       `${this.baseurl}approvedRequests`,
     );
   }
+  getUnderReviewStatics(): Observable<ApiResponse<GeneralResponse<number>>> {
+    return this._http.get<ApiResponse<GeneralResponse<number>>>(
+      `${this.baseurl}UnderReview`,
+    );
+  }
+  getCompletedStatics(): Observable<ApiResponse<GeneralResponse<number>>> {
+    return this._http.get<ApiResponse<GeneralResponse<number>>>(
+      `${this.baseurl}Completed`,
+    );
+  }
+  getRejectedStatics(): Observable<ApiResponse<GeneralResponse<number>>> {
+    return this._http.get<ApiResponse<GeneralResponse<number>>>(
+      `${this.baseurl}Rejected`,
+    );
+  }
+  getOnHoldStatics(): Observable<ApiResponse<GeneralResponse<number>>> {
+    return this._http.get<ApiResponse<GeneralResponse<number>>>(
+      `${this.baseurl}OnHold`,
+    );
+  }
+  getAwaitingPaymentStatics(): Observable<
+    ApiResponse<GeneralResponse<number>>
+  > {
+    return this._http.get<ApiResponse<GeneralResponse<number>>>(
+      `${this.baseurl}AwaitingPayment`,
+    );
+  }
+  getAssignedStatics(): Observable<ApiResponse<GeneralResponse<number>>> {
+    return this._http.get<ApiResponse<GeneralResponse<number>>>(
+      `${this.baseurl}Assigned`,
+    );
+  }
 }

@@ -26,6 +26,17 @@ export interface CreateInputDefinitionRequest {
   min?: number | null;
   max?: number | null;
 }
+export interface UpdateInputDefinitionRequest {
+  // code: string;
+  label: string;
+
+  dataType: MetadataDataType;
+  pricingBehavior: PricingInputBehavior;
+
+  allowDecimal: boolean;
+  min?: number | null;
+  max?: number | null;
+}
 export enum PricingInputBehavior {
   None = 0,
   Dimensional = 1,

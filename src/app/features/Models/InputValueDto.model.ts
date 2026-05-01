@@ -35,6 +35,8 @@ export interface PricingInputUI {
   isRequired: boolean;
   priority: number;
   inputValueId?: number;
+  min?: number | null;
+  max?: number | null;
 
   // dependency (NEW – clearer)
   dependsOnInputDefinitionId?: number;

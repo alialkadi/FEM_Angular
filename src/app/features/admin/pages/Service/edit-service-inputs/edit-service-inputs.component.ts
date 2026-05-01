@@ -11,6 +11,7 @@ import {
 } from '../../../../Models/service.Model';
 import { PricingInputUI } from '../../../../Models/InputValueDto.model';
 import { MetadataDataType } from '../../../../Models/MetadataTargetType';
+import { __values } from 'tslib';
 
 interface PricingRateRowUI {
   amount: number;
@@ -21,6 +22,7 @@ interface PricingRateRowUI {
 export interface PricingValueUI {
   id: number;
   value: string;
+  amount?: number;
   displayName?: string;
   rates: PricingRateRowUI[];
 }
@@ -34,6 +36,8 @@ interface PricingInputSaveRow {
   priority: number;
   dependsOnInputDefinitionId?: number | null;
   dependsOnInputValueId?: number | null;
+  min?: number | null;
+  max?: number | null;
 }
 
 interface PricingRulePreview {
@@ -95,6 +99,7 @@ export class EditServiceInputsComponent implements OnInit {
           this.inputValuesMap = {};
           this.previewBaseCost = 0;
         }
+        console.log(res.data);
       },
       error: (err) => {
         this.toast.show(
@@ -136,14 +141,19 @@ export class EditServiceInputsComponent implements OnInit {
           dataType: rule.dataType,
           pricingBehavior: rule.pricingBehavior,
           amount:
-            rule.pricingBehavior === PricingInputBehavior.Fixed ||
-            rule.pricingBehavior === PricingInputBehavior.Dimensional
-              ? (rule.amount ?? 0)
-              : 0,
+            rule.dataType !== MetadataDataType.Select ? (rule.amount ?? 0) : 0,
           isRequired: rule.isRequired,
           priority: rule.priority,
           previewNumericValue: undefined,
           previewSelectedValueId: undefined,
+          min:
+            rule.dataType === MetadataDataType.Number
+              ? (rule.min ?? null)
+              : null,
+          max:
+            rule.dataType === MetadataDataType.Number
+              ? (rule.max ?? null)
+              : null,
         };
 
         inputMap.set(rule.inputDefinitionId, input);
@@ -169,17 +179,23 @@ export class EditServiceInputsComponent implements OnInit {
             value: rule.inputValueCode,
             displayName: rule.inputValueLabel,
             rates: [],
+            amount: rule.amount,
           };
 
           this.inputValuesMap[rule.inputDefinitionId].push(value);
         }
 
-        value.rates.push({
-          amount: rule.amount ?? 0,
-          dependsOnValueId: rule.dependsOnInputValueId ?? undefined,
-          dependsOnInputDefinitionId:
-            rule.dependsOnInputDefinitionId ?? undefined,
-        });
+        if (rule.pricingBehavior === PricingInputBehavior.Fixed) {
+          value.amount = rule.amount ?? 0;
+        } else if (rule.pricingBehavior === PricingInputBehavior.Rate) {
+          value.rates.push({
+            amount: rule.amount ?? 0,
+            dependsOnValueId: rule.dependsOnInputValueId ?? undefined,
+            dependsOnInputDefinitionId:
+              rule.dependsOnInputDefinitionId ?? undefined,
+          });
+        }
+        console.log(value);
       }
     });
 
@@ -214,6 +230,8 @@ export class EditServiceInputsComponent implements OnInit {
       priority: this.pricingInputs.length + 1,
       previewNumericValue: undefined,
       previewSelectedValueId: undefined,
+      min: def.dataType === MetadataDataType.Number ? null : null,
+      max: def.dataType === MetadataDataType.Number ? null : null,
     };
 
     this.pricingInputs.push(input);
@@ -225,7 +243,29 @@ export class EditServiceInputsComponent implements OnInit {
     this.reorderPriorities();
     this.calculatePreview();
   }
+  private validateNumericMinMax(): boolean {
+    for (const input of this.pricingInputs) {
+      if (input.dataType !== MetadataDataType.Number) {
+        input.min = null;
+        input.max = null;
+        continue;
+      }
 
+      if (
+        input.min != null &&
+        input.max != null &&
+        Number(input.min) > Number(input.max)
+      ) {
+        this.toast.show(
+          `Minimum value cannot be greater than maximum value for "${input.label}".`,
+          'error',
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
   addInputFromSelect(value: string): void {
     if (!value) return;
 
@@ -258,6 +298,7 @@ export class EditServiceInputsComponent implements OnInit {
             return {
               id: v.id,
               value: v.code ?? v.value,
+              amount: existing?.amount ?? 0,
               displayName: v.displayName,
               rates: existing?.rates ?? [],
             };
@@ -334,7 +375,9 @@ export class EditServiceInputsComponent implements OnInit {
       });
     });
   }
-
+  shouldShowAnyDependencyOptions(input: any): boolean {
+    return this.getDependencyOptions(input).length > 0;
+  }
   onDependencyValueChange(rateRow: PricingRateRowUI, valueId: number): void {
     const numericValueId = valueId ? +valueId : undefined;
 
@@ -515,12 +558,126 @@ export class EditServiceInputsComponent implements OnInit {
     const result: PricingInputSaveRow[] = [];
 
     this.pricingInputs.forEach((input) => {
-      if (input.pricingBehavior === PricingInputBehavior.Rate) {
-        const values = this.inputValuesMap[input.inputDefinitionId] || [];
+      const isSelect = input.dataType === MetadataDataType.Select;
+      const isText = input.dataType === MetadataDataType.Text;
+      const isNumber = input.dataType === MetadataDataType.Number;
+      const isBoolean = input.dataType === MetadataDataType.Boolean;
 
+      const values = this.inputValuesMap[input.inputDefinitionId] || [];
+
+      // =========================
+      // TEXT + NONE
+      // =========================
+      if (isText && input.pricingBehavior === PricingInputBehavior.None) {
+        result.push({
+          inputDefinitionId: input.inputDefinitionId,
+          inputValueId: null,
+          pricingBehavior: input.pricingBehavior,
+          amount: 0,
+          isRequired: input.isRequired,
+          priority: input.priority,
+          dependsOnInputDefinitionId: null,
+          dependsOnInputValueId: null,
+        });
+        return;
+      }
+
+      // =========================
+      // NUMBER + NONE
+      // =========================
+      if (isNumber && input.pricingBehavior === PricingInputBehavior.None) {
+        result.push({
+          inputDefinitionId: input.inputDefinitionId,
+          inputValueId: null,
+          pricingBehavior: input.pricingBehavior,
+          amount: 0,
+          isRequired: input.isRequired,
+          priority: input.priority,
+          dependsOnInputDefinitionId: null,
+          dependsOnInputValueId: null,
+          min: input.min ?? null,
+          max: input.max ?? null,
+        });
+        return;
+      }
+
+      // =========================
+      // NUMBER + DIMENSIONAL
+      // =========================
+      if (
+        isNumber &&
+        input.pricingBehavior === PricingInputBehavior.Dimensional
+      ) {
+        result.push({
+          inputDefinitionId: input.inputDefinitionId,
+          inputValueId: null,
+          pricingBehavior: input.pricingBehavior,
+          amount: 0,
+          isRequired: input.isRequired,
+          priority: input.priority,
+          dependsOnInputDefinitionId: null,
+          dependsOnInputValueId: null,
+          min: input.min ?? null,
+          max: input.max ?? null,
+        });
+        return;
+      }
+
+      // =========================
+      // NUMBER + FIXED / RATE
+      // BOOLEAN + FIXED / RATE
+      // =========================
+      if (
+        (isNumber || isBoolean) &&
+        (input.pricingBehavior === PricingInputBehavior.Fixed ||
+          input.pricingBehavior === PricingInputBehavior.Rate)
+      ) {
+        if (input.amount == null || input.amount < 0) return;
+
+        result.push({
+          inputDefinitionId: input.inputDefinitionId,
+          inputValueId: null,
+          pricingBehavior: input.pricingBehavior,
+          amount: input.amount ?? 0,
+          isRequired: input.isRequired,
+          priority: input.priority,
+          dependsOnInputDefinitionId: null,
+          dependsOnInputValueId: null,
+          min: isNumber ? (input.min ?? null) : null,
+          max: isNumber ? (input.max ?? null) : null,
+        });
+        return;
+      }
+
+      // =========================
+      // SELECT + FIXED
+      // =========================
+      if (isSelect && input.pricingBehavior === PricingInputBehavior.Fixed) {
         values.forEach((v) => {
-          v.rates.forEach((rate) => {
-            if (!rate.amount || rate.amount <= 0) return;
+          if (v.amount == null || v.amount < 0) return;
+
+          result.push({
+            inputDefinitionId: input.inputDefinitionId,
+            inputValueId: v.id,
+            pricingBehavior: input.pricingBehavior,
+            amount: v.amount ?? 0,
+            isRequired: input.isRequired,
+            priority: input.priority,
+            dependsOnInputDefinitionId: null,
+            dependsOnInputValueId: null,
+          });
+        });
+
+        return;
+      }
+
+      // =========================
+      // SELECT + RATE
+      // =========================
+      if (isSelect && input.pricingBehavior === PricingInputBehavior.Rate) {
+        values.forEach((v) => {
+          (v.rates || []).forEach((rate: any) => {
+            if (rate.amount == null || rate.amount < 0) return;
 
             const parent =
               rate.dependsOnValueId != null
@@ -531,7 +688,7 @@ export class EditServiceInputsComponent implements OnInit {
               inputDefinitionId: input.inputDefinitionId,
               inputValueId: v.id,
               pricingBehavior: input.pricingBehavior,
-              amount: rate.amount,
+              amount: rate.amount ?? 0,
               isRequired: input.isRequired,
               priority: input.priority,
               dependsOnInputDefinitionId:
@@ -542,40 +699,13 @@ export class EditServiceInputsComponent implements OnInit {
             });
           });
         });
-      }
 
-      if (input.pricingBehavior === PricingInputBehavior.Fixed) {
-        if ((input.amount ?? 0) <= 0) return;
-
-        result.push({
-          inputDefinitionId: input.inputDefinitionId,
-          inputValueId: null,
-          pricingBehavior: input.pricingBehavior,
-          amount: input.amount ?? 0,
-          isRequired: input.isRequired,
-          priority: input.priority,
-          dependsOnInputDefinitionId: null,
-          dependsOnInputValueId: null,
-        });
-      }
-
-      if (input.pricingBehavior === PricingInputBehavior.Dimensional) {
-        result.push({
-          inputDefinitionId: input.inputDefinitionId,
-          inputValueId: null,
-          pricingBehavior: input.pricingBehavior,
-          amount: input.amount ?? 0,
-          isRequired: input.isRequired,
-          priority: input.priority,
-          dependsOnInputDefinitionId: null,
-          dependsOnInputValueId: null,
-        });
+        return;
       }
     });
 
     return result;
   }
-
   onSubmit(): void {
     if (this.pricingMode !== 'Dynamic') {
       this.toast.show(
@@ -588,7 +718,9 @@ export class EditServiceInputsComponent implements OnInit {
     const pricingInputs = this.buildPayload();
 
     this.saving = true;
-
+    if (!this.validateNumericMinMax()) {
+      return;
+    }
     this.serviceService
       .updateServiceInputs(this.serviceId, { pricingInputs })
       .subscribe({

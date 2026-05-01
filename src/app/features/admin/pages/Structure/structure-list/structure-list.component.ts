@@ -68,6 +68,7 @@ export class StructureListComponent {
   loadAllStructures(): void {
     this._structureService.getAllStructures(true, 1, 1000).subscribe({
       next: (res) => {
+        console.log(res);
         this.allStructures = res.data?.structures ?? [];
         console.log(res);
         this.applyFilters();
