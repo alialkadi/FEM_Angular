@@ -56,9 +56,24 @@
                         <input type="checkbox" [(ngModel)]="input.isRequired" />
                         <span>Required for pricing</span>
                     </label>
-                    <div class="setting-chip"> Behavior: <strong> {{ input.pricingBehavior === PricingInputBehavior.Rate
-                            ? 'Rate-based' : 'Fixed/Other' }} </strong>
+                    <div class="setting-chip"> Behavior: <strong> {{ input.pricingBehavior === PricingInputBehavior.None
+                            ? 'None' : input.pricingBehavior === PricingInputBehavior.Fixed ? 'Fixed' :
+                            input.pricingBehavior === PricingInputBehavior.Rate ? 'Rate' : input.pricingBehavior ===
+                            PricingInputBehavior.Dimensional ? 'Dimensional' : 'Unknown' }} </strong>
                     </div>
+                </div>
+                <div class="numeric-limits-block" *ngIf="input.dataType === MetadataDataType.Number">
+                    <div class="numeric-limits-grid">
+                        <div class="rate-cell">
+                            <label>Minimum Value</label>
+                            <input type="number" [(ngModel)]="input.min" placeholder="No minimum" />
+                        </div>
+                        <div class="rate-cell">
+                            <label>Maximum Value</label>
+                            <input type="number" [(ngModel)]="input.max" placeholder="No maximum" />
+                        </div>
+                    </div>
+                    <p class="input-hint"> These limits apply when the customer enters this numeric value. </p>
                 </div>
                 <div *ngIf="input.dataType === MetadataDataType.Select" class="values-block">
                     <div class="value-card" *ngFor="let v of inputValuesMap[input.inputDefinitionId]">
@@ -68,16 +83,25 @@
                                 <span class="value-sub">Option value</span>
                             </div>
                         </div>
-                        <div class="rate-table">
+                        <!-- SELECT + FIXED -->
+                        <div class="rate-table" *ngIf="input.pricingBehavior === PricingInputBehavior.Fixed">
+                            <div class="rate-row">
+                                <div class="rate-cell"> <label>Amount</label>
+                                    <input type="number" [(ngModel)]="v.amount" placeholder="Enter amount" />
+                                </div>
+                            </div>
+                        </div>
+                        <!-- SELECT + RATE -->
+                        <div class="rate-table" *ngIf="input.pricingBehavior === PricingInputBehavior.Rate">
                             <div class="rate-table-head">
                                 <div>Rate</div>
-                                <div *ngIf="input.pricingBehavior === PricingInputBehavior.Rate">Apply when</div>
+                                <div *ngIf="shouldShowAnyDependencyOptions(input)">Apply when</div>
                                 <div class="actions-col">Action</div>
                             </div>
                             <div class="rate-row" *ngFor="let r of v.rates; let ri = index">
                                 <div class="rate-cell">
                                     <label>Rate</label>
-                                    <input type="number" [(ngModel)]="r.amount" placeholder="Enter amount" />
+                                    <input type="number" [(ngModel)]="r.amount" placeholder="Enter rate" />
                                 </div>
                                 <div class="rate-cell" *ngIf="shouldShowDependency(input, v, r)">
                                     <label>Apply when</label>
@@ -91,23 +115,86 @@
                                     </select>
                                 </div>
                                 <div class="rate-actions">
-                                    <button type="button" class="icon-btn danger" (click)="removeRateRow(v, ri)"> ✕
-                                    </button>
+                                    <button type="button" class="icon-btn danger"
+                                        (click)="removeRateRow(v, ri)">✕</button>
                                 </div>
                             </div>
+                            <button type="button" class="btn-link" (click)="addRateRow(v)"> + Add pricing condition
+                            </button>
                         </div>
-                        <button type="button" class="btn-link" (click)="addRateRow(v)"> + Add pricing condition
-                        </button>
+                        <!-- SELECT + NONE fallback -->
+                        <div class="single-rule-block" *ngIf="input.pricingBehavior === PricingInputBehavior.None">
+                            <p class="input-hint"> This select input is collected at request time and does not affect
+                                pricing. </p>
+                        </div>
                     </div>
                 </div>
-                <div *ngIf="input.dataType !== MetadataDataType.Select" class="single-rule-block">
+                <!-- TEXT -->
+                <div class="single-rule-block" *ngIf="input.dataType === MetadataDataType.Text">
+                    <p class="input-hint"> This is a text input for customer entry only. No pricing value is required.
+                    </p>
+                </div>
+                <!-- NUMBER + NONE -->
+                <div class="single-rule-block" *ngIf="
+        input.dataType === MetadataDataType.Number &&
+        input.pricingBehavior === PricingInputBehavior.None
+     ">
+                    <p class="input-hint"> This number input is collected at request time and does not affect pricing.
+                    </p>
+                </div>
+                <!-- NUMBER + FIXED -->
+                <div class="single-rule-block" *ngIf="
+        input.dataType === MetadataDataType.Number &&
+        input.pricingBehavior === PricingInputBehavior.Fixed
+     ">
                     <div class="rate-row">
                         <div class="rate-cell">
-                            <label> {{ input.pricingBehavior === PricingInputBehavior.Fixed ? 'Amount' :
-                                input.pricingBehavior === PricingInputBehavior.Dimensional ? 'Base factor' : 'Amount' }}
-                            </label>
-                            <input type="number" [(ngModel)]="input.amount" placeholder="Enter amount"
-                                (ngModelChange)="calculatePreview()" />
+                            <label>Fixed Amount</label>
+                            <input type="number" [(ngModel)]="input.amount" placeholder="Enter fixed amount" />
+                        </div>
+                    </div>
+                </div>
+                <!-- NUMBER + RATE -->
+                <div class="single-rule-block" *ngIf="
+        input.dataType === MetadataDataType.Number &&
+        input.pricingBehavior === PricingInputBehavior.Rate
+     ">
+                    <div class="rate-row">
+                        <div class="rate-cell">
+                            <label>Rate</label>
+                            <input type="number" [(ngModel)]="input.amount" placeholder="Enter rate" />
+                        </div>
+                    </div>
+                </div>
+                <!-- NUMBER + DIMENSIONAL -->
+                <div class="single-rule-block" *ngIf="
+        input.dataType === MetadataDataType.Number &&
+        input.pricingBehavior === PricingInputBehavior.Dimensional
+     ">
+                    <p class="input-hint"> This numeric input contributes to dimensional calculation at request time. No
+                        admin pricing value is required here. </p>
+                </div>
+                <!-- BOOLEAN + FIXED -->
+                <div class="single-rule-block" *ngIf="
+        input.dataType === MetadataDataType.Boolean &&
+        input.pricingBehavior === PricingInputBehavior.Fixed
+     ">
+                    <div class="rate-row">
+                        <div class="rate-cell">
+                            <label>Amount when True</label>
+                            <input type="number" [(ngModel)]="input.amount" placeholder="Enter amount" />
+                        </div>
+                    </div>
+                </div>
+                <!-- BOOLEAN + RATE -->
+                <div class="single-rule-block" *ngIf="
+        input.dataType === MetadataDataType.Boolean &&
+        input.pricingBehavior === PricingInputBehavior.Rate
+     ">
+                    <div class="rate-row">
+                        <div class="rate-cell">
+                            <label>Rate when True</label>
+                            <input type="number" [(ngModel)]="input.amount" placeholder="Enter rate" />
                         </div>
                     </div>
                 </div>

@@ -1,19 +1,19 @@
-import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { AuthService } from '../../../core/Auth/auth.service';
 import {
   UserServiceRequestResponseDto,
   UserServiceRequestDto,
 } from '../Models/UserServiceRequestResponse.Model';
 import { UserServiceRequestService } from '../Services/user-service-request.service';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { AuthService } from '../../../core/Auth/auth.service';
 
 @Component({
-  selector: 'app-user-service-requests',
-  templateUrl: './user-service-requests.component.html',
-  styleUrl: './user-service-requests.component.scss',
+  selector: 'app-user-service-qoute-requests',
+  templateUrl: './user-service-qoute-requests.component.html',
+  styleUrl: './user-service-qoute-requests.component.scss',
 })
-export class UserServiceRequestsComponent implements OnInit {
+export class UserServiceQouteRequestsComponent {
   @ViewChild('receiptContent') receiptContent!: ElementRef;
 
   loading = false;
@@ -29,8 +29,7 @@ export class UserServiceRequestsComponent implements OnInit {
 
   // statuses user is allowed to send
   userAllowedStatusOptions = [
-    { id: 9, name: 'Canceled', label: 'Cancel Request', type: 'danger' },
-    { id: 3, name: 'Approved', label: 'Approve Quote', type: 'success' },
+    { id: 9, name: 'Canceled', label: 'Cancel Request' },
   ];
   constructor(
     private requestService: UserServiceRequestService,
@@ -51,7 +50,7 @@ export class UserServiceRequestsComponent implements OnInit {
   loadRequests(): void {
     this.loading = true;
 
-    this.requestService.getUserRequests(this.userId!).subscribe({
+    this.requestService.getUserQouteRequests(this.userId!).subscribe({
       next: (res) => {
         this.response = res;
         this.loading = false;
@@ -80,9 +79,7 @@ export class UserServiceRequestsComponent implements OnInit {
     // user can only cancel requests before final states
     return normalized === 'pending' || normalized === 'approved';
   }
-  approvePopupVisible = false;
-  requestToApprove: UserServiceRequestDto | null = null;
-  approveStatusId: number | null = null;
+
   updateStatus(
     req: UserServiceRequestDto,
     newStatusId: number,
@@ -110,7 +107,6 @@ export class UserServiceRequestsComponent implements OnInit {
         this.closeStatusDropdown();
 
         console.log(res);
-        this.loadRequests();
       },
       error: (err) => {
         console.error('Status update failed', err);
@@ -141,33 +137,13 @@ export class UserServiceRequestsComponent implements OnInit {
 
     if (!this.canUserUpdateStatus(req.statusName)) return;
 
-    if (statusName === 'Approved') {
-      this.requestToApprove = req;
-      this.approveStatusId = statusId;
-      this.approvePopupVisible = true;
-      this.closeStatusDropdown();
-      return;
-    }
-
     this.updateStatus(req, statusId, statusName);
   }
   getServiceTotal(services: any[] | undefined | null): number {
     if (!services?.length) return 0;
     return services.reduce((sum, s) => sum + (s.calculatedTotal ?? 0), 0);
   }
-  confirmApproveRequest(): void {
-    if (!this.requestToApprove || !this.approveStatusId) return;
 
-    this.updateStatus(this.requestToApprove, this.approveStatusId, 'Approved');
-
-    this.closeApprovePopup();
-  }
-
-  closeApprovePopup(): void {
-    this.approvePopupVisible = false;
-    this.requestToApprove = null;
-    this.approveStatusId = null;
-  }
   getFeesTotal(fees: any[] | undefined | null): number {
     if (!fees?.length) return 0;
     return fees.reduce((sum, f) => sum + (f.amount ?? 0), 0);

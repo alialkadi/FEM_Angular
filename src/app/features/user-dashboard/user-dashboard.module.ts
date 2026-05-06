@@ -11,6 +11,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { UserServiceRequestsComponent } from './user-service-requests/user-service-requests.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
+import { UserServiceQouteRequestsComponent } from './user-service-qoute-requests/user-service-qoute-requests.component';
 
 
 @NgModule({
@@ -19,6 +20,7 @@ import { UserProfileComponent } from './user-profile/user-profile.component';
     DashboardNavComponent,
     UserServiceRequestsComponent,
     UserProfileComponent,
+    UserServiceQouteRequestsComponent,
   ],
   imports: [
     UserDashboardRoutingModule,

@@ -10,32 +10,58 @@
     <div *ngIf="!loading && errorMessage" class="error"> {{ errorMessage }} </div>
     <div *ngIf="!loading && !errorMessage && workers.length === 0" class="empty"> No Technicians found. </div>
     <div class="table-wrap" *ngIf="!loading && workers.length > 0">
-        <table class="workers-table">
+        <table class="workers-table modern">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Daily Capacity</th>
-                    <th>Actions</th>
+                    <th>Technician</th>
+                    <th>Contact</th>
+                    <th>Location</th>
+                    <th>Capacity</th>
+                    <th>Assignments</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let worker of workers">
-                    <td>{{ worker.workerId }}</td>
-                    <td>{{ worker.fullName }}</td>
-                    <td>{{ worker.email }}</td>
-                    <td>{{ worker.phoneNumber }}</td>
-                    <td>{{ worker.address }}</td>
-                    <td>{{ worker.dailyCapacity }}</td>
+                    <!-- Technician -->
+                    <td class="tech-cell">
+                        <div class="tech-info">
+                            <div class="avatar"> {{ worker.firstName?.charAt(0) }}{{ worker.lastName?.charAt(0) }}
+                            </div>
+                            <div>
+                                <strong>{{ worker.fullName }}</strong>
+                                <span>ID: {{ worker.workerId }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <!-- Contact -->
+                    <td>
+                        <div class="stack">
+                            <span>{{ worker.email }}</span>
+                            <span class="muted">{{ worker.phoneNumber }}</span>
+                        </div>
+                    </td>
+                    <!-- Location -->
+                    <td>
+                        <div class="stack">
+                            <span>{{ worker.city }}</span>
+                            <span class="muted">{{ worker.province }}</span>
+                        </div>
+                    </td>
+                    <!-- Capacity -->
+                    <td>
+                        <span class="capacity"> {{ worker.dailyCapacity }} / day </span>
+                    </td>
+                    <!-- Assignments (⭐ NEW) -->
+                    <td>
+                        <span class="badge-assignments"> {{ worker.assignmentCount }} </span>
+                    </td>
+                    <!-- Actions -->
                     <td>
                         <div class="action-group">
-                            <button class="btn-action" (click)="openWorkerModal(worker)"> View / Update </button>
-                            <button class="btn-action assignments" (click)="openAssignmentsModal(worker)"> Assignments
-                            </button>
-                            <button class="btn-action delete" (click)="deleteWorker(worker.workerId)"> Delete </button>
+                            <button class="btn-icon" (click)="openWorkerModal(worker)">✏️</button>
+                            <button class="btn-icon" (click)="openAssignmentsModal(worker)">📋</button>
+                            <button class="btn-icon danger" (click)="deleteWorker(worker.workerId)">🗑</button>
                         </div>
                     </td>
                 </tr>
@@ -90,11 +116,26 @@
                     <small class="field-error" *ngIf="f['address'].touched && f['address'].invalid"> Address is
                         required. </small>
                 </div>
-                <div class="form-group full-width">
-                    <label>Daily Capacity</label>
-                    <input type="number" formControlName="dailyCapacity" [readonly]="!editMode" min="1" />
-                    <small class="field-error" *ngIf="f['dailyCapacity'].touched && f['dailyCapacity'].invalid"> Daily
-                        capacity must be at least 1. </small>
+                <div class="form-group">
+                    <label>City</label>
+                    <input [readonly]="!editMode" type="text" formControlName="city">
+                    <small *ngIf="f['city'].touched && f['city'].invalid">City is required</small>
+                </div>
+                <div class="form-group">
+                    <label>Employment Number</label>
+                    <input [readonly]="!editMode" type="text" formControlName="employmentNumber">
+                    <small *ngIf="f['employmentNumber'].touched && f['employmentNumber'].invalid">Employment Number is
+                        required</small>
+                </div>
+                <div class="form-group">
+                    <label>Specialty</label>
+                    <input [readonly]="!editMode" type="text" formControlName="specialty">
+                    <small *ngIf="f['specialty'].touched && f['specialty'].invalid">Specialty Number is required</small>
+                </div>
+                <div class="form-group">
+                    <label>Province</label>
+                    <input [readonly]="!editMode" type="text" formControlName="province">
+                    <small *ngIf="f['province'].touched && f['province'].invalid">Province Number is required</small>
                 </div>
             </div>
             <div class="modal-actions">

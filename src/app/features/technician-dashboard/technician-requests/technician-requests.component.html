@@ -1,8 +1,7 @@
 <div class="jobs-container">
     <!-- Loading -->
-    <div *ngIf="loading" class="loading">
-        <div class="spinner"></div>
-        <p>Loading your assigned jobs...</p>
+    <div *ngIf="!loading && !errorMessage && filteredAssignments.length === 0" class="empty">
+        <p>No assigned jobs found.</p>
     </div>
     <!-- Error -->
     <div *ngIf="!loading && errorMessage" class="error"> {{ errorMessage }} </div>
@@ -10,8 +9,18 @@
     <div *ngIf="!loading && !errorMessage && assignments.length === 0" class="empty">
         <p>No assigned jobs found.</p>
     </div>
+    <div class="jobs-actions" *ngIf="!loading && assignments.length > 0">
+        <button class="receipt-btn" type="button" [disabled]="notCompletedAssignments.length === 0"
+            (click)="downloadNotCompletedReceipt()"> Download Active Jobs Receipt </button>
+    </div>
+    <div class="jobs-filters" *ngIf="!loading && assignments.length > 0">
+        <input type="text" placeholder="Search customer name" [(ngModel)]="searchCustomer" />
+        <input type="text" placeholder="Search phone" [(ngModel)]="searchPhone" />
+        <input type="date" [(ngModel)]="searchDate" />
+        <input type="text" placeholder="Search service name" [(ngModel)]="searchService" />
+    </div>
     <!-- Jobs List -->
-    <div *ngFor="let job of assignments" class="job-card">
+    <div *ngFor="let job of filteredAssignments" class="job-card">
         <div class="job-header">
             <h3>Assignment #{{ job.assignmentId }}</h3>
             <span class="status">{{ job.assignmentStatus }}</span>
@@ -27,10 +36,6 @@
             <h4>Services</h4>
             <div *ngFor="let s of job.services" class="service-item">
                 <div class="service-name">{{ s.serviceName }}</div>
-                <div class="service-prices">
-                    <p>Base Cost: {{ s.baseCost | currency }}</p>
-                    <p>Total: {{ s.calculatedTotal | currency }}</p>
-                </div>
             </div>
         </div>
     </div>

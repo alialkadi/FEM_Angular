@@ -7,6 +7,8 @@ import {
   GetTechnicianAssignmentsApiResponse,
   TechnicianAssignmentResponse,
 } from '../../../../technician-dashboard/Models/assignment.model';
+import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-workers-list',
@@ -31,10 +33,11 @@ export class WorkersListComponent implements OnInit {
   assignmentsLoading = false;
   assignmentsErrorMessage = '';
   selectedAssignmentWorker: WorkersResponseModel | null = null;
-
+  message: string = '';
   constructor(
     private workerService: CreateWorkerService,
     private fb: FormBuilder,
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -49,8 +52,12 @@ export class WorkersListComponent implements OnInit {
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
       phoneNumber: ['', Validators.required],
+      province: ['', Validators.required],
+      specialty: ['', Validators.required],
+      employmentNumber: ['', Validators.required],
+      city: ['', Validators.required],
       address: ['', Validators.required],
-      dailyCapacity: [5, [Validators.required, Validators.min(1)]],
+      // dailyCapacity: [5, [Validators.required, Validators.min(1)]],
     });
   }
 
@@ -65,6 +72,7 @@ export class WorkersListComponent implements OnInit {
         console.log(res);
         if (res.success && res.data) {
           const response = res.data as any;
+
           this.workers = Array.isArray(response) ? response : [response];
         } else {
           this.errorMessage = 'Failed to load workers.';
@@ -89,7 +97,11 @@ export class WorkersListComponent implements OnInit {
       lastName: worker.lastName || '',
       phoneNumber: worker.phoneNumber || '',
       address: worker.address || '',
-      dailyCapacity: worker.dailyCapacity ?? 5,
+      // dailyCapacity: worker.dailyCapacity ?? 5,
+      province: worker.province,
+      specialty: worker.specialty,
+      employmentNumber: worker.employmentNumber,
+      city: worker.city,
     });
   }
 
@@ -136,6 +148,10 @@ export class WorkersListComponent implements OnInit {
       phoneNumber: formValue.phoneNumber?.trim() || '',
       address: formValue.address?.trim() || '',
       dailyCapacity: Number(formValue.dailyCapacity ?? 5),
+      province: formValue.province,
+      specialty: formValue.specialty,
+      employmentNumber: formValue.employmentNumber,
+      city: formValue.city,
     };
 
     this.workerService
@@ -178,13 +194,24 @@ export class WorkersListComponent implements OnInit {
   }
 
   deleteWorker(id: number): void {
-    this.workerService.deleteWorker(id).subscribe({
-      next: () => {
-        this.loadWorkers();
-      },
-      error: () => {
-        this.errorMessage = 'Failed to delete worker.';
-      },
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: `350px`,
+      data: { message: `Are you sure you want to delete worker` },
+    });
+    confirmRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.workerService.deleteWorker(id).subscribe({
+          next: (res) => {
+            this.loadWorkers();
+            console.log(res);
+            this.errorMessage =
+              res.message || 'Something went wrong while deleting worker.';
+          },
+          error: (err) => {
+            this.errorMessage = 'Failed to delete worker.';
+          },
+        });
+      }
     });
   }
 

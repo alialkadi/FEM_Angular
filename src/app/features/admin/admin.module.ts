@@ -36,6 +36,7 @@ import { EditServiceGeneralComponent } from './pages/Service/edit-service-genera
 import { EditServiceMetadataComponent } from './pages/Service/edit-service-metadata/edit-service-metadata.component';
 import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/edit-service-inputs.component';
 import { StaticsComponent } from './pages/statics/statics.component';
+import { ConsultaionAdminComponent } from './pages/consultation/consultaion-admin/consultaion-admin.component';
 
 @NgModule({
   declarations: [
@@ -68,6 +69,7 @@ import { StaticsComponent } from './pages/statics/statics.component';
     EditServiceMetadataComponent,
     EditServiceInputsComponent,
     StaticsComponent,
+    ConsultaionAdminComponent,
   ],
   imports: [
     SharedModule,

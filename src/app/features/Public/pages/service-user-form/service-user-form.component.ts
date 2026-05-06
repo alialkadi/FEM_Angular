@@ -67,6 +67,8 @@ export class ServiceUserFormComponent implements OnInit {
         inputs: r.answers.map((a) => ({
           inputCode: a.inputCode,
           numericValue: a.numericValue ?? null,
+          booleanValue: a.booleanValue,
+          textValue: a.textValue,
           selectedValueCode: a.selectedValueCode ?? null,
         })),
         // ✅ FIXED

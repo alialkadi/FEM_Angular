@@ -76,7 +76,7 @@
     background: #023969;
 
     th {
-      color: #fff;
+      // color: #fff;
       text-align: left;
       padding: 16px;
       font-size: 14px;
@@ -642,4 +642,109 @@ form {
   .price-box {
     width: 100%;
   }
+}
+.workers-table.modern {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.workers-table.modern thead {
+  background: #f1f5f9;
+}
+
+.workers-table.modern th {
+  padding: 14px;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.workers-table.modern td {
+  padding: 16px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.workers-table.modern tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* Technician cell */
+.tech-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #023969;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.tech-info span {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* stacked text */
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.muted {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* capacity */
+.capacity {
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* assignment badge ⭐ */
+.badge-assignments {
+  display: inline-block;
+  min-width: 36px;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-weight: 700;
+}
+
+/* actions */
+.action-group {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-icon {
+  border: none;
+  background: #f1f5f9;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-icon:hover {
+  background: #e2e8f0;
+}
+
+.btn-icon.danger:hover {
+  background: #fee2e2;
 }

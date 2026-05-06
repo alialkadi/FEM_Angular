@@ -5,6 +5,7 @@ import { ApiResponse } from '../../Models/ApiResponse';
 import {
   InputDefinitionDto,
   CreateInputDefinitionRequest,
+  UpdateInputDefinitionRequest,
 } from '../../Models/InputDefinitionDto';
 import { environment } from '../../../environment.prod';
 
@@ -21,6 +22,12 @@ export class InputDefinitionService {
   create(payload: CreateInputDefinitionRequest) {
     return this.http.post<ApiResponse<InputDefinitionDto>>(
       this.baseUrl,
+      payload,
+    );
+  }
+  update(id: number, payload: UpdateInputDefinitionRequest) {
+    return this.http.put<ApiResponse<InputDefinitionDto>>(
+      `${this.baseUrl}/${id}`,
       payload,
     );
   }

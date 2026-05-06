@@ -1,5 +1,6 @@
 export interface WorkersResponseModel {
   workerId: number;
+  assignmentCount: number;
   identityUserId: string;
   fullName: string;
   firstName: string;
@@ -8,4 +9,8 @@ export interface WorkersResponseModel {
   phoneNumber: string;
   address: string;
   dailyCapacity: number;
+  province: string;
+  specialty: string;
+  employmentNumber: string;
+  city: string;
 }

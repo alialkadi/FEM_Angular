@@ -2,9 +2,9 @@
     <section class="page-hero">
         <div>
             <span class="eyebrow">My Requests</span>
-            <h2>Service Requests</h2>
-            <p>Track your submitted service requests, check their current status, view details, and download receipts.
-            </p>
+            <h2>Qouted Service Requests</h2>
+            <p>Track your Completed,Canceled, and rejected service requests, check their current status, view details,
+                and download receipts. </p>
         </div>
         <button class="refresh-btn" type="button" (click)="loadRequests()" [disabled]="loading"> Refresh </button>
     </section>
@@ -75,7 +75,7 @@
                         </button>
                         <div class="status-dropdown user-dropdown" *ngIf="openStatusDropdownId === s.requestId"
                             (mouseleave)="closeStatusDropdown()">
-                            <div class="status-option" *ngFor="let op of userAllowedStatusOptions" [ngClass]="op.type"
+                            <div class="status-option danger" *ngFor="let op of userAllowedStatusOptions"
                                 (click)="onSelectUserStatus(s, op.id, op.name, $event)"> {{ op.label }} </div>
                         </div>
                     </div>
@@ -227,34 +227,5 @@
             <strong>{{ getServiceTotal(r.requestedServices) | currency }}</strong>
         </div>
         <div class="receipt-footer"> Thank you for choosing Fenestration Express Maintenance. </div>
-    </div>
-    <div class="confirm-backdrop" *ngIf="approvePopupVisible">
-        <div class="confirm-modal" (click)="$event.stopPropagation()">
-            <div class="confirm-icon success">✓</div>
-            <h3>Approve this quote?</h3>
-            <p> You are about to approve Request <strong>#{{ requestToApprove?.requestId }}</strong>. This means you
-                accept the service quote and want the team to continue. </p>
-            <div class="quote-summary" *ngIf="requestToApprove">
-                <div>
-                    <span>Request</span>
-                    <strong>#{{ requestToApprove.requestId }}</strong>
-                </div>
-                <div>
-                    <span>Total Quote</span>
-                    <strong>{{ getServiceTotal(requestToApprove.requestedServices) | currency }}</strong>
-                </div>
-                <div>
-                    <span>Services</span>
-                    <strong>{{ requestToApprove.requestedServices?.length || 0 }}</strong>
-                </div>
-            </div>
-            <div class="confirm-actions">
-                <button type="button" class="cancel-confirm-btn" (click)="closeApprovePopup()"> No, Go Back </button>
-                <button type="button" class="approve-confirm-btn"
-                    [disabled]="updatingStatusRequestId === requestToApprove?.requestId"
-                    (click)="confirmApproveRequest()"> {{ updatingStatusRequestId === requestToApprove?.requestId ?
-                    'Approving...' : 'Yes, Approve Quote' }} </button>
-            </div>
-        </div>
     </div>
 </div>

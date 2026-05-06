@@ -2,45 +2,55 @@
     <!-- =======================
         SERVICES
   ======================== -->
-    <section class="section services" aria-label="Services">
+    <section class="section services-split" aria-label="Services">
         <div class="container">
-            <header class="section-head">
-                <!-- <div class="kicker">
-                    <span class="dot" aria-hidden="true"></span>
-                    <span>Our Core Services</span>
-                </div> -->
-                <h2 class="section-title ">Fenestration <span style="color: var(--link-hover);">Services</span></h2>
-                <p class="section-subtitle"> Everything you need for windows & doors — installation, replacement, and
-                    long-term maintenance. </p>
-            </header>
-            <div class="services-grid" role="list">
-                <article class="service-card" role="listitem" *ngFor="let s of services">
-                    <div class="service-media">
-                        <img class="service-img" [src]="s.imageUrl" [alt]="s.title" loading="lazy" />
-                        <div class="service-overlay" aria-hidden="true"></div>
-                        <!-- <div class="service-chip">
-                            <span class="chip-dot" aria-hidden="true"></span>
-                            <span>Fenestration</span>
-                        </div> -->
+            <div class="services-layout">
+                <!-- LEFT: QUICK LINKS -->
+                <aside class="quick-links">
+                    <div class="section-head">
+                        <h2>Quick Links</h2>
+                        <p>Select service by category</p>
                     </div>
-                    <div class="service-body">
-                        <h3 class="service-title">{{ s.title }}</h3>
-                        <p class="service-desc">{{ s.description }}</p>
-                        <div class="service-actions">
-                            <a class="link" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']"> Explore
-                                <span aria-hidden="true">→</span>
-                            </a>
-                            <!-- <a class="mini-btn" [routerLink]="['/public/FenestrationMaintainence/contact']"> Quote </a> -->
-                        </div>
+                    <!-- Loading -->
+                    <div *ngIf="categoriesLoading" class="quick-links-loading"> Loading... </div>
+                    <!-- Categories -->
+                    <div class="quick-links-grid" *ngIf="!categoriesLoading && categories.length">
+                        <button class="quick-link-card" *ngFor="let c of categories" (click)="openCategory(c)">
+                            <div class="quick-link-content">
+                                <h3>{{ c.name }}</h3>
+                                <span class="arrow">→</span>
+                            </div>
+                        </button>
                     </div>
-                </article>
-            </div>
-            <!-- Optional bottom note -->
-            <div class="section-foot">
-                <!-- <div class="note">
-                    <span class="note-icon" aria-hidden="true">★</span>
-                    <span>Professional results, clean finishing, and long-lasting performance.</span>
-                </div> -->
+                    <!-- Empty -->
+                    <div *ngIf="!categoriesLoading && !categories.length" class="empty"> No categories available </div>
+                </aside>
+                <!-- RIGHT: SERVICES -->
+                <div class="services-main">
+                    <header class="section-head services-head">
+                        <h2 class="section-title"> Fenestration <span style="color: var(--link-hover);">Services</span>
+                        </h2>
+                        <!-- <p class="section-subtitle " style="text-align: center; font-size: 18px;">All services for windows  doors — installation,
+                            replacement, and long-term maintenance. </p> -->
+                    </header>
+                    <div class="services-grid services-grid--split" role="list">
+                        <article class="service-card" role="listitem" *ngFor="let s of services">
+                            <div class="service-media">
+                                <img class="service-img" [src]="s.imageUrl" [alt]="s.title" loading="lazy" />
+                                <div class="service-overlay" aria-hidden="true"></div>
+                            </div>
+                            <div class="service-body">
+                                <h3 class="service-title">{{ s.title }}</h3>
+                                <p class="service-desc">{{ s.description }}</p>
+                                <div class="service-actions">
+                                    <a class="link" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">
+                                        Explore <span aria-hidden="true">→</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -99,57 +109,200 @@
     <!-- =======================
         ABOUT / WHY US
   ======================== -->
-    <section class="section about" aria-label="About">
+    <section class="section why-choose-us" aria-label="Why Choose Us">
         <div class="container">
-            <div class="about-wrap">
-                <div class="about-content">
-                    <div class="kicker">
-                        <span class="dot" aria-hidden="true"></span>
-                        <span>Why Choose Us</span>
+            <div class="section-intro">
+                <h2 class="section-title section-title--light">Why Choose Us</h2>
+            </div>
+            <!-- <div class="choice-timeline" aria-hidden="true"></div> -->
+            <div class="choice-grid" role="list">
+                <!-- Left Card -->
+                <article class="choice-card" role="listitem">
+                    <div class="choice-icon-wrap">
+                        <span class="choice-icon" aria-hidden="true">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </span>
                     </div>
-                    <h2 class="section-title">Built for Performance</h2>
-                    <p class="section-subtitle"> We fix real fenestration problems: drafts, sealing, alignment, broken
-                        glass, worn rollers/locks, and full replacements — with clean finishing that lasts. </p>
-                    <div class="value-grid" role="list">
-                        <div class="value-card" role="listitem">
-                            <div class="value-top">
-                                <span class="value-icon" aria-hidden="true">📐</span>
-                                <h4 class="value-title">Precision Work</h4>
-                            </div>
-                            <p class="value-text">Accurate fitting, correct leveling, and proper sealing.</p>
-                        </div>
-                        <div class="value-card" role="listitem">
-                            <div class="value-top">
-                                <span class="value-icon" aria-hidden="true">🔧</span>
-                                <h4 class="value-title">Maintenance Plans</h4>
-                            </div>
-                            <p class="value-text">Scheduled checkups to prevent bigger issues later.</p>
-                        </div>
-                        <div class="value-card" role="listitem">
-                            <div class="value-top">
-                                <span class="value-icon" aria-hidden="true">🪟</span>
-                                <h4 class="value-title">Modern Upgrades</h4>
-                            </div>
-                            <p class="value-text">Better glazing, better hardware, better insulation.</p>
-                        </div>
+                    <h3 class="choice-title">Fast & Clear Pricing</h3>
+                    <p class="choice-text"> Get an instant quote without delays or uncertainty. </p>
+                    <p class="choice-text"> Pricing updates based on your selected service, giving you a clear and
+                        tailored estimate. </p>
+                    <p class="choice-text"> This helps you plan with confidence and make decisions faster. </p>
+                </article>
+                <!-- Center Card -->
+                <article class="choice-card choice-card--featured" role="listitem">
+                    <div class="choice-icon-wrap">
+                        <span class="choice-icon" aria-hidden="true">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                        </span>
                     </div>
-                    <div class="about-actions">
-                        <a class="btn btn--primary" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">
-                            Explore Services </a>
-                        <a class="btn btn--ghost" [routerLink]="['/public/FenestrationMaintainence/contact']"> Request a
-                            Quote </a>
+                    <h3 class="choice-title">Repair First Approach</h3>
+                    <p class="choice-text"> We focus on repairing and restoring your windows and doors before suggesting
+                        full replacement. </p>
+                    <p class="choice-text"> Our team identifies the root issue, fixes critical components, and improves
+                        overall performance. </p>
+                    <p class="choice-text"> The result is a practical, cost-effective solution that extends system life
+                        and reliability. </p>
+                </article>
+                <!-- Right Card -->
+                <article class="choice-card" role="listitem">
+                    <div class="choice-icon-wrap">
+                        <span class="choice-icon" aria-hidden="true">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </span>
+                    </div>
+                    <h3 class="choice-title">Reliable Long-Term Results</h3>
+                    <p class="choice-text"> We deliver repair and maintenance work designed for strength, performance,
+                        and lasting value. </p>
+                    <p class="choice-text"> Every service is carried out with care to improve durability, efficiency,
+                        and everyday reliability. </p>
+                </article>
+            </div>
+            <!-- <div class="about-actions about-actions--center">
+                <a class="btn btn--primary" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']"> Explore
+                    Services </a>
+                <a class="btn btn--ghost btn--light" [routerLink]="['/public/FenestrationMaintainence/contact']">
+                    Request a Quote </a>
+            </div> -->
+        </div>
+    </section>
+    <section class="section consultation-section" aria-label="Technical Consultation">
+        <div class="container">
+            <div class="consultation-layout">
+                <div class="consultation-info">
+                    <header class="section-head">
+                        <h2 class="section-title">Service Requests</h2>
+                    </header>
+                    <div class="consultation-info-block">
+                        <h3>Office Headquarters</h3>
+                        <p>122 Industrial Way, Suite 400</p>
+                        <p>Fenestra Park, Architectural District</p>
+                    </div>
+                    <div class="consultation-info-block">
+                        <h3>Technical Support</h3>
+                        <p>contact&#64;fenestrationservices.ca</p>
+                    </div>
+                    <div class="consultation-map-card">
+                        <div id="consultation-map" class="consultation-map"></div>
+                        <div class="map-note"> Click on the map or drag the marker to select the address. </div>
                     </div>
                 </div>
-                <div class="about-media">
-                    <div class="media-card">
-                        <img src="./assets/landing-page/premium.png" alt="Fenestration replacement example"
-                            loading="lazy" />
-                        <div class="media-overlay" aria-hidden="true"></div>
-                        <div class="media-caption">
-                            <span class="caption-title">Premium finishing</span>
-                            <span class="caption-sub">Sealing • Alignment • Hardware</span>
+                <div class="consultation-form-card">
+                    <header class="section-head consultation-head">
+                        <h2 class="section-title">Request a Technical Consultation</h2>
+                    </header>
+                    <form [formGroup]="consultationForm" (ngSubmit)="submitConsultation()" class="consultation-form">
+                        <div class="consultation-grid two-cols">
+                            <div class="field">
+                                <label>First Name *</label>
+                                <input type="text" formControlName="firstName" />
+                                <small class="field-error"
+                                    *ngIf="hasError('firstName', 'required') || hasError('firstName', 'whitespace')">
+                                    First name is required. </small>
+                                <small class="field-error" *ngIf="hasError('firstName', 'minlength')"> First name must
+                                    be at least 2 characters. </small>
+                                <small class="field-error" *ngIf="hasError('firstName', 'maxlength')"> First name cannot
+                                    exceed 100 characters. </small>
+                                <small class="field-error" *ngIf="hasError('firstName', 'invalidName')"> First name can
+                                    contain letters, spaces, apostrophes, and hyphens only. </small>
+                            </div>
+                            <div class="field">
+                                <label>Last Name *</label>
+                                <input type="text" formControlName="lastName" />
+                                <small class="field-error"
+                                    *ngIf="hasError('lastName', 'required') || hasError('lastName', 'whitespace')"> Last
+                                    name is required. </small>
+                                <small class="field-error" *ngIf="hasError('lastName', 'minlength')"> Last name must be
+                                    at least 2 characters. </small>
+                                <small class="field-error" *ngIf="hasError('lastName', 'maxlength')"> Last name cannot
+                                    exceed 100 characters. </small>
+                                <small class="field-error" *ngIf="hasError('lastName', 'invalidName')"> Last name can
+                                    contain letters, spaces, apostrophes, and hyphens only. </small>
+                            </div>
+                            <div class="field">
+                                <label>Phone *</label>
+                                <input type="text" formControlName="phoneNumber" />
+                                <small class="field-error"
+                                    *ngIf="hasError('phoneNumber', 'required') || hasError('phoneNumber', 'whitespace')">
+                                    Phone number is required. </small>
+                                <small class="field-error" *ngIf="hasError('phoneNumber', 'minlength')"> Phone number is
+                                    too short. </small>
+                                <small class="field-error" *ngIf="hasError('phoneNumber', 'maxlength')"> Phone number
+                                    cannot exceed 30 characters. </small>
+                                <small class="field-error" *ngIf="hasError('phoneNumber', 'invalidPhone')"> Enter a
+                                    valid phone number. </small>
+                            </div>
+                            <div class="field">
+                                <label>Email *</label>
+                                <input type="email" formControlName="email" />
+                                <small class="field-error"
+                                    *ngIf="hasError('email', 'required') || hasError('email', 'whitespace')"> Email is
+                                    required. </small>
+                                <small class="field-error" *ngIf="hasError('email', 'email')"> Enter a valid email
+                                    address. </small>
+                                <small class="field-error" *ngIf="hasError('email', 'maxlength')"> Email cannot exceed
+                                    150 characters. </small>
+                            </div>
                         </div>
-                    </div>
+                        <div class="consultation-grid">
+                            <div class="field">
+                                <label>Address *</label>
+                                <input type="text" formControlName="address" />
+                                <small class="field-error"
+                                    *ngIf="hasError('address', 'required') || hasError('address', 'whitespace')">
+                                    Address is required. </small>
+                                <small class="field-error" *ngIf="hasError('address', 'minlength')"> Address must be at
+                                    least 5 characters. </small>
+                                <small class="field-error" *ngIf="hasError('address', 'maxlength')"> Address cannot
+                                    exceed 500 characters. </small>
+                            </div>
+                        </div>
+                        <div class="consultation-grid">
+                            <div class="field">
+                                <label>Building Type *</label>
+                                <div class="radio-group radio-group--buttons">
+                                    <label class="radio-btn" *ngFor="let option of portfolioOptions"
+                                        [class.active]="consultationForm.get('portfolioType')?.value === option">
+                                        <input type="radio" [value]="option" formControlName="portfolioType" /> {{
+                                        option }} </label>
+                                </div>
+                                <small class="field-error" *ngIf="hasError('portfolioType', 'required')"> Please select
+                                    a portfolio type. </small>
+                            </div>
+                        </div>
+                        <div class="consultation-grid">
+                            <div class="field">
+                                <label>Service Scope *</label>
+                                <div class="scope-list">
+                                    <button type="button" class="scope-btn" *ngFor="let scope of serviceScopeOptions"
+                                        [class.active]="isScopeSelected(scope)" (click)="toggleScope(scope)"> {{ scope
+                                        }} </button>
+                                </div>
+                                <small class="field-error" *ngIf="hasError('serviceScopes', 'required')"> Please select
+                                    at least one service scope. </small>
+                            </div>
+                        </div>
+                        <div class="consultation-grid">
+                            <div class="field">
+                                <label>Message *</label>
+                                <textarea rows="5" formControlName="message"
+                                    placeholder="Please describe your project or specific requirements"></textarea>
+                                <small class="field-error"
+                                    *ngIf="hasError('message', 'required') || hasError('message', 'whitespace')">
+                                    Message is required. </small>
+                                <small class="field-error" *ngIf="hasError('message', 'minlength')"> Message must be at
+                                    least 10 characters. </small>
+                                <small class="field-error" *ngIf="hasError('message', 'maxlength')"> Message cannot
+                                    exceed 2000 characters. </small>
+                            </div>
+                        </div>
+                        <div class="consultation-alert success" *ngIf="consultationSuccessMessage"> {{
+                            consultationSuccessMessage }} </div>
+                        <div class="consultation-alert error" *ngIf="consultationErrorMessage"> {{
+                            consultationErrorMessage }} </div>
+                        <button type="submit" class="consultation-submit" [disabled]="consultationSubmitting"> {{
+                            consultationSubmitting ? 'Submitting...' : 'Send Inquiry' }} </button>
+                    </form>
                 </div>
             </div>
         </div>

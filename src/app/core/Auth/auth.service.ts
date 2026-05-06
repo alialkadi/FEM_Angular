@@ -10,51 +10,78 @@ import { DecodedToken } from '../Models/auth.models';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-    private readonly key = 'app_token';
-    private apiUrl = environment.apiUrl + '/Auth';
-    constructor(@Inject(PLATFORM_ID) private platformId: object, private http: HttpClient) {}
+  private readonly key = 'app_token';
+  private apiUrl = environment.apiUrl + '/Auth';
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: object,
+    private http: HttpClient,
+  ) {}
 
-    private get isBrowser(): boolean {
-        return isPlatformBrowser(this.platformId);
-    }
+  private get isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
 
-    login(request: LoginRequest): Observable<any>{
-        return this.http.post<LoginResponse>(`${this.apiUrl}/login`,request)
-    }
-    get token(): string | null {
-        if (!this.isBrowser) return null;
-        return localStorage.getItem(this.key);
-    }
+  login(request: LoginRequest): Observable<any> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request);
+  }
+  get token(): string | null {
+    if (!this.isBrowser) return null;
+    return localStorage.getItem(this.key);
+  }
 
-    set token(v: string | null) {
-        if (!this.isBrowser) return;
-        if (v) localStorage.setItem(this.key, v);
-        else localStorage.removeItem(this.key);
-    }
+  set token(v: string | null) {
+    if (!this.isBrowser) return;
+    if (v) localStorage.setItem(this.key, v);
+    else localStorage.removeItem(this.key);
+  }
 
-    isLoggedIn(): boolean {
-        const t = this.token;
-        if (!t) return false;
-        try {
-        const payload = JSON.parse(atob(t.split('.')[1]));
-        return payload?.exp * 1000 > Date.now();
-        } catch { return false; }
+  isLoggedIn(): boolean {
+    const t = this.token;
+    if (!t) return false;
+    try {
+      const payload = JSON.parse(atob(t.split('.')[1]));
+      return payload?.exp * 1000 > Date.now();
+    } catch {
+      return false;
     }
-    getDecodedToken(): DecodedToken | null {
-        const token = this.token;
-        if (!token) return null;
-        try {
-        return jwtDecode<DecodedToken>(token);
-        } catch {
-        return null;
-        }
+  }
+  getDecodedToken(): DecodedToken | null {
+    const token = this.token;
+    if (!token) return null;
+    try {
+      return jwtDecode<DecodedToken>(token);
+    } catch {
+      return null;
     }
-    getRole(): string | null {
+  }
+  getUserId(): string | null {
     const decoded: any = this.getDecodedToken();
     if (!decoded) return null;
-        console.log(decoded)
+
+    // Most common (ASP.NET / JWT standard)
+    if (decoded.sub) return decoded.sub;
+
+    // ASP.NET Identity alternative
+    if (
+      decoded[
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+      ]
+    ) {
+      return decoded[
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+      ];
+    }
+
+    // fallback
+    return null;
+  }
+  getRole(): string | null {
+    const decoded: any = this.getDecodedToken();
+    if (!decoded) return null;
+    console.log(decoded);
     // ASP.NET Identity default role claim
-    const roleClaim = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    const roleClaim =
+      decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
 
     if (Array.isArray(roleClaim)) {
       return roleClaim[0];
@@ -70,21 +97,25 @@ export class AuthService {
     return decoded.role || null;
   }
 
-    getUserRole(): string {
+  getUserRole(): string {
     return this.getRole() ?? '';
   }
-    fakeLoginAsAdmin() {
-        if (!this.isBrowser) return;
-        const payload = btoa(JSON.stringify({
-        sub: '1', role: 'Admin', exp: Math.floor(Date.now() / 1000) + 86400
-        }));
-        this.token = ['hdr', payload, 'sig'].join('.');
-        
-        console.log(this.token)
-        console.log(payload)
-    }
+  fakeLoginAsAdmin() {
+    if (!this.isBrowser) return;
+    const payload = btoa(
+      JSON.stringify({
+        sub: '1',
+        role: 'Admin',
+        exp: Math.floor(Date.now() / 1000) + 86400,
+      }),
+    );
+    this.token = ['hdr', payload, 'sig'].join('.');
 
-    logout() {
-        if (this.isBrowser) localStorage.removeItem(this.key);
-    }
+    console.log(this.token);
+    console.log(payload);
+  }
+
+  logout() {
+    if (this.isBrowser) localStorage.removeItem(this.key);
+  }
 }

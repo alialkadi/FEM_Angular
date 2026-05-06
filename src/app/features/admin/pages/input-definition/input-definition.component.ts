@@ -1,274 +1,593 @@
-import { ToastService } from './../../../../shared/Services/toast.service';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import {
-  InputDefinitionDto,
-  PricingInputBehavior,
-} from '../../../Models/InputDefinitionDto';
+import { ToastService } from '../../../../shared/Services/toast.service';
 import { MetadataDataType } from '../../../Models/MetadataTargetType';
-import { InputDefinitionService } from '../../Services/input-definition.service';
 import {
-  CreateInputValueRequest,
-  InputValueDto,
-} from '../../../Models/InputValueDto.model';
+  PricingInputBehavior,
+  InputDefinitionDto,
+} from '../../../Models/service.Model';
+import { InputDefinitionService } from '../../Services/input-definition.service';
 import { InputValueService } from '../../Services/input-value.service';
-import { MatDialog } from '@angular/material/dialog';
-import { ConfirmDialogComponent } from '../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
-import { error } from 'console';
 
+export interface UpdateInputDefinitionRequest {
+  label: string;
+  dataType: MetadataDataType;
+  pricingBehavior: PricingInputBehavior;
+  allowDecimal: boolean;
+  min?: number | null;
+  max?: number | null;
+}
+export interface UpdateInputValueRequest {
+  displayName: string;
+  sortOrder: number;
+  isActive: boolean;
+}
 @Component({
   selector: 'app-input-definition',
   templateUrl: './input-definition.component.html',
   styleUrls: ['./input-definition.component.scss'],
 })
 export class InputDefinitionComponent implements OnInit {
-  definitions: InputDefinitionDto[] = [];
   form!: FormGroup;
+  editForm!: FormGroup;
+  valueForm!: FormGroup;
+
+  definitions: InputDefinitionDto[] = [];
+  values: any[] = [];
+
+  selectedDefinition: InputDefinitionDto | null = null;
+  editingDefinition: InputDefinitionDto | null = null;
 
   loading = false;
   submitting = false;
-  MetadataDataType = MetadataDataType;
-  PricingInputBehavior = PricingInputBehavior;
-  dataTypeOptions = [
-    { value: MetadataDataType.Number, label: 'Number' },
-    { value: MetadataDataType.Select, label: 'Select' },
-    { value: MetadataDataType.Boolean, label: 'Boolean' },
-    { value: MetadataDataType.Text, label: 'Text' },
-  ];
-  // ================= VALUES =================
-  selectedDefinition?: InputDefinitionDto;
-  values: InputValueDto[] = [];
   showValues = false;
-
-  valueForm!: FormGroup;
   loadingValues = false;
   creatingValue = false;
 
+  showEditModal = false;
+  updating = false;
+
+  MetadataDataType = MetadataDataType;
+  PricingInputBehavior = PricingInputBehavior;
+
+  dataTypeOptions = [
+    { value: MetadataDataType.Text, label: 'Text' },
+    { value: MetadataDataType.Number, label: 'Number' },
+    { value: MetadataDataType.Boolean, label: 'Boolean' },
+    { value: MetadataDataType.Select, label: 'Select' },
+  ];
+
+  pricingBehaviorOptions: { value: PricingInputBehavior; label: string }[] = [];
+  editPricingBehaviorOptions: { value: PricingInputBehavior; label: string }[] =
+    [];
+  editValueForm!: FormGroup;
+  showEditValueModal = false;
+  editingValue: any | null = null;
+  updatingValue = false;
+
+  private buildEditValueForm(): void {
+    this.editValueForm = this.fb.group({
+      displayName: ['', Validators.required],
+      sortOrder: [0, Validators.required],
+      isActive: [true],
+    });
+  }
   constructor(
     private fb: FormBuilder,
     private service: InputDefinitionService,
-    private valueService: InputValueService,
-    private confirmDialog: MatDialog,
+    private inputValueService: InputValueService,
     private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
     this.buildForm();
+    this.buildEditForm();
+    this.buildValueForm();
+    this.buildEditValueForm();
     this.loadDefinitions();
+
+    this.form
+      .get('dataType')!
+      .valueChanges.subscribe((dt: MetadataDataType | null) => {
+        this.applyCreateRules(dt);
+      });
+
+    this.editForm
+      .get('dataType')!
+      .valueChanges.subscribe((dt: MetadataDataType | null) => {
+        this.applyEditRules(dt, false);
+      });
+  }
+
+  private buildForm(): void {
+    this.form = this.fb.group({
+      code: ['', Validators.required],
+      label: ['', Validators.required],
+      dataType: [null as MetadataDataType | null, Validators.required],
+      pricingBehavior: [
+        null as PricingInputBehavior | null,
+        Validators.required,
+      ],
+      allowDecimal: [false],
+      min: [null as number | null],
+      max: [null as number | null],
+    });
+  }
+
+  private buildEditForm(): void {
+    this.editForm = this.fb.group({
+      label: ['', Validators.required],
+
+      // ✅ EXISTS IN EDIT FORM
+      dataType: [null as MetadataDataType | null, Validators.required],
+      pricingBehavior: [
+        null as PricingInputBehavior | null,
+        Validators.required,
+      ],
+
+      allowDecimal: [false],
+
+      // ✅ EXISTS IN EDIT FORM
+      min: [null as number | null],
+      max: [null as number | null],
+    });
+  }
+
+  private buildValueForm(): void {
     this.valueForm = this.fb.group({
-      code: ['', [Validators.required, Validators.pattern('^[a-z_]+$')]],
+      code: ['', Validators.required],
       displayName: ['', Validators.required],
       sortOrder: [0, Validators.required],
     });
   }
-  openValues(def: InputDefinitionDto): void {
-    this.selectedDefinition = def;
-    this.showValues = true;
-    this.loadValues();
+
+  private getPricingBehaviorsByDataType(
+    dataType: MetadataDataType | null,
+  ): { value: PricingInputBehavior; label: string }[] {
+    switch (dataType) {
+      case MetadataDataType.Number:
+        return [
+          { value: PricingInputBehavior.None, label: 'None' },
+          { value: PricingInputBehavior.Dimensional, label: 'Dimensional' },
+          { value: PricingInputBehavior.Rate, label: 'Rate' },
+          { value: PricingInputBehavior.Fixed, label: 'Fixed' },
+        ];
+
+      case MetadataDataType.Select:
+      case MetadataDataType.Boolean:
+        return [
+          { value: PricingInputBehavior.None, label: 'None' },
+          { value: PricingInputBehavior.Rate, label: 'Rate' },
+          { value: PricingInputBehavior.Fixed, label: 'Fixed' },
+        ];
+
+      case MetadataDataType.Text:
+        return [{ value: PricingInputBehavior.None, label: 'None' }];
+
+      default:
+        return [];
+    }
   }
 
-  loadValues(): void {
-    if (!this.selectedDefinition) return;
+  private applyCreateRules(dataType: MetadataDataType | null): void {
+    this.pricingBehaviorOptions = this.getPricingBehaviorsByDataType(dataType);
 
-    this.loadingValues = true;
+    if (dataType !== MetadataDataType.Number) {
+      this.form.patchValue(
+        {
+          allowDecimal: false,
+          min: null,
+          max: null,
+        },
+        { emitEvent: false },
+      );
+    }
 
-    this.valueService
-      .getByInputDefinition(this.selectedDefinition.id)
-      .subscribe((res) => {
+    const current = this.form.get('pricingBehavior')!.value;
+    const allowed = this.pricingBehaviorOptions.map((x) => x.value);
+
+    if (!allowed.includes(current)) {
+      this.form.patchValue(
+        {
+          pricingBehavior: this.pricingBehaviorOptions[0]?.value ?? null,
+        },
+        { emitEvent: false },
+      );
+    }
+  }
+
+  private applyEditRules(
+    dataType: MetadataDataType | null,
+    keepCurrentBehavior: boolean,
+  ): void {
+    this.editPricingBehaviorOptions =
+      this.getPricingBehaviorsByDataType(dataType);
+
+    if (dataType !== MetadataDataType.Number) {
+      this.editForm.patchValue(
+        {
+          allowDecimal: false,
+          min: null,
+          max: null,
+        },
+        { emitEvent: false },
+      );
+    }
+
+    const current = this.editForm.get('pricingBehavior')!.value;
+    const allowed = this.editPricingBehaviorOptions.map((x) => x.value);
+
+    if (!keepCurrentBehavior || !allowed.includes(current)) {
+      this.editForm.patchValue(
+        {
+          pricingBehavior: this.editPricingBehaviorOptions[0]?.value ?? null,
+        },
+        { emitEvent: false },
+      );
+    }
+  }
+
+  loadDefinitions(): void {
+    this.loading = true;
+
+    this.service.getAll().subscribe({
+      next: (res: { success: any; data: InputDefinitionDto[] }) => {
+        this.loading = false;
+        this.definitions = res.success && res.data ? res.data : [];
+      },
+      error: () => {
+        this.loading = false;
+        this.toast.show('Failed to load input definitions.', 'error');
+      },
+    });
+  }
+  getDataTypeLabel(value: MetadataDataType | null | undefined): string {
+    const item = this.dataTypeOptions.find((x) => x.value === value);
+    return item?.label ?? '-';
+  }
+
+  getPricingBehaviorLabel(
+    value: PricingInputBehavior | null | undefined,
+  ): string {
+    const item = this.editPricingBehaviorOptions.find((x) => x.value === value);
+    return item?.label ?? '-';
+  }
+  submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const raw = this.form.getRawValue();
+    const isNumber = raw.dataType === MetadataDataType.Number;
+
+    if (!this.validateMinMax(raw.min, raw.max)) return;
+
+    const payload = {
+      code: raw.code,
+      label: raw.label,
+      dataType: raw.dataType,
+      pricingBehavior: raw.pricingBehavior,
+      allowDecimal: isNumber ? !!raw.allowDecimal : false,
+      min: isNumber ? (raw.min ?? null) : null,
+      max: isNumber ? (raw.max ?? null) : null,
+    };
+
+    this.submitting = true;
+
+    this.service.create(payload).subscribe({
+      next: (res) => {
+        this.submitting = false;
+
         if (res.success) {
-          this.values = res.data;
-          console.log(res);
+          this.toast.show('Input created successfully.', 'success');
+          this.form.reset({
+            code: '',
+            label: '',
+            dataType: null,
+            pricingBehavior: null,
+            allowDecimal: false,
+            min: null,
+            max: null,
+          });
+          this.loadDefinitions();
+        } else {
+          this.toast.show(res.message ?? 'Create failed.', 'error');
         }
-        this.loadingValues = false;
-      });
+      },
+      error: (err) => {
+        this.submitting = false;
+        this.toast.show(err.error?.message ?? 'Create failed.', 'error');
+      },
+    });
+  }
+
+  openEdit(definition: InputDefinitionDto): void {
+    this.editingDefinition = definition;
+
+    this.editPricingBehaviorOptions = this.getPricingBehaviorsByDataType(
+      definition.dataType,
+    );
+
+    this.editForm.enable({ emitEvent: false });
+
+    this.editForm.reset(
+      {
+        label: definition.label,
+        dataType: definition.dataType,
+        pricingBehavior: definition.pricingBehavior,
+      },
+      { emitEvent: false },
+    );
+
+    this.editForm.get('dataType')?.disable({ emitEvent: false });
+    this.editForm.get('pricingBehavior')?.disable({ emitEvent: false });
+
+    this.showEditModal = true;
+  }
+
+  closeEdit(): void {
+    this.showEditModal = false;
+    this.editingDefinition = null;
+    this.editPricingBehaviorOptions = [];
+
+    this.editForm.reset({
+      label: '',
+      dataType: null,
+      pricingBehavior: null,
+      allowDecimal: false,
+      min: null,
+      max: null,
+    });
+  }
+
+  updateDefinition(): void {
+    if (!this.editingDefinition) return;
+
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+
+    // ✅ important: includes disabled controls
+    const raw = this.editForm.getRawValue();
+
+    const dataType = Number(raw.dataType) as MetadataDataType;
+    const pricingBehavior = Number(raw.pricingBehavior) as PricingInputBehavior;
+    const isNumber = dataType === MetadataDataType.Number;
+
+    if (
+      isNumber &&
+      raw.min != null &&
+      raw.max != null &&
+      Number(raw.min) > Number(raw.max)
+    ) {
+      this.toast.show('Min value cannot be greater than Max value.', 'error');
+      return;
+    }
+
+    const payload: UpdateInputDefinitionRequest = {
+      label: raw.label!,
+      dataType,
+      pricingBehavior,
+      allowDecimal: isNumber ? !!raw.allowDecimal : false,
+      min: isNumber ? (raw.min ?? null) : null,
+      max: isNumber ? (raw.max ?? null) : null,
+    };
+
+    this.updating = true;
+
+    this.service.update(this.editingDefinition.id, payload).subscribe({
+      next: (res) => {
+        this.updating = false;
+
+        if (res.success) {
+          this.toast.show('Input definition updated successfully.', 'success');
+          this.closeEdit();
+          this.loadDefinitions();
+        } else {
+          this.toast.show(res.message ?? 'Update failed.', 'error');
+        }
+      },
+      error: (err) => {
+        this.updating = false;
+        this.toast.show(err.error?.message ?? 'Update failed.', 'error');
+      },
+    });
+  }
+
+  private validateMinMax(min: number | null, max: number | null): boolean {
+    if (min != null && max != null && Number(min) > Number(max)) {
+      this.toast.show('Min value cannot be greater than Max value.', 'error');
+      return false;
+    }
+
+    return true;
+  }
+
+  openValues(definition: InputDefinitionDto): void {
+    this.selectedDefinition = definition;
+    this.showValues = true;
+    this.loadValues(definition.id);
   }
 
   closeValues(): void {
     this.showValues = false;
+    this.selectedDefinition = null;
     this.values = [];
-    this.selectedDefinition = undefined;
+    this.valueForm.reset({
+      code: '',
+      displayName: '',
+      sortOrder: 0,
+    });
   }
+
+  loadValues(inputDefinitionId: number): void {
+    this.loadingValues = true;
+
+    this.inputValueService.getByInputDefinition(inputDefinitionId).subscribe({
+      next: (res) => {
+        this.loadingValues = false;
+        this.values = res.success && res.data ? res.data : [];
+      },
+      error: () => {
+        this.loadingValues = false;
+        this.toast.show('Failed to load values.', 'error');
+      },
+    });
+  }
+
   createValue(): void {
-    if (this.valueForm.invalid || !this.selectedDefinition) {
+    if (!this.selectedDefinition || this.valueForm.invalid) {
       this.valueForm.markAllAsTouched();
       return;
     }
 
     this.creatingValue = true;
 
-    const payload: CreateInputValueRequest = {
-      inputDefinitionId: this.selectedDefinition.id,
-      code: this.valueForm.value.code.trim().toLowerCase(),
-      displayName: this.valueForm.value.displayName.trim(),
-      sortOrder: this.valueForm.value.sortOrder,
-    };
-
-    this.valueService.create(payload).subscribe((res) => {
-      if (res.success) {
-        this.values.push(res.data);
-        this.valueForm.reset({ sortOrder: 0 });
-      }
-      console.log(res);
-      this.creatingValue = false;
-    });
-  }
-  toggleActive(v: InputValueDto): void {
-    this.valueService
-      .update(v.id, {
-        displayName: v.displayName,
-        sortOrder: v.sortOrder,
-        isActive: !v.isActive,
-      })
-      .subscribe((res) => {
-        if (res.success) {
-          v.isActive = !v.isActive;
-        }
-      });
-  }
-
-  deleteValue(v: InputValueDto): void {
-    if (!confirm(`Delete value "${v.displayName}"?`)) return;
-
-    this.valueService.delete(v.id).subscribe((res) => {
-      if (res.success) {
-        this.values = this.values.filter((x) => x.id !== v.id);
-      }
-    });
-  }
-
-  private buildForm(): void {
-    this.form = this.fb.group({
-      code: ['', [Validators.required, Validators.pattern('^[a-z_]+$')]],
-      label: ['', Validators.required],
-      dataType: [null, Validators.required],
-      pricingBehavior: [{ value: PricingInputBehavior.None, disabled: true }],
-      allowDecimal: [false],
-      min: [null],
-      max: [null],
-    });
-
-    this.form.get('dataType')!.valueChanges.subscribe((dt) => {
-      this.applyRules(dt);
-    });
-  }
-
-  private applyRules(dt: MetadataDataType): void {
-    const behavior = this.form.get('pricingBehavior')!;
-    behavior.enable();
-
-    this.form.patchValue({ allowDecimal: false, min: null, max: null });
-
-    switch (dt) {
-      case MetadataDataType.Number:
-        behavior.setValue(PricingInputBehavior.Dimensional);
-        break;
-
-      case MetadataDataType.Select:
-        behavior.setValue(PricingInputBehavior.Rate);
-        break;
-
-      default:
-        behavior.setValue(PricingInputBehavior.None);
-        behavior.disable();
-    }
-  }
-
-  loadDefinitions(): void {
-    this.loading = true;
-    this.service.getAll().subscribe((res) => {
-      if (res.success) {
-        this.definitions = res.data;
-        console.log(res);
-      }
-      this.loading = false;
-    });
-  }
-  private getFormValidationErrors(): any[] {
-    const result: any[] = [];
-
-    Object.keys(this.form.controls).forEach((key) => {
-      const controlErrors = this.form.get(key)?.errors;
-      if (controlErrors) {
-        result.push({
-          control: key,
-          errors: controlErrors,
-        });
-      }
-    });
-
-    return result;
-  }
-  submit(): void {
-    console.log('submit fired');
-    console.log('form valid:', this.form.valid);
-    console.log('form value:', this.form.getRawValue());
-    console.log('form errors:', this.getFormValidationErrors());
-
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.submitting = true;
+    const raw = this.valueForm.getRawValue();
 
     const payload = {
-      ...this.form.getRawValue(),
-      code: this.form.getRawValue().code.trim().toLowerCase(),
+      inputDefinitionId: this.selectedDefinition.id,
+      code: raw.code,
+      displayName: raw.displayName,
+      sortOrder: raw.sortOrder,
     };
 
-    console.log('payload:', payload);
-    this.service.create(payload).subscribe({
+    this.inputValueService.create(payload).subscribe({
       next: (res) => {
-        console.log('create success:', res);
+        this.creatingValue = false;
+
         if (res.success) {
-          this.definitions.unshift(res.data);
-          this.form.reset({
+          this.toast.show('Value created successfully.', 'success');
+          this.valueForm.reset({
             code: '',
-            label: '',
-            dataType: null,
-            pricingBehavior: PricingInputBehavior.None,
-            allowDecimal: false,
-            min: null,
-            max: null,
+            displayName: '',
+            sortOrder: 0,
           });
+          this.loadValues(this.selectedDefinition!.id);
+        } else {
+          this.toast.show(res.message ?? 'Create value failed.', 'error');
         }
       },
       error: (err) => {
-        console.error('create error:', err);
-      },
-      complete: () => {
-        this.submitting = false;
+        this.creatingValue = false;
+        this.toast.show(err.error?.message ?? 'Create value failed.', 'error');
       },
     });
   }
 
-  delete(item: InputDefinitionDto): void {
-    // if (!confirm(`Delete input "${item.label}"?`)) return;
-    const confirmRef = this.confirmDialog.open(ConfirmDialogComponent, {
-      width: `350px`,
-      data: { message: `Are you sure you want to delete "${item.label}"` },
+  // toggleActive(value: any): void {
+  //   this.inputValueService.toggleActive(value.id).subscribe({
+  //     next: (res) => {
+  //       if (res.success) {
+  //         this.toast.show('Value updated.', 'success');
+  //         this.loadValues(this.selectedDefinition!.id);
+  //       } else {
+  //         this.toast.show(res.message ?? 'Toggle failed.', 'error');
+  //       }
+  //     },
+  //     error: () => {
+  //       this.toast.show('Toggle failed.', 'error');
+  //     },
+  //   });
+  // }
+
+  deleteValue(value: any): void {
+    if (!confirm('Delete this value?')) return;
+
+    this.inputValueService.delete(value.id).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.toast.show('Value deleted.', 'success');
+          this.loadValues(this.selectedDefinition!.id);
+        } else {
+          this.toast.show(res.message ?? 'Delete failed.', 'error');
+        }
+      },
+      error: () => {
+        this.toast.show('Delete failed.', 'error');
+      },
     });
-    confirmRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.service.delete(item.id).subscribe({
-          next: (res) => {
-            //  this.definitions = this.definitions.filter((x) => x.id !== item.id);
-            this.toast.show(res.message);
-            this.loadDefinitions();
-          },
-          error: (err) => {
-            this.toast.show(err.error.message);
-            console.log(err);
-          },
-        });
-        // this.service.delete(item.id).subscribe((res) => {
-        //   if (res.success) {
-        //     this.definitions = this.definitions.filter((x) => x.id !== item.id);
-        //     this.toast.show(res.message);
-        //     this.loadDefinitions();
-        //   }
-        // });
-      }
+  }
+
+  delete(definition: InputDefinitionDto): void {
+    if (!confirm('Delete this input definition?')) return;
+
+    this.service.delete(definition.id).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.toast.show('Input definition deleted.', 'success');
+          this.loadDefinitions();
+        } else {
+          this.toast.show(res.message ?? 'Delete failed.', 'error');
+        }
+      },
+      error: () => {
+        this.toast.show('Delete failed.', 'error');
+      },
+    });
+  }
+  openEditValue(value: any): void {
+    this.editingValue = value;
+
+    this.editValueForm.reset({
+      displayName: value.displayName ?? '',
+      sortOrder: value.sortOrder ?? 0,
+      isActive: value.isActive ?? true,
+    });
+
+    this.showEditValueModal = true;
+  }
+
+  closeEditValue(): void {
+    this.showEditValueModal = false;
+    this.editingValue = null;
+
+    this.editValueForm.reset({
+      displayName: '',
+      sortOrder: 0,
+      isActive: true,
+    });
+  }
+
+  updateValue(): void {
+    if (!this.editingValue) return;
+
+    if (this.editValueForm.invalid) {
+      this.editValueForm.markAllAsTouched();
+      return;
+    }
+
+    const raw = this.editValueForm.getRawValue();
+
+    const payload: UpdateInputValueRequest = {
+      displayName: raw.displayName,
+      sortOrder: Number(raw.sortOrder),
+      isActive: !!raw.isActive,
+    };
+
+    this.updatingValue = true;
+
+    this.inputValueService.update(this.editingValue.id, payload).subscribe({
+      next: (res) => {
+        this.updatingValue = false;
+        console.log(res);
+        if (res.success) {
+          this.toast.show('Value updated successfully.', 'success');
+          this.closeEditValue();
+
+          if (this.selectedDefinition) {
+            this.loadValues(this.selectedDefinition.id);
+          }
+        } else {
+          this.toast.show(res.message ?? 'Update value failed.', 'error');
+        }
+      },
+      error: (err) => {
+        this.updatingValue = false;
+        this.toast.show(err.error?.message ?? 'Update value failed.', 'error');
+      },
     });
   }
 }

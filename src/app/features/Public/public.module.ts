@@ -20,7 +20,7 @@ import { ServiceExplorerOptionCComponent } from './pages/service-explorer-option
 import { ServiceUserFormComponent } from './pages/service-user-form/service-user-form.component';
 import { WishlistComponent } from './pages/Wishlist/wishlist.component';
 import { ServiceAdvertisedDetailComponent } from './pages/service-advertised-detail/service-advertised-detail.component';
-
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -36,12 +36,18 @@ import { ServiceAdvertisedDetailComponent } from './pages/service-advertised-det
     ServiceExplorerOptionCComponent,
     ServiceUserFormComponent,
     WishlistComponent,
-    ServiceAdvertisedDetailComponent
+    ServiceAdvertisedDetailComponent,
   ],
   imports: [
     CommonModule,
     PublicRoutingModule,
-    SharedModule, AdminRoutingModule, MatIcon ,MatPaginatorModule,FormsModule, ReactiveFormsModule  
-  ]
+    SharedModule,
+    AdminRoutingModule,
+    MatIcon,
+    MatPaginatorModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+  ],
 })
-export class PublicModule { }
+export class PublicModule {}

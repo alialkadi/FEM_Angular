@@ -24,4 +24,6 @@ export interface ServiceInputAnswer {
   inputCode: string;
   numericValue?: number | null;
   selectedValueCode?: string | null;
+  textValue?: any | null;
+  booleanValue?: any | null;
 }

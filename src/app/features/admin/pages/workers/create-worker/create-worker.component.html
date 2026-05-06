@@ -36,10 +36,25 @@
             <small *ngIf="f['address'].touched && f['address'].invalid">Address is required</small>
         </div>
         <div class="form-row">
-            <label>Daily Capacity</label>
-            <input type="number" formControlName="dailyCapacity">
-            <small *ngIf="f['dailyCapacity'].touched && f['dailyCapacity'].invalid"> Daily capacity must be at least 1
-            </small>
+            <label>City</label>
+            <input type="text" formControlName="city">
+            <small *ngIf="f['city'].touched && f['city'].invalid">City is required</small>
+        </div>
+        <div class="form-row">
+            <label>Employment Number</label>
+            <input type="text" formControlName="employmentNumber">
+            <small *ngIf="f['employmentNumber'].touched && f['employmentNumber'].invalid">Employment Number is
+                required</small>
+        </div>
+        <div class="form-row">
+            <label>Specialty</label>
+            <input type="text" formControlName="specialty">
+            <small *ngIf="f['specialty'].touched && f['specialty'].invalid">Specialty Number is required</small>
+        </div>
+        <div class="form-row">
+            <label>Province</label>
+            <input type="text" formControlName="province">
+            <small *ngIf="f['province'].touched && f['province'].invalid">Province Number is required</small>
         </div>
         <button type="submit" [disabled]="loading"> {{ loading ? 'Creating...' : 'Create Technician' }} </button>
     </form>

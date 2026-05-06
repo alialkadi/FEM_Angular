@@ -5,6 +5,7 @@ export interface ServiceRequestListDto {
   requestedDate: string;
   statusId: number;
   statusName: string;
+  requestNumber: string;
   totalCost: number;
 }
 
@@ -25,8 +26,26 @@ export interface ServiceRequestDetailItemDto {
   fees: ServiceRequestFeeDto[];
   steps: ServiceRequestStepDto[];
   metadata: ServiceRequestMetadataDto[];
+  hierarchy: ServiceHierarchyDto;
 }
+export interface ServiceHierarchyDto {
+  categoryId?: number;
+  categoryName?: string;
 
+  typeId?: number;
+  typeName?: string;
+
+  structureId?: number;
+  structureName?: string;
+
+  partId?: number;
+  partName?: string;
+
+  partOptionId?: number;
+  partOptionName?: string;
+
+  assignedLevel: 'Structure' | 'Part' | 'PartOption' | 'Unknown';
+}
 export interface ServiceRequestDetailDto {
   id: number;
   userId: string;
@@ -37,6 +56,8 @@ export interface ServiceRequestDetailDto {
   requestedDate: string;
   statusId: number;
   statusName: string;
+  requestNumber: string;
+
   totalCost: number;
   notes?: string;
   requestedServices: ServiceRequestDetailItemDto[];
@@ -61,7 +82,8 @@ export interface ServiceRequestInputDto {
 
   // For numeric / text inputs
   enteredValue: number | null;
-
+  enteredTextValue: string | null;
+  enteredBooleanValue: boolean | null;
   // Pricing behavior enum from backend
   pricingBehavior: number;
 
@@ -76,7 +98,7 @@ export interface ServiceRequestFeeDto {
 }
 export interface ServiceRequestStepDto {
   stepOrder: number;
-  descriptionAtTime: string;
+  description: string;
 }
 export interface ServiceRequestMetadataDto {
   attributeCode: string;

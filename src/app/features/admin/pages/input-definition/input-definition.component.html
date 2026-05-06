@@ -1,151 +1,330 @@
-<!-- ================= CREATE INPUT DEFINITION ================= -->
-<div class="admin-card">
-    <div class="card-header">
-        <h3>Create Input Definition</h3>
-    </div>
-    <form [formGroup]="form" (ngSubmit)="submit()" class="card-body">
-        <div class="grid two">
-            <div class="field">
-                <label>Code</label>
-                <input formControlName="code" placeholder="width, height" />
-            </div>
-            <div class="field">
-                <label>Label</label>
-                <input formControlName="label" placeholder="Width (cm)" />
+<!-- ================= PAGE: INPUT DEFINITIONS ================= -->
+<section class="page-shell">
+    <!-- ================= CREATE INPUT DEFINITION ================= -->
+    <div class="admin-card section-card">
+        <div class="card-header card-header--split">
+            <div>
+                <h3>Create Input Definition</h3>
+                <p class="card-subtitle">Define the input type, pricing behavior, and optional numeric rules.</p>
             </div>
         </div>
-        <div class="grid two">
-            <div class="field">
-                <label>Data Type</label>
-                <select formControlName="dataType">
-                    <option [ngValue]="null" disabled>Select type</option>
-                    <option *ngFor="let t of dataTypeOptions" [ngValue]="t.value"> {{ t.label }} </option>
-                </select>
-            </div>
-            <div class="field">
-                <label>Pricing Behavior</label>
-                <select formControlName="pricingBehavior">
-                    <option *ngFor="let b of [0,1,2,3]" [ngValue]="b"> {{ PricingInputBehavior[b] }} </option>
-                </select>
-            </div>
-        </div>
-        <div class="grid three" *ngIf="form.value.dataType === MetadataDataType.Number">
-            <div class="field checkbox">
-                <label>
-                    <input type="checkbox" formControlName="allowDecimal" /> Allow Decimal </label>
-            </div>
-            <div class="field">
-                <label>Min</label>
-                <input type="number" formControlName="min" />
-            </div>
-            <div class="field">
-                <label>Max</label>
-                <input type="number" formControlName="max" />
-            </div>
-        </div>
-        <div class="actions">
-            <button type="submit" class="primary" [disabled]="submitting"> Create Input </button>
-        </div>
-    </form>
-</div>
-<!-- ================= INPUT DEFINITIONS LIST ================= -->
-<div class="admin-card">
-    <div class="card-header">
-        <h3>Input Definitions</h3>
-    </div>
-    <div class="card-body">
-        <div *ngIf="loading" class="muted">Loading…</div>
-        <table *ngIf="!loading && definitions.length">
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Label</th>
-                    <th>Type</th>
-                    <th>Behavior</th>
-                    <th>Values</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let d of definitions">
-                    <td class="mono">{{ d.code }}</td>
-                    <td>{{ d.label }}</td>
-                    <td>{{ MetadataDataType[d.dataType] }}</td>
-                    <td>{{ PricingInputBehavior[d.pricingBehavior] }}</td>
-                    <td>
-                        <button *ngIf="d.dataType === MetadataDataType.Select" class="secondary"
-                            (click)="openValues(d)"> Manage </button>
-                        <span *ngIf="d.dataType !== MetadataDataType.Select" class="muted"> — </span>
-                    </td>
-                    <td>
-                        <button class="danger" (click)="delete(d)">Delete</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <div *ngIf="!loading && !definitions.length" class="muted"> No input definitions created yet. </div>
-    </div>
-</div>
-<!-- ================= VALUES MODAL ================= -->
-<div class="modal-overlay" *ngIf="showValues">
-    <div class="modal-card">
-        <!-- HEADER -->
-        <div class="modal-header">
-            <div class="title">
-                <h3>Manage Values</h3>
-                <span class="subtitle">{{ selectedDefinition?.label }}</span>
-            </div>
-            <button class="close-btn" (click)="closeValues()">✕</button>
-        </div>
-        <!-- BODY -->
-        <div class="modal-body">
-            <!-- CREATE VALUE -->
-            <form [formGroup]="valueForm" (ngSubmit)="createValue()" class="create-value-form">
-                <div class="field">
-                    <label>Code</label>
-                    <input formControlName="code" />
+        <form [formGroup]="form" (ngSubmit)="submit()" class="card-body form-layout">
+            <div class="form-section">
+                <div class="section-title-row">
+                    <h4>Basic Information</h4>
                 </div>
-                <div class="field">
-                    <label>Display Name</label>
-                    <input formControlName="displayName" />
+                <div class="grid two">
+                    <div class="field">
+                        <label for="input-code">Code</label>
+                        <input id="input-code" formControlName="code" placeholder="width, height" />
+                        <small class="hint">Use a unique technical code.</small>
+                    </div>
+                    <div class="field">
+                        <label for="input-label">Label</label>
+                        <input id="input-label" formControlName="label" placeholder="Width (cm)" />
+                        <small class="hint">This is the user-facing display label.</small>
+                    </div>
                 </div>
-                <div class="field small">
-                    <label>Order</label>
-                    <input type="number" formControlName="sortOrder" />
+            </div>
+            <div class="form-section">
+                <div class="section-title-row">
+                    <h4>Configuration</h4>
                 </div>
-                <div class="field actions">
-                    <button class="primary" [disabled]="creatingValue"> + Add Value </button>
+                <div class="grid two">
+                    <div class="field">
+                        <label for="data-type">Data Type</label>
+                        <select id="data-type" formControlName="dataType">
+                            <option [ngValue]="null" disabled>Select type</option>
+                            <option *ngFor="let t of dataTypeOptions" [ngValue]="t.value"> {{ t.label }} </option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="pricing-behavior">Pricing Behavior</label>
+                        <select id="pricing-behavior" formControlName="pricingBehavior">
+                            <option [ngValue]="null" disabled>Select pricing behavior</option>
+                            <option *ngFor="let b of pricingBehaviorOptions" [ngValue]="b.value"> {{ b.label }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-section" *ngIf="form.value.dataType === MetadataDataType.Number">
+                <div class="section-title-row">
+                    <h4>Numeric Rules</h4>
+                </div>
+                <div class="grid three">
+                    <div class="field checkbox-card">
+                        <label class="checkbox-label">
+                            <input type="checkbox" formControlName="allowDecimal" />
+                            <span>Allow Decimal Values</span>
+                        </label>
+                    </div>
+                    <!-- <div class="field">
+                        <label for="min-value">Min</label>
+                        <input id="min-value" type="number" formControlName="min" />
+                    </div>
+                    <div class="field">
+                        <label for="max-value">Max</label>
+                        <input id="max-value" type="number" formControlName="max" />
+                    </div> -->
+                </div>
+            </div>
+            <div class="actions actions--end">
+                <button type="submit" class="primary" [disabled]="submitting">
+                    <span>Create Input</span>
+                </button>
+            </div>
+        </form>
+    </div>
+    <!-- ================= INPUT DEFINITIONS LIST ================= -->
+    <div class="admin-card section-card">
+        <div class="card-header card-header--split">
+            <div>
+                <h3>Input Definitions</h3>
+                <p class="card-subtitle">Browse and manage all created input definitions.</p>
+            </div>
+            <div class="header-badge" *ngIf="!loading"> {{ definitions.length }} Items </div>
+        </div>
+        <div class="card-body">
+            <div *ngIf="loading" class="muted state-message">Loading input definitions…</div>
+            <div class="table-wrap" *ngIf="!loading && definitions.length">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Definition</th>
+                            <th>Type</th>
+                            <th>Behavior</th>
+                            <th>Values</th>
+                            <th class="th-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let d of definitions">
+                            <td>
+                                <div class="cell-main">
+                                    <div class="cell-title">{{ d.label }}</div>
+                                    <div class="cell-sub mono">{{ d.code }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="table-badge"> {{ MetadataDataType[d.dataType] }} </span>
+                            </td>
+                            <td>
+                                <span class="table-badge table-badge--soft"> {{ PricingInputBehavior[d.pricingBehavior]
+                                    }} </span>
+                            </td>
+                            <td>
+                                <ng-container *ngIf="d.dataType === MetadataDataType.Select; else noValuesBlock">
+                                    <button type="button" class="secondary" (click)="openValues(d)"> Manage Values
+                                    </button>
+                                </ng-container>
+                                <ng-template #noValuesBlock>
+                                    <span class="muted">Not applicable</span>
+                                </ng-template>
+                            </td>
+                            <td class="td-actions">
+                                <div class="action-group">
+                                    <button type="button" class="secondary" (click)="openEdit(d)"> Edit </button>
+                                    <button type="button" class="danger" (click)="delete(d)"> Delete </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div *ngIf="!loading && !definitions.length" class="empty-state">
+                <h4>No input definitions yet</h4>
+                <p class="muted">Create your first input definition to start managing dynamic pricing inputs.</p>
+            </div>
+        </div>
+    </div>
+    <!-- ================= VALUES MODAL ================= -->
+    <div class="modal-overlay" *ngIf="showValues">
+        <div class="modal-card modal-card--large">
+            <!-- HEADER -->
+            <div class="modal-header">
+                <div class="title">
+                    <h3>Manage Values</h3>
+                    <span class="subtitle"> {{ selectedDefinition?.label }} <span class="mono"
+                            *ngIf="selectedDefinition?.code">({{ selectedDefinition?.code }})</span>
+                    </span>
+                </div>
+                <button type="button" class="close-btn" (click)="closeValues()">✕</button>
+            </div>
+            <!-- BODY -->
+            <div class="modal-body">
+                <!-- CREATE VALUE -->
+                <div class="modal-section">
+                    <div class="section-title-row">
+                        <h4>Add New Value</h4>
+                    </div>
+                    <form [formGroup]="valueForm" (ngSubmit)="createValue()" class="create-value-form">
+                        <div class="field">
+                            <label for="value-code">Code</label>
+                            <input id="value-code" formControlName="code" placeholder="e.g. roto" />
+                        </div>
+                        <div class="field">
+                            <label for="value-display-name">Display Name</label>
+                            <input id="value-display-name" formControlName="displayName" placeholder="e.g. Roto" />
+                        </div>
+                        <div class="field small">
+                            <label for="value-order">Order</label>
+                            <input id="value-order" type="number" formControlName="sortOrder" />
+                        </div>
+                        <div class="field actions">
+                            <button type="submit" class="primary" [disabled]="creatingValue"> + Add Value </button>
+                        </div>
+                    </form>
+                </div>
+                <!-- VALUES LIST -->
+                <div class="modal-section">
+                    <div class="section-title-row section-title-row--between">
+                        <h4>Existing Values</h4>
+                        <span class="header-badge" *ngIf="!loadingValues">{{ values.length }} Values</span>
+                    </div>
+                    <div *ngIf="loadingValues" class="muted center state-message">Loading values…</div>
+                    <div class="table-wrap" *ngIf="!loadingValues && values.length">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Value</th>
+                                    <th>Order</th>
+                                    <th>Status</th>
+                                    <th class="th-actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let v of values">
+                                    <td>
+                                        <div class="cell-main">
+                                            <div class="cell-title">{{ v.displayName }}</div>
+                                            <div class="cell-sub mono">{{ v.code }}</div>
+                                        </div>
+                                    </td>
+                                    <td>{{ v.sortOrder }}</td>
+                                    <td>
+                                        <span class="status" [class.active]="v.isActive"> {{ v.isActive ? 'Active' :
+                                            'Disabled' }} </span>
+                                    </td>
+                                    <td class="td-actions">
+                                        <div class="action-group">
+                                            <!-- <button type="button" class="secondary" (click)="toggleActive(v)"> Toggle
+                                            </button> -->
+                                            <button type="button" class="secondary" (click)="openEditValue(v)"> Edit
+                                            </button>
+                                            <button type="button" class="danger" (click)="deleteValue(v)"> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div *ngIf="!loadingValues && !values.length" class="empty-state empty-state--sm">
+                        <h4>No values defined yet</h4>
+                        <p class="muted">Add the first value for this select input definition.</p>
+                    </div>
+                </div>
+                <div class="modal-overlay modal-overlay--inner" *ngIf="showEditValueModal">
+                    <div class="modal-card">
+                        <div class="modal-header">
+                            <div class="title">
+                                <h3>Edit Value</h3>
+                                <span class="subtitle"> {{ editingValue?.code }} </span>
+                            </div>
+                            <button type="button" class="close-btn" (click)="closeEditValue()">✕</button>
+                        </div>
+                        <form class="modal-body" [formGroup]="editValueForm" (ngSubmit)="updateValue()">
+                            <div class="modal-section">
+                                <div class="grid two">
+                                    <div class="field">
+                                        <label>Display Name</label>
+                                        <input formControlName="displayName" placeholder="Display name" />
+                                    </div>
+                                    <div class="field">
+                                        <label>Order</label>
+                                        <input type="number" formControlName="sortOrder" />
+                                    </div>
+                                    <div class="field checkbox-card">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" formControlName="isActive" />
+                                            <span>Active</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="actions actions--end">
+                                <button type="button" class="secondary" (click)="closeEditValue()"> Cancel </button>
+                                <button type="submit" class="primary" [disabled]="updatingValue"> {{ updatingValue ?
+                                    'Updating…' : 'Update Value' }} </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ================= EDIT INPUT DEFINITION MODAL ================= -->
+    <div class="modal-overlay" *ngIf="showEditModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="title">
+                    <h3>Edit Input Definition</h3>
+                    <span class="subtitle"> {{ editingDefinition?.code }} </span>
+                </div>
+                <button type="button" class="close-btn" (click)="closeEdit()">✕</button>
+            </div>
+            <form class="modal-body" [formGroup]="editForm" (ngSubmit)="updateDefinition()">
+                <div class="modal-section">
+                    <div class="grid two">
+                        <div class="field">
+                            <label>Label</label>
+                            <input formControlName="label" placeholder="Input label" />
+                        </div>
+                        <div class="field">
+                            <label>Data Type</label>
+                            <div class="readonly-field">
+                                <span class="readonly-label">Data Type</span>
+                                <strong> {{ MetadataDataType[editForm.get('dataType')?.value] }} </strong>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Pricing Behavior</label>
+                            <div class="readonly-field">
+                                <span class="readonly-label">Pricing Behavior</span>
+                                <strong> {{ PricingInputBehavior[editForm.get('pricingBehavior')?.value] }} </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ✅ MIN / MAX EXISTS IN EDIT MODAL -->
+                <div class="modal-section" *ngIf="editForm.get('dataType')?.value === MetadataDataType.Number">
+                    <div class="section-title-row">
+                        <h4>Numeric Rules</h4>
+                    </div>
+                    <div class="grid three">
+                        <div class="field checkbox-card">
+                            <!-- <label class="checkbox-label">
+                                <input type="checkbox" formControlName="allowDecimal" />
+                                <span>Allow Decimal Values</span>
+                            </label> -->
+                        </div>
+                        <!-- <div class="field">
+                            <label>Min</label>
+                            <input type="number" formControlName="min" />
+                        </div>
+                        <div class="field">
+                            <label>Max</label>
+                            <input type="number" formControlName="max" />
+                        </div> -->
+                    </div>
+                </div>
+                <div class="actions actions--end">
+                    <button type="button" class="secondary" (click)="closeEdit()"> Cancel </button>
+                    <button type="submit" class="primary" [disabled]="updating"> {{ updating ? 'Updating…' : 'Update
+                        Input' }} </button>
                 </div>
             </form>
-            <div *ngIf="loadingValues" class="muted center"> Loading values… </div>
-            <!-- VALUES TABLE -->
-            <table *ngIf="!loadingValues && values.length">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Label</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let v of values">
-                        <td class="mono">{{ v.code }}</td>
-                        <td>{{ v.displayName }}</td>
-                        <td>{{ v.sortOrder }}</td>
-                        <td>
-                            <span class="status" [class.active]="v.isActive"> {{ v.isActive ? 'Active' : 'Disabled' }}
-                            </span>
-                        </td>
-                        <td class="actions">
-                            <button class="secondary" (click)="toggleActive(v)"> Toggle </button>
-                            <button class="danger" (click)="deleteValue(v)"> Delete </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <div *ngIf="!loadingValues && !values.length" class="muted center"> No values defined yet. </div>
         </div>
     </div>
-</div>
+</section>
