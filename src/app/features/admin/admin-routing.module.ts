@@ -27,6 +27,7 @@ import { EditServiceMetadataComponent } from './pages/Service/edit-service-metad
 import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/edit-service-inputs.component';
 import { StaticsComponent } from './pages/statics/statics.component';
 import { ConsultaionAdminComponent } from './pages/consultation/consultaion-admin/consultaion-admin.component';
+import { CustomersListComponent } from './pages/Customers/customers-list/customers-list.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -53,6 +54,7 @@ const routes: Routes = [
       { path: 'input', component: InputDefinitionComponent },
       { path: 'consultations', component: ConsultaionAdminComponent },
       { path: 'createattribute', component: MetadataCreateAttributeComponent },
+      { path: 'customers', component: CustomersListComponent },
       {
         path: 'assignvalue/:attributeId',
         component: MetadataAssignValueComponent,

@@ -29,6 +29,11 @@
                 <input id="phoneNumber" type="text" formControlName="phoneNumber" placeholder="+1 234 567 890" />
                 <small *ngIf="f.phoneNumber.invalid && f.phoneNumber.touched">Enter a valid phone number.</small>
             </div>
+            <div class="form-group">
+                <label for="city">City</label>
+                <input id="city" type="text" formControlName="city" placeholder="+1 234 567 890" />
+                <small *ngIf="f.city.invalid && f.city.touched">Enter a valid phone number.</small>
+            </div>
             <!-- Address -->
             <div class="form-group full">
                 <label for="address">Address</label>

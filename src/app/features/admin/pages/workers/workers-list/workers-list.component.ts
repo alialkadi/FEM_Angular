@@ -9,6 +9,7 @@ import {
 } from '../../../../technician-dashboard/Models/assignment.model';
 import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { ToastService } from '../../../../../shared/Services/toast.service';
 
 @Component({
   selector: 'app-workers-list',
@@ -37,6 +38,7 @@ export class WorkersListComponent implements OnInit {
   constructor(
     private workerService: CreateWorkerService,
     private fb: FormBuilder,
+    private toast: ToastService,
     private dialog: MatDialog,
   ) {}
 
@@ -269,5 +271,59 @@ export class WorkersListComponent implements OnInit {
 
   get f() {
     return this.workerForm.controls;
+  }
+
+  lockingWorkerId: number | null = null;
+
+  isWorkerLocked(worker: WorkersResponseModel): boolean {
+    console.log(worker.status?.toLowerCase());
+    return worker.status?.toLowerCase() === 'locked';
+  }
+
+  toggleWorkerLock(worker: WorkersResponseModel): void {
+    if (!worker?.workerId) return;
+
+    const isLocked = this.isWorkerLocked(worker);
+
+    const confirmMessage = isLocked
+      ? `Are you sure you want to unlock ${worker.firstName} ${worker.lastName}?`
+      : `Are you sure you want to lock ${worker.firstName} ${worker.lastName}?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    this.lockingWorkerId = worker.workerId;
+
+    const request$ = isLocked
+      ? this.workerService.unlockWorker(worker.workerId)
+      : this.workerService.lockWorker(worker.workerId);
+
+    request$.subscribe({
+      next: (res) => {
+        this.lockingWorkerId = null;
+
+        if (res.success) {
+          worker.status = isLocked ? 'Active' : 'Locked';
+          worker.isAvailable = isLocked;
+
+          this.toast.show(
+            res.message ||
+              (isLocked
+                ? 'Worker unlocked successfully'
+                : 'Worker locked successfully'),
+            'success',
+          );
+        } else {
+          this.toast.show(res.message || 'Action failed', 'error');
+        }
+      },
+      error: (err) => {
+        this.lockingWorkerId = null;
+
+        this.toast.show(
+          err?.error?.message || 'Failed to update worker lock status',
+          'error',
+        );
+      },
+    });
   }
 }

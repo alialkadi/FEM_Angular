@@ -62,6 +62,12 @@
                             <button class="btn-icon" (click)="openWorkerModal(worker)">✏️</button>
                             <button class="btn-icon" (click)="openAssignmentsModal(worker)">📋</button>
                             <button class="btn-icon danger" (click)="deleteWorker(worker.workerId)">🗑</button>
+                            <button class="lock-btn" [class.locked]="isWorkerLocked(worker)"
+                                [disabled]="lockingWorkerId === worker.workerId" (click)="toggleWorkerLock(worker)">
+                                <span *ngIf="lockingWorkerId !== worker.workerId"> {{ isWorkerLocked(worker) ? 'Unlock'
+                                    : 'Lock' }} </span>
+                                <span *ngIf="lockingWorkerId === worker.workerId"> Saving... </span>
+                            </button>
                         </div>
                     </td>
                 </tr>

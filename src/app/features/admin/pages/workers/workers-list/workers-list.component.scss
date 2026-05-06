@@ -748,3 +748,53 @@ form {
 .btn-icon.danger:hover {
   background: #fee2e2;
 }
+.lock-btn {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: #fecaca;
+  }
+
+  &.locked {
+    background: #dcfce7;
+    color: #166534;
+
+    &:hover {
+      background: #bbf7d0;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.lock-icon-btn {
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &.locked {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

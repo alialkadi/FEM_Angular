@@ -59,7 +59,19 @@ export class CreateWorkerService {
       `${this.baseUrl}`,
     );
   }
+  lockWorker(workerId: number): Observable<ApiResponse<boolean>> {
+    return this.http.put<ApiResponse<boolean>>(
+      `${this.baseUrl}/${workerId}/lock`,
+      {},
+    );
+  }
 
+  unlockWorker(workerId: number): Observable<ApiResponse<boolean>> {
+    return this.http.put<ApiResponse<boolean>>(
+      `${this.baseUrl}/${workerId}/unlock`,
+      {},
+    );
+  }
   updateWorker(workerId: number, dto: CreateWorkerModel): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}/${workerId}`, dto);
   }

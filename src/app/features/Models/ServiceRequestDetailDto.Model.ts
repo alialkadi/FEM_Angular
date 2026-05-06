@@ -53,11 +53,12 @@ export interface ServiceRequestDetailDto {
   email: string;
   phoneNumber: string;
   address: string;
+  preferredContactMethod: string;
   requestedDate: string;
   statusId: number;
   statusName: string;
   requestNumber: string;
-
+  city: string;
   totalCost: number;
   notes?: string;
   requestedServices: ServiceRequestDetailItemDto[];
