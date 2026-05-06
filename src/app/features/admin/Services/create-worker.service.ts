@@ -10,6 +10,33 @@ import {
 import { Observable } from 'rxjs';
 import { WorkersResponseModel } from './workers.model';
 import { GetTechnicianAssignmentsApiResponse } from '../../technician-dashboard/Models/assignment.model';
+export interface WorkerConflictDto {
+  workerId: number;
+  workerName: string;
+  existingRequestId: number;
+  existingStatus: string;
+}
+
+export interface AssignWorkerResultDto {
+  assigned: boolean;
+  requiresConfirmation: boolean;
+  conflicts: WorkerConflictDto[];
+}
+export interface TechnicianForAssignmentDto {
+  workerId: number;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  specialty?: string;
+  assignmentCount: number;
+  isAssignedToCurrentRequest: boolean;
+}
+export interface AssignWorkerRequest {
+  serviceRequestId: number;
+  workerId: number[];
+  notes?: string;
+  forceAssign?: boolean;
+}
 @Injectable({
   providedIn: 'root',
 })
@@ -40,12 +67,10 @@ export class CreateWorkerService {
     return this.http.delete<any>(`${this.baseUrl}/${workerId}`);
   }
 
-  assignWorker(data: {
-    serviceRequestId: number;
-    workerId: number[];
-    notes?: string;
-  }): Observable<ApiResponse<boolean>> {
-    return this.http.post<ApiResponse<boolean>>(
+  assignWorker(
+    data: AssignWorkerRequest,
+  ): Observable<ApiResponse<AssignWorkerResultDto>> {
+    return this.http.post<ApiResponse<AssignWorkerResultDto>>(
       `${this.baseUrl}/assign-worker`,
       data,
     );
@@ -56,6 +81,13 @@ export class CreateWorkerService {
     return this.http.get<GetTechnicianAssignmentsApiResponse>(
       `${this.baseUrl}/assignedJobs`,
       { params },
+    );
+  }
+  getWorkersForAssignment(
+    requestId: number,
+  ): Observable<ApiResponse<TechnicianForAssignmentDto[]>> {
+    return this.http.get<ApiResponse<TechnicianForAssignmentDto[]>>(
+      `${this.baseUrl}/for-assignment/${requestId}`,
     );
   }
 }

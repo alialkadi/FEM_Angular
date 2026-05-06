@@ -3,6 +3,23 @@
         <h2>🧾 Service Requests</h2>
         <p class="subtitle">All requests submitted by users are listed below.</p>
     </header>
+    <ng-container *ngIf="!loading">
+        <div class="stats-grid">
+            <div class="stat-card" *ngFor="let card of statCards" [ngClass]="card.className">
+                <div class="stat-card__top">
+                    <div class="stat-icon">{{ card.icon }}</div>
+                    <div class="stat-badge">{{ card.title }}</div>
+                </div>
+                <div class="stat-card__body">
+                    <h3>{{ card.value }}</h3>
+                    <p>{{ card.title }}</p>
+                </div>
+                <div class="stat-card__footer">
+                    <div class="progress-line"></div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
     <div *ngIf="loading" class="loading">
         <div class="spinner"></div>
         <p>Loading requests...</p>
@@ -35,7 +52,7 @@
         <table class="requests-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>No.</th>
                     <th>User</th>
                     <th>Email</th>
                     <th>Status</th>
@@ -46,7 +63,7 @@
             </thead>
             <tbody>
                 <tr *ngFor="let r of requests">
-                    <td>{{ r.id }}</td>
+                    <td>{{ r.requestNumber }}</td>
                     <td>{{ r.userFullName }}</td>
                     <td>{{ r.email }}</td>
                     <td class="status-cell">
@@ -83,7 +100,6 @@
         <button [disabled]="page * pageSize >= totalCount" (click)="onPageChange(page + 1)"> Next → </button>
     </footer>
 </section>
-<!-- Details Popup -->
 <!-- DETAILS POPUP -->
 <div class="overlay" *ngIf="popupVisible">
     <div class="popup popup-lg">
@@ -117,6 +133,8 @@
                 <h4>Request Summary</h4>
                 <div class="info-grid">
                     <div><label>Requested On</label><span>{{ selectedRequest.requestedDate | date:'short' }}</span>
+                    </div>
+                    <div><label>Request No.</label><span>{{ selectedRequest.requestNumber }}</span>
                     </div>
                     <div><label>Total Cost</label><span class="highlight">{{ selectedRequest.totalCost | currency
                             }}</span></div>
@@ -260,18 +278,41 @@
             </div>
             <div *ngIf="!assignLoading" class="workers-list">
                 <label class="worker-item" *ngFor="let w of filteredWorkers">
-                    <input type="checkbox" [value]="w.workerId" [checked]="isAlreadyAssigned(w.workerId)"
-                        (change)="toggleWorkerSelection($event, w)"
-                        [disabled]="isAlreadyAssigned(w.workerId) && !allowUnassign" />
+                    <input type="checkbox" [value]="w.workerId" [checked]="isWorkerSelected(w.workerId)"
+                        (change)="toggleWorkerSelection($event, w)" />
                     <div>
                         <strong>{{ w.fullName }}</strong>
                         <p>{{ w.phoneNumber }}</p>
-                        <small *ngIf="isAlreadyAssigned(w.workerId)" class="muted">Already assigned</small>
+                        <small *ngIf="isAlreadyAssigned(w.workerId)" class="muted"> Currently assigned — uncheck to
+                            remove </small>
                     </div>
                 </label>
             </div>
             <!-- Assign Button -->
             <button class="assign-confirm-btn" (click)="submitWorkersAssignment()"> Assign Selected Workers </button>
+        </div>
+    </div>
+</div>
+<div class="overlay" *ngIf="workerConflictVisible">
+    <div class="popup assign-popup">
+        <header class="popup-header">
+            <h3>Technician Already Assigned</h3>
+            <button class="close-btn" (click)="cancelForceAssign()">×</button>
+        </header>
+        <div class="popup-content">
+            <div class="assign-status"> One or more selected technicians are already assigned to another active request.
+            </div>
+            <div class="workers-list">
+                <div class="worker-item" *ngFor="let c of conflictedWorkers">
+                    <div>
+                        <strong>{{ c.workerName }}</strong>
+                        <p>Assigned to Request #{{ c.existingRequestId }}</p>
+                        <small>Status: {{ c.existingStatus }}</small>
+                    </div>
+                </div>
+            </div>
+            <button class="assign-confirm-btn" (click)="confirmForceAssign()"> Continue Anyway </button>
+            <button class="clear-btn" (click)="cancelForceAssign()"> Choose Another Technician </button>
         </div>
     </div>
 </div>

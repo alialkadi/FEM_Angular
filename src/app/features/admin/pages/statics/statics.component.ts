@@ -24,7 +24,7 @@ export class StaticsComponent implements OnInit, AfterViewInit, OnDestroy {
   inProgressCount = 0;
   canceledCount = 0;
   approvedCount = 0;
-
+  totalCount = 0;
   underReviewCount = 0;
   completedCount = 0;
   rejectedCount = 0;
@@ -50,6 +50,7 @@ export class StaticsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loading = true;
 
     forkJoin({
+      total: this._statService.gettotalStatics(),
       pending: this._statService.getPendingStatics(),
       inProgress: this._statService.getInprogressStatics(),
       canceled: this._statService.getcanceledStatics(),
@@ -66,7 +67,7 @@ export class StaticsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.inProgressCount = res.inProgress?.data?.response ?? 0;
         this.canceledCount = res.canceled?.data?.response ?? 0;
         this.approvedCount = res.approved?.data?.response ?? 0;
-
+        this.totalCount = res.total?.data?.response ?? 0;
         this.underReviewCount = res.underReview?.data?.response ?? 0;
         this.completedCount = res.completed?.data?.response ?? 0;
         this.rejectedCount = res.rejected?.data?.response ?? 0;

@@ -1,10 +1,12 @@
 .jobs-container {
   width: min(95%, 900px);
   margin: 30px auto;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
-.loading, .empty, .error {
+.loading,
+.empty,
+.error {
   text-align: center;
   margin-top: 40px;
   font-size: 1.1rem;
@@ -36,7 +38,7 @@
   padding: 20px;
   margin: 15px 0;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .job-header {
@@ -84,4 +86,56 @@
 .service-prices p {
   margin: 0;
   text-align: right;
+}
+.jobs-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.receipt-btn {
+  border: none;
+  background: #111827;
+  color: #fff;
+  padding: 0.75rem 1.1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.receipt-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.jobs-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.jobs-filters input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+}
+
+.jobs-filters input:focus {
+  border-color: #111827;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+}
+
+@media (max-width: 900px) {
+  .jobs-filters {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .jobs-filters {
+    grid-template-columns: 1fr;
+  }
 }

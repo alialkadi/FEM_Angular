@@ -7,7 +7,11 @@ import {
 
 import { AdminServiceRequestService } from '../../../Services/admin-service-request.service';
 import { ServiceRequestStatusService } from '../../../Services/service-request-status.service';
-import { CreateWorkerService } from '../../../Services/create-worker.service';
+import {
+  AssignWorkerRequest,
+  CreateWorkerService,
+  WorkerConflictDto,
+} from '../../../Services/create-worker.service';
 
 import {
   AllowedStatusDto,
@@ -18,7 +22,14 @@ import { AuthService } from '../../../../../core/Auth/auth.service';
 import { WorkersResponseModel } from '../../../Services/workers.model';
 import { ToastService } from '../../../../../shared/Services/toast.service';
 import { PricingInputBehavior } from '../../../../Models/InputDefinitionDto';
-
+import { StaticsService } from '../../../Services/statics.service';
+import { forkJoin } from 'rxjs';
+interface StatCard {
+  title: string;
+  value: number;
+  icon: string;
+  className: string;
+}
 @Component({
   selector: 'app-admin-service-request',
   templateUrl: './admin-service-request.component.html',
@@ -42,7 +53,11 @@ export class AdminServiceRequestComponent implements OnInit {
   selectedStatus: Record<number, number | null> = {};
   openDropdownId: number | null = null;
   allStatuses: AllowedStatusDto[] = [];
-
+  pendingStatsCount = 0;
+  inProgressStatsCount = 0;
+  canceledStatsCount = 0;
+  approvedStatsCount = 0;
+  totalStatsCount = 0;
   /* ------------------------------------------------------
    *  REQUEST DETAILS POPUP
    * ------------------------------------------------------ */
@@ -62,19 +77,24 @@ export class AdminServiceRequestComponent implements OnInit {
   workerSearchTerm = '';
 
   alreadyAssignedIds: number[] = [];
-  selectedWorkers: number[] = [];
+  selectedWorkers: any[] = [];
   allowUnassign = false;
+  selectedWorkerIds: number[] = [];
 
   filterStatus: string | null = null;
   filterFromDate: string | null = null;
   filterToDate: string | null = null;
-
+  workerConflictVisible = false;
+  conflictedWorkers: WorkerConflictDto[] = [];
+  pendingAssignPayload: AssignWorkerRequest | null = null;
+  statCards: StatCard[] = [];
   constructor(
     private adminService: AdminServiceRequestService,
     private statusService: ServiceRequestStatusService,
     private auth: AuthService,
     private workerService: CreateWorkerService,
     private toast: ToastService,
+    private _statService: StaticsService,
   ) {}
 
   /* ------------------------------------------------------
@@ -83,8 +103,70 @@ export class AdminServiceRequestComponent implements OnInit {
   ngOnInit(): void {
     this.loadRequests();
     this.loadAllStatuses();
+    this.loadStatics();
   }
+  buildCards(): void {
+    this.statCards = [
+      {
+        title: 'Total Requests',
+        value: this.totalStatsCount,
+        icon: '📊',
+        className: 'pending',
+      },
+      {
+        title: 'Pending Requests',
+        value: this.pendingStatsCount,
+        icon: '⌛',
+        className: 'total',
+      },
 
+      {
+        title: 'In Progress Requests',
+        value: this.inProgressStatsCount,
+        icon: '⚙',
+        className: 'progress',
+      },
+      {
+        title: 'Canceled Requests',
+        value: this.canceledStatsCount,
+        icon: '✕',
+        className: 'canceled',
+      },
+      {
+        title: 'Approved Requests',
+        value: this.approvedStatsCount,
+        icon: '✓',
+        className: 'approved',
+      },
+    ];
+  }
+  loadStatics(): void {
+    this.loading = true;
+
+    forkJoin({
+      total: this._statService.gettotalStatics(),
+      pending: this._statService.getPendingStatics(),
+      inProgress: this._statService.getInprogressStatics(),
+      canceled: this._statService.getcanceledStatics(),
+      approved: this._statService.getapprovedStatics(),
+    }).subscribe({
+      next: (res) => {
+        this.pendingStatsCount = res.pending?.data?.response ?? 0;
+        this.inProgressStatsCount = res.inProgress?.data?.response ?? 0;
+        this.canceledStatsCount = res.canceled?.data?.response ?? 0;
+        this.approvedStatsCount = res.approved?.data?.response ?? 0;
+        this.totalStatsCount = res.total?.data?.response ?? 0;
+        console.log(res);
+        this.buildCards();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load statics', err);
+        this.buildCards();
+        this.loading = false;
+      },
+    });
+  }
   /* ------------------------------------------------------
    *  LOAD REQUESTS + STATUSES
    * ------------------------------------------------------ */
@@ -105,6 +187,7 @@ export class AdminServiceRequestComponent implements OnInit {
           this.totalCount = res.totalCount;
           this.loading = false;
           this.loadAllowedStatuses();
+          console.log(res);
         },
         error: () => {
           this.errorMessage = 'Failed to load service requests.';
@@ -201,14 +284,30 @@ export class AdminServiceRequestComponent implements OnInit {
   /* ------------------------------------------------------
    *  ASSIGN WORKER POPUP — STEP 1: LOAD DETAILS FIRST
    * ------------------------------------------------------ */
-  openAssignWorker(requestId: number) {
-    this.adminService.getById(requestId).subscribe({
+  openAssignWorker(requestId: number): void {
+    this.selectedRequestId = requestId;
+    this.assignPopupVisible = true;
+    this.assignLoading = true;
+    this.assignMessage = '';
+    this.workerConflictVisible = false;
+
+    this.workerService.getWorkersForAssignment(requestId).subscribe({
       next: (res) => {
-        this.selectedRequest = res;
-        this.openAssignPopup(requestId);
+        this.assignLoading = false;
+        console.log(res);
+        this.workers = res.data || [];
+        this.filteredWorkers = [...this.workers];
+
+        this.selectedWorkerIds = this.workers
+          .filter(
+            (w: { isAssignedToCurrentRequest: any }) =>
+              w.isAssignedToCurrentRequest,
+          )
+          .map((w: { workerId: any }) => w.workerId);
       },
       error: () => {
-        this.assignMessage = 'Could not load request details.';
+        this.assignLoading = false;
+        this.assignMessage = 'Failed to load technicians.';
       },
     });
   }
@@ -221,6 +320,7 @@ export class AdminServiceRequestComponent implements OnInit {
     this.assignLoading = true;
     this.assignMessage = '';
     this.selectedRequestId = requestId;
+    this.selectedWorkerIds = [...this.alreadyAssignedIds];
 
     this.alreadyAssignedIds =
       this.selectedRequest?.serviceRequestAssignmentResponses?.map(
@@ -265,54 +365,100 @@ export class AdminServiceRequestComponent implements OnInit {
     );
   }
 
-  toggleWorkerSelection(event: any, worker: WorkersResponseModel) {
-    const workerId = Number(event.target.value);
+  // toggleWorkerSelection(event: any, worker: WorkersResponseModel) {
+  //   const workerId = Number(event.target.value);
 
-    if (event.target.checked) {
-      if (!this.isAlreadyAssigned(workerId))
-        this.selectedWorkers.push(workerId);
-    } else {
-      this.selectedWorkers = this.selectedWorkers.filter(
-        (id) => id !== workerId,
-      );
-    }
-  }
+  //   if (event.target.checked) {
+  //     if (!this.isAlreadyAssigned(workerId))
+  //       this.selectedWorkers.push(workerId);
+  //   } else {
+  //     this.selectedWorkers = this.selectedWorkers.filter(
+  //       (id) => id !== workerId,
+  //     );
+  //   }
+  // }
 
   /* ------------------------------------------------------
    *  SUBMIT ASSIGNMENT
    * ------------------------------------------------------ */
-  submitWorkersAssignment() {
-    const newWorkerIds = this.selectedWorkers.filter(
-      (id) => !this.alreadyAssignedIds.includes(id),
-    );
+  submitWorkersAssignment(forceAssign = false): void {
+    if (!this.selectedRequestId) return;
 
-    if (newWorkerIds.length === 0) {
-      this.assignMessage = 'No new workers selected.';
+    if (!this.selectedWorkerIds.length) {
+      this.assignMessage = 'Please select at least one technician.';
       return;
     }
 
-    const payload = {
-      serviceRequestId: this.selectedRequestId!,
-      workerId: newWorkerIds,
-      notes: '',
+    const payload: AssignWorkerRequest = {
+      serviceRequestId: this.selectedRequestId,
+      workerId: this.selectedWorkerIds,
+      forceAssign,
     };
+
+    this.pendingAssignPayload = payload;
+    this.assignLoading = true;
+    this.assignMessage = '';
 
     this.workerService.assignWorker(payload).subscribe({
       next: (res) => {
-        this.assignMessage = res.message || 'Workers assigned successfully.';
-        this.alreadyAssignedIds = [...this.alreadyAssignedIds, ...newWorkerIds];
-        this.loadRequests();
-        if (res.success) {
-          this.toast.show(res.message, 'success');
+        this.assignLoading = false;
+
+        if (res.data?.requiresConfirmation) {
+          this.conflictedWorkers = res.data.conflicts || [];
+          this.workerConflictVisible = true;
+          return;
         }
-        setTimeout(() => this.closeAssignPopup(), 1200);
+
+        if (res.success && res.data?.assigned) {
+          this.assignMessage =
+            res.message || 'Technician assignment updated successfully.';
+          this.workerConflictVisible = false;
+          this.conflictedWorkers = [];
+          this.pendingAssignPayload = null;
+
+          this.loadRequests();
+          this.closeAssignPopup();
+        } else {
+          this.assignMessage =
+            res.message || 'Failed to update technician assignment.';
+        }
       },
       error: () => {
-        this.assignMessage = 'Failed to assign workers.';
+        this.assignLoading = false;
+        this.assignMessage = 'Failed to update technician assignment.';
+      },
+    });
+  }
+  confirmForceAssign(): void {
+    if (!this.pendingAssignPayload) return;
+
+    this.pendingAssignPayload.forceAssign = true;
+    this.workerConflictVisible = false;
+    this.assignLoading = true;
+
+    this.workerService.assignWorker(this.pendingAssignPayload).subscribe({
+      next: (res) => {
+        this.assignLoading = false;
+
+        if (res.success && res.data?.assigned) {
+          this.closeAssignPopup();
+          this.loadRequests();
+        } else {
+          this.assignMessage =
+            res.message || 'Failed to update technician assignment.';
+        }
+      },
+      error: () => {
+        this.assignLoading = false;
+        this.assignMessage = 'Failed to update technician assignment.';
       },
     });
   }
 
+  cancelForceAssign(): void {
+    this.workerConflictVisible = false;
+    this.conflictedWorkers = [];
+  }
   /* ------------------------------------------------------
    *  PAGINATION
    * ------------------------------------------------------ */
@@ -404,5 +550,24 @@ export class AdminServiceRequestComponent implements OnInit {
     const n = Number(v);
     if (Number.isNaN(n)) return String(v);
     return n % 1 === 0 ? `${n}` : `${n.toFixed(2)}`;
+  }
+
+  isWorkerSelected(workerId: number): boolean {
+    return this.selectedWorkerIds.includes(workerId);
+  }
+
+  toggleWorkerSelection(event: Event, worker: any): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const workerId = worker.workerId;
+
+    if (checked) {
+      if (!this.selectedWorkerIds.includes(workerId)) {
+        this.selectedWorkerIds.push(workerId);
+      }
+    } else {
+      this.selectedWorkerIds = this.selectedWorkerIds.filter(
+        (id) => id !== workerId,
+      );
+    }
   }
 }

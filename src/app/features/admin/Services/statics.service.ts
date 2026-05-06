@@ -17,6 +17,11 @@ export class StaticsService {
       `${this.baseurl}pendingRequests`,
     );
   }
+  gettotalStatics(): Observable<ApiResponse<GeneralResponse<number>>> {
+    return this._http.get<ApiResponse<GeneralResponse<number>>>(
+      `${this.baseurl}totalRequests`,
+    );
+  }
   getInprogressStatics(): Observable<ApiResponse<GeneralResponse<number>>> {
     return this._http.get<ApiResponse<GeneralResponse<number>>>(
       `${this.baseurl}inProgressRequests`,

@@ -24,3 +24,13 @@ export interface CreateWorkerResponse {
   employmentNumber: string;
   city: string;
 }
+export interface TechnicianForAssignmentDto {
+  workerId: number;
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  specialty?: string;
+  assignmentCount: number;
+
+  isAssignedToCurrentRequest: boolean;
+}

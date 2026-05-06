@@ -5,6 +5,7 @@ export interface ServiceRequestListDto {
   requestedDate: string;
   statusId: number;
   statusName: string;
+  requestNumber: string;
   totalCost: number;
 }
 
@@ -55,6 +56,7 @@ export interface ServiceRequestDetailDto {
   requestedDate: string;
   statusId: number;
   statusName: string;
+  requestNumber: string;
 
   totalCost: number;
   notes?: string;
