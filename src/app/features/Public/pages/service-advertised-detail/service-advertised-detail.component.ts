@@ -10,6 +10,7 @@ import {
   ServiceResponse,
 } from '../../../Models/service.Model';
 import { WishlistService } from '../../Services/wishlist.service';
+import { SeoService } from '../../Services/seo.service';
 
 type PricingBehavior = number; // keep compatible with your enums
 type MetadataDataType = number;
@@ -50,6 +51,8 @@ interface AdvertisedServiceDetailsDto {
 export class ServiceAdvertisedDetailComponent implements OnInit {
   slug = '';
   loading = false;
+  service: any;
+  notFound = false;
 
   requestedServices: RequestedService[] = []; // ✅ SAME AS REVIEW
   overallTotal = 0;
@@ -59,15 +62,28 @@ export class ServiceAdvertisedDetailComponent implements OnInit {
     private router: Router,
     private serviceApi: ServiceService,
     private wishlist: WishlistService,
+    private seo: SeoService,
   ) {}
 
   ngOnInit(): void {
     this.slug = this.route.snapshot.paramMap.get('slug') || '';
-    if (!this.slug) return;
-
+    if (!this.slug) {
+      this.loading = false;
+      this.notFound = true;
+      return;
+    }
     this.loadBySlug();
   }
 
+  private setSeo(): void {
+    const title = `${this.service.name} Calgary | Fenestration Services`;
+
+    const description =
+      this.service.description ||
+      `Professional ${this.service.name} service in Calgary by Fenestration Services.`;
+
+    this.seo.update(title, description, 'index, follow');
+  }
   // =========================================
   // 1) Load advertised service by slug
   // =========================================
@@ -80,7 +96,7 @@ export class ServiceAdvertisedDetailComponent implements OnInit {
           this.loading = false;
           return;
         }
-
+        console.log(res);
         // ✅ Map your API response to ServiceResponse that review expects
         const s = this.mapAdvertisedDtoToServiceResponse(res.data);
 
@@ -95,16 +111,19 @@ export class ServiceAdvertisedDetailComponent implements OnInit {
           })) as ServiceStep[],
           answers: [],
         };
-
+        this.service = s;
+        this.setSeo();
         this.requestedServices = [item];
-
+        this.notFound = false;
         // Initial calc (static -> GET calculate works; dynamic -> will require inputs to compute)
         this.initialCalculate(item);
 
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.log(err);
         this.loading = false;
+        this.notFound = true;
       },
     });
   }

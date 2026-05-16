@@ -78,7 +78,8 @@ export class UserServiceRequestsComponent implements OnInit {
     const normalized = statusName.toLowerCase();
 
     // user can only cancel requests before final states
-    return normalized === 'pending' || normalized === 'approved';
+    // return normalized === 'pending' || normalized === 'approved';
+    return normalized === 'pending';
   }
   approvePopupVisible = false;
   requestToApprove: UserServiceRequestDto | null = null;

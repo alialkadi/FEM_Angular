@@ -1,39 +1,48 @@
-<section class="wishlist-wrapper">
-    <header class="wishlist-header">
-        <h2>❤️ Saved Services</h2>
-        <p>Your bookmarked services. You can add them to your request anytime.</p>
+<section class="cart-wrapper">
+    <header class="cart-header">
+        <span class="cart-kicker">Service Cart</span>
+        <h2>🛒 Your Selected Services</h2>
+        <p>Review your saved services, continue browsing, or proceed to submit your request.</p>
     </header>
-    <div class="wishlist-grid" *ngIf="items.length; else emptyState">
-        <article class="wishlist-card" *ngFor="let s of items">
-            <!-- IMAGE -->
+    <div class="cart-toolbar" *ngIf="items.length">
+        <div>
+            <h3>{{ items.length }} service{{ items.length > 1 ? 's' : '' }} in cart</h3>
+            <p>Ready to continue to review.</p>
+        </div>
+        <div class="toolbar-actions">
+            <button class="btn-secondary" type="button" (click)="backToExplorer()"> Continue Browsing </button>
+            <button class="btn-primary" type="button" (click)="proceedToReview()"> Proceed to Review </button>
+        </div>
+    </div>
+    <div class="cart-grid" *ngIf="items.length; else emptyState">
+        <article class="cart-card" *ngFor="let s of items">
             <div class="image-wrapper">
-                <img *ngIf="s.fileUrl; else noImg" [src]="s.fileUrl" />
+                <img *ngIf="s.fileUrl; else noImg" [src]="s.fileUrl" [alt]="s.name" />
                 <ng-template #noImg>
-                    <div class="image-placeholder">Service</div>
+                    <div class="image-placeholder">
+                        <span>🛠️</span>
+                        <strong>Service</strong>
+                    </div>
                 </ng-template>
             </div>
-            <!-- CONTENT -->
             <div class="card-content">
                 <h3 class="service-name">{{ s.name }}</h3>
                 <p class="service-desc"> {{ s.description || 'No description provided.' }} </p>
-                <!-- METADATA -->
                 <div class="meta" *ngIf="s.metadata?.length">
                     <span class="chip" *ngFor="let m of s.metadata"> {{ m.valueText || m.value }} </span>
                 </div>
             </div>
-            <!-- ACTIONS -->
             <footer class="card-actions">
-                <button class="remove-btn" (click)="remove(s.serviceId)"> ❌ Remove </button>
+                <button class="remove-btn" type="button" (click)="remove(s.serviceId)"> Remove </button>
             </footer>
         </article>
     </div>
-    <!-- EMPTY STATE -->
     <ng-template #emptyState>
         <div class="empty-state">
-            <span class="icon">💔</span>
-            <h3>No saved services yet</h3>
-            <p>Browse services and save them to your wishlist for later.</p>
-            <button (click)="backToExplorer()">Browse Services</button>
+            <span class="empty-icon">🛒</span>
+            <h3>Your cart is empty</h3>
+            <p>Browse available services and add them to your cart before submitting a request.</p>
+            <button type="button" (click)="backToExplorer()"> Browse Services </button>
         </div>
     </ng-template>
 </section>

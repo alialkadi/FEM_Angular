@@ -10,12 +10,12 @@
   background: #fff;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.2s ease-in-out;
 }
 
 .card:hover {
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 /* Table */
@@ -91,7 +91,9 @@ input[type="text"] {
   border-radius: 8px;
   border: 1px solid #ccc;
   font-size: 1rem;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition:
+    border-color 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
 }
 
 input[type="text"]:focus {
@@ -113,7 +115,9 @@ input[type="text"]:focus {
   cursor: pointer;
   font-weight: 500;
   font-size: 0.95rem;
-  transition: background 0.2s ease-in-out, transform 0.15s ease-in-out;
+  transition:
+    background 0.2s ease-in-out,
+    transform 0.15s ease-in-out;
 }
 
 .btn.cancel {
@@ -190,4 +194,22 @@ input[type="text"]:focus {
 
 .preview {
   margin-top: 8px;
+}
+.fe-field textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 0.85rem 1rem;
+  border: 1px solid #dcdfe4;
+  border-radius: 12px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.fe-field textarea:focus {
+  border-color: var(--link-hover);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
 }

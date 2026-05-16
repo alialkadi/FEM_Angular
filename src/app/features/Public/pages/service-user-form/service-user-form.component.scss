@@ -151,3 +151,128 @@
     }
   }
 }
+.response-message {
+  margin-bottom: 1.5rem;
+  border-radius: 14px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  animation: fadeSlide 0.25s ease;
+
+  .response-icon {
+    font-size: 1.1rem;
+  }
+
+  &.success {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+  }
+
+  &.error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.phone-confirm-box {
+  margin: 1rem 0;
+  padding: 1.2rem;
+  border-radius: 14px;
+  border: 1px solid #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+
+  h4 {
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0 0 1rem;
+    line-height: 1.6;
+  }
+}
+
+.phone-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.phone-confirm-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+
+  button {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 14px;
+    padding: 0.9rem 1.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease,
+      color 0.2s ease;
+    min-width: 220px;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #111827, #1f2937);
+    color: #fff;
+    box-shadow: 0 10px 25px rgba(17, 24, 39, 0.18);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0f172a, #111827);
+      box-shadow: 0 14px 30px rgba(17, 24, 39, 0.28);
+    }
+  }
+
+  .btn-secondary {
+    background: #fff;
+    color: #92400e;
+    border: 1px solid #f59e0b;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.1);
+
+    &:hover:not(:disabled) {
+      background: #fff7ed;
+      border-color: #d97706;
+      color: #78350f;
+      box-shadow: 0 12px 24px rgba(245, 158, 11, 0.18);
+    }
+  }
+}

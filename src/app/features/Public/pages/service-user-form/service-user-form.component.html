@@ -3,6 +3,21 @@
         <h2>🧍‍♂️ Provide Your Information</h2>
         <p>Please enter your contact details so we can process your request.</p>
     </header>
+    <div class="response-message" *ngIf="responseMessage" [ngClass]="responseType">
+        <span class="response-icon"> {{ responseType === 'success' ? '✅' : '⚠️' }} </span>
+        <span> {{ responseMessage }} </span>
+    </div>
+    <div class="phone-confirm-box" *ngIf="showPhoneConfirm" #phoneConfirmBox>
+        <h4>Confirm Phone Number Update</h4>
+        <p> This email already exists with another phone number. You can either update the saved phone number to the new
+            one, or go back and enter the old phone number. </p>
+        <div class="phone-confirm-actions">
+            <button type="button" class="btn-primary" (click)="confirmPhoneOverwrite()" [disabled]="submitting"> Yes,
+                Update Phone & Continue </button>
+            <button type="button" class="btn-secondary" (click)="cancelPhoneOverwrite()" [disabled]="submitting"> No, I
+                Will Enter Old Phone </button>
+        </div>
+    </div>
     <form [formGroup]="userForm" (ngSubmit)="onSubmit()" novalidate>
         <div class="form-grid">
             <!-- First Name -->
@@ -27,11 +42,16 @@
             <div class="form-group">
                 <label for="phoneNumber">Phone Number</label>
                 <input id="phoneNumber" type="text" formControlName="phoneNumber" placeholder="+1 234 567 890" />
-                <small *ngIf="f.phoneNumber.invalid && f.phoneNumber.touched">Enter a valid phone number.</small>
+                <small *ngIf="f.phoneNumber.touched && f.phoneNumber.errors?.['required']"> Phone number is required.
+                </small>
+                <small *ngIf="f.phoneNumber.touched && f.phoneNumber.errors?.['minlength']"> Phone number must be at
+                    least 6 characters. </small>
+                <small *ngIf="f.phoneNumber.touched && f.phoneNumber.errors?.['pattern']"> Only numbers, spaces, + and -
+                    are allowed. </small>
             </div>
             <div class="form-group">
                 <label for="city">City</label>
-                <input id="city" type="text" formControlName="city" placeholder="+1 234 567 890" />
+                <input id="city" type="text" formControlName="city" placeholder="calgory" />
                 <small *ngIf="f.city.invalid && f.city.touched">Enter a valid phone number.</small>
             </div>
             <!-- Address -->
@@ -66,7 +86,7 @@
         <footer class="actions">
             <button type="button" class="btn-secondary" (click)="cancel()">⬅ Back</button>
             <button type="submit" class="btn-primary" [disabled]="submitting">
-                <span *ngIf="!submitting">✅ Submit Request</span>
+                <span *ngIf="!submitting">✅ Send Request</span>
                 <span *ngIf="submitting">Submitting...</span>
             </button>
         </footer>

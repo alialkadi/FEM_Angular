@@ -110,6 +110,8 @@ export class ServiceListComponent implements OnInit {
       (s) =>
         s.name?.toLowerCase().includes(term) ||
         s.description?.toLowerCase().includes(term) ||
+        s.categoryName?.toLowerCase().includes(term) ||
+        s.categoryTypeName?.toLowerCase().includes(term) ||
         s.structureName?.toLowerCase().includes(term) ||
         s.partName?.toLowerCase().includes(term) ||
         s.partOptionName?.toLowerCase().includes(term),

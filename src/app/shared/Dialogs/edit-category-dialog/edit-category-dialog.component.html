@@ -7,7 +7,11 @@
                 class="custom-input" />
             <div class="fe-field">
                 <label>Category description </label>
-                <input type="text" formControlName="description" placeholder="e.g., ...." />
+                <textarea formControlName="description" rows="4" placeholder="e.g.,
+Line 1
+Line 2
+Line 3">
+    </textarea>
             </div>
             <div class="file-upload">
                 <input type="file" (change)="onFileSelected($event)" accept="image/*" />

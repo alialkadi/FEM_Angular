@@ -11,6 +11,9 @@ import {
 } from '../../../admin/Services/MetadataExplorerService.service';
 import { Category } from '../../../Models/Category';
 import { CategoryType } from '../../../Models/CategoryType';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { ApiTimingInterceptor } from '../../Interceptors/api-timing.interceptor';
+import { forkJoin, catchError, of } from 'rxjs';
 
 interface ExplorerCrumb {
   label: string;
@@ -56,19 +59,58 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   ngOnInit(): void {
     this.loadCategoriesAndHandleRoute();
   }
+  isExplorerLoading = false;
+  hasExplorerLoaded = false;
+  hasExplorerResultLoaded = false;
 
+  loadInitialExplorer(): void {
+    this.isExplorerLoading = true;
+    this.hasExplorerLoaded = false;
+
+    this.categoryService.getAllCategories(true).subscribe({
+      next: (res) => {
+        this.categories = res?.data.categories ?? [];
+
+        this.hasExplorerLoaded = true;
+        this.isExplorerLoading = false;
+      },
+      error: () => {
+        this.categories = [];
+
+        this.hasExplorerLoaded = true;
+        this.isExplorerLoading = false;
+      },
+    });
+  }
   private loadCategoriesAndHandleRoute(): void {
+    this.isExplorerLoading = true;
+    this.hasExplorerLoaded = false;
+
     this.categoryService.getAllCategories(true).subscribe({
       next: (r) => {
-        this.categories = r.data?.categories ?? [];
+        this.categories = r?.data?.categories ?? [];
+
+        this.hasExplorerLoaded = true;
+        this.isExplorerLoading = false;
+
         this.handleInitialCategoryFromQuery();
       },
       error: () => {
         this.categories = [];
+        this.hasExplorerLoaded = true;
+        this.isExplorerLoading = false;
       },
     });
   }
 
+  get showNoServicesAtLastLevel(): boolean {
+    return (
+      this.hasExplorerResultLoaded &&
+      !this.isExplorerLoading &&
+      !!this.selectedType &&
+      this.hasAnyItems === 0
+    );
+  }
   private handleInitialCategoryFromQuery(): void {
     this.route.queryParamMap.subscribe((params) => {
       const categoryIdParam = params.get('categoryId');
@@ -87,6 +129,9 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.resetAll();
     this.selectedCategory = c;
 
+    this.isExplorerLoading = true;
+    this.hasExplorerResultLoaded = false;
+
     if (updateUrl && c?.id) {
       this.router.navigate([], {
         relativeTo: this.route,
@@ -98,9 +143,11 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.typeService.getTypesByCategory(c.id!).subscribe({
       next: (r) => {
         this.types = r.data?.categoryTypes ?? [];
+        this.isExplorerLoading = false;
       },
       error: () => {
         this.types = [];
+        this.isExplorerLoading = false;
       },
     });
   }
@@ -142,7 +189,10 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   loadExplorer() {
     if (!this.selectedType) return;
 
-    const request: ServiceExplorerRequest = {
+    this.isExplorerLoading = true;
+    this.hasExplorerResultLoaded = false;
+
+    const filteredRequest: ServiceExplorerRequest = {
       categoryTypeId: this.selectedType.id,
       structureId: this.structureId,
       partId: this.partId,
@@ -150,14 +200,39 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       metadataFilters: this.buildMetadataFilters(),
     };
 
-    this.explorerService.explore(request).subscribe({
-      next: (res) => {
-        this.explorerItems = res?.items ?? [];
-        this.filters = this.normalizeFilters(res?.filters ?? []);
+    // This request ignores selected filters.
+    // It keeps all possible filter values visible, even if services are hidden.
+    const filtersOnlyRequest: ServiceExplorerRequest = {
+      categoryTypeId: this.selectedType.id,
+      structureId: this.structureId,
+      partId: this.partId,
+      partOptionId: this.optionId,
+      metadataFilters: [],
+    };
+
+    forkJoin({
+      filteredResult: this.explorerService
+        .explore(filteredRequest)
+        .pipe(catchError(() => of({ items: [], filters: [] }))),
+      allFiltersResult: this.explorerService
+        .explore(filtersOnlyRequest)
+        .pipe(catchError(() => of({ items: [], filters: [] }))),
+    }).subscribe({
+      next: ({ filteredResult, allFiltersResult }) => {
+        this.explorerItems = filteredResult?.items ?? [];
+
+        // Important: filters come from unfiltered services
+        this.filters = this.normalizeFilters(allFiltersResult?.filters ?? []);
+
+        this.hasExplorerResultLoaded = true;
+        this.isExplorerLoading = false;
       },
       error: () => {
         this.explorerItems = [];
         this.filters = [];
+
+        this.hasExplorerResultLoaded = true;
+        this.isExplorerLoading = false;
       },
     });
   }
@@ -234,6 +309,8 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.filters = [];
     this.selectedFilters = {};
     this.selectedServices = [];
+    this.hasExplorerResultLoaded = false;
+    this.isExplorerLoading = false;
   }
 
   resetBelow(level: 'category' | 'type' | 'structure' | 'part') {
@@ -271,7 +348,8 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       this.optionId = undefined;
       this.selectedOptionName = undefined;
     }
-
+    this.hasExplorerResultLoaded = false;
+    this.isExplorerLoading = false;
     this.explorerItems = [];
     this.filters = [];
     this.selectedFilters = {};

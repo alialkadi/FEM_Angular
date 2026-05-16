@@ -1,0 +1,21 @@
+<section class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>Verify Code</h1>
+            <p>Enter the OTP code sent to your email.</p>
+        </div>
+        <form (ngSubmit)="submit()" class="auth-form">
+            <div class="form-group">
+                <label>OTP Code</label>
+                <input type="text" name="otp" [(ngModel)]="otp" placeholder="Enter OTP" maxlength="15"
+                    autocomplete="one-time-code" />
+            </div>
+            <div class="error-message" *ngIf="error"> {{ error }} </div>
+            <button type="submit" class="auth-btn" [disabled]="loading">
+                <span *ngIf="!loading">Verify OTP</span>
+                <span *ngIf="loading">Verifying...</span>
+            </button>
+            <a routerLink="/FenetrationMaintainence/Home/forgot-password" class="back-link"> Use another email </a>
+        </form>
+    </div>
+</section>

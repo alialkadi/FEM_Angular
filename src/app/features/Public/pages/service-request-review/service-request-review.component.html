@@ -16,7 +16,11 @@
                 </div>
                 <div class="service-review-card__price">
                     <span>Total</span>
-                    <strong>{{ item.calculation?.total | currency }}</strong>
+                    <strong *ngIf="item.calculation?.total && item.calculation!.total > 0; else priceLater"> {{
+                        item.calculation?.total | currency }} </strong>
+                    <ng-template #priceLater>
+                        <span class="price-pending"> Pricing available upon assessment </span>
+                    </ng-template>
                 </div>
             </div>
             <!-- meta -->
@@ -85,8 +89,12 @@
                 <h4>Pricing</h4>
                 <div class="mini-pricing">
                     <div class="price-row">
-                        <span>Base</span>
+                        <span>Net Price</span>
                         <strong>{{ item.calculation.baseCost | currency }}</strong>
+                    </div>
+                    <div class="price-row">
+                        <span>GST</span>
+                        <strong>{{ item.calculation.baseCost * .05 | currency }}</strong>
                     </div>
                     <div *ngFor="let fee of item.calculation.globalFees" class="price-row">
                         <span>{{ fee.name }}</span>
@@ -104,7 +112,7 @@
             </section>
             <!-- steps -->
             <section class="mini-section">
-                <h4>Steps</h4>
+                <h4>About The Service</h4>
                 <div class="mini-steps" *ngIf="item.steps?.length; else noSteps">
                     <div class="mini-step" *ngFor="let step of item.steps">
                         <span class="step-no">{{ step.stepOrder }}</span>
@@ -129,7 +137,7 @@
                 <span>Overall Total</span>
                 <strong>{{ overallTotal | currency }}</strong>
             </div>
-            <button class="confirm-btn" (click)="confirmRequest()" [disabled]="!canConfirm"> Confirm Request </button>
+            <button class="confirm-btn" (click)="confirmRequest()" [disabled]="!canConfirm"> Send Request </button>
         </div>
     </footer>
 </div>

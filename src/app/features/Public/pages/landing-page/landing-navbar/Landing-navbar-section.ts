@@ -10,7 +10,7 @@ export const LandingPageNavbar_SECTIONS: LandingPageNavbarSection[] = [
   {
     title: 'About Us',
     icon: 'group',
-    route: '/public/FenestrationMaintainence/AboutUs',
+    route: '/FenetrationMaintainence/Home/about-us',
   },
   { title: 'Inspection Tiers', icon: 'group', route: '#' },
   {

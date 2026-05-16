@@ -12,10 +12,10 @@ import { LoginResponse } from './Models/LoginResponse';
 })
 export class LoginComponent {
   email: string = '';
-  phoneNumber: string = '';
+  password: string = '';
   error: string = '';
   loading: boolean = false;
-
+  showPassword = false;
   constructor(
     private auth: AuthService,
     private router: Router,
@@ -27,7 +27,7 @@ export class LoginComponent {
 
     const request: LoginRequest = {
       email: this.email,
-      phoneNumber: this.phoneNumber,
+      password: this.password,
     };
 
     this.auth.login(request).subscribe({

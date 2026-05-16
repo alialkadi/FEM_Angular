@@ -119,6 +119,8 @@ export interface ServiceResponse {
   partName?: string;
   labors?: number;
   structureName?: string;
+  categoryName?: string;
+  categoryTypeName?: string;
   partOptionName?: string;
   applyGlobalFees?: boolean;
   applyLogistics?: boolean;

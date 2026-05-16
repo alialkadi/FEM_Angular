@@ -1,0 +1,25 @@
+<section class="fe-info-page">
+    <div class="fe-container">
+        <header class="fe-page-hero">
+            <span class="fe-kicker">Help Center</span>
+            <h1>Frequently Asked <span>Questions</span></h1>
+            <p> Find answers about our services, repairs, pricing, scheduling, warranties, and customer policies. </p>
+        </header>
+        <section class="fe-faq-layout">
+            <article class="fe-faq-group" *ngFor="let group of faqGroups; let g = index">
+                <h2>{{ group.title }}</h2>
+                <div class="fe-faq-list">
+                    <div class="fe-faq-item" *ngFor="let item of group.items; let i = index">
+                        <button type="button" class="fe-faq-question" (click)="toggle(g, i)">
+                            <span>{{ item.question }}</span>
+                            <b>{{ isOpen(g, i) ? '−' : '+' }}</b>
+                        </button>
+                        <div class="fe-faq-answer" *ngIf="isOpen(g, i)">
+                            <p>{{ item.answer }}</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </div>
+</section>

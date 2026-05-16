@@ -56,10 +56,17 @@
                 </td>
                 <!-- HIERARCHY -->
                 <td>
-                    <div class="hierarchy">
-                        <span *ngIf="service.structureName">📐 {{ service.structureName }}</span>
-                        <span *ngIf="service.partName">🧩 {{ service.partName }}</span>
-                        <span *ngIf="service.partOptionName">⚙️ {{ service.partOptionName }}</span>
+                    <div class="full-hierarchy">
+                        <div class="hierarchy-path">
+                            <span *ngIf="service.categoryName">{{ service.categoryName }}</span>
+                            <span *ngIf="service.categoryTypeName">{{ service.categoryTypeName }}</span>
+                            <span *ngIf="service.structureName">{{ service.structureName }}</span>
+                            <span *ngIf="service.partName">{{ service.partName }}</span>
+                            <span *ngIf="service.partOptionName">{{ service.partOptionName }}</span>
+                        </div>
+                        <div class="hierarchy-scope"> Linked to: <strong> {{ service.partOptionName ? 'Part Option' :
+                                service.partName ? 'Part' : 'Structure' }} </strong>
+                        </div>
                     </div>
                 </td>
                 <!-- PRICING -->

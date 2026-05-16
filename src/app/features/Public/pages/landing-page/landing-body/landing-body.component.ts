@@ -475,7 +475,7 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (res) => {
         this.consultationSubmitting = false;
         this.consultationSuccessMessage =
-          res?.message || 'Consultation request submitted successfully.';
+          'Service Call request submitted successfully.';
 
         this.consultationForm.reset({
           firstName: '',

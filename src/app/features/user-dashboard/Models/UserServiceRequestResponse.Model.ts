@@ -14,6 +14,7 @@ export interface UserServiceRequestDto {
   preferredDateTime?: string;
   totalCost: number;
   requestedServices: UserRequestedServiceDetailDto[];
+  statusHistory: ServiceRequestStatusHistoryDto[];
 }
 
 export interface UserRequestedServiceDetailDto {
@@ -42,5 +43,20 @@ export interface UserServiceRequestSummaryDto {
   totalRequests: number;
   completedRequests: number;
   pendingRequests: number;
-  inProgressRequests: number; 
+  inProgressRequests: number;
+}
+export interface ServiceRequestStatusHistoryDto {
+  id: number;
+
+  oldStatusId: number | null;
+  oldStatusName: string | null;
+
+  newStatusId: number;
+  newStatusName: string;
+
+  changedByUserId: string;
+  changedByRole: string;
+
+  reason: string | null;
+  changedOn: string;
 }
