@@ -1,1 +1,16 @@
 @import url("../../../style.scss");
+.fe-dark-panel h3 {
+  line-height: normal;
+}
+.fe-about-label {
+  color: var(--link-hover);
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+article.fe-card.fe-accent-card {
+  margin: 1rem 0;
+}
+.golden-about {
+  color: var(--link-hover);
+}

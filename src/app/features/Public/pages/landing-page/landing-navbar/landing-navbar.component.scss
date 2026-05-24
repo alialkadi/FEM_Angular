@@ -169,7 +169,7 @@
 .mobile-item {
   text-decoration: none;
   color: var(--text);
-  font-weight: 500;
+  font-weight: 500 !important;
 
   &:hover {
     color: var(--link-hover);
@@ -197,4 +197,18 @@
   .hamburger {
     display: none;
   }
+}
+.nav-category,
+.mobile-category {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+
+
+.mobile-category {
+  width: 100%;
 }

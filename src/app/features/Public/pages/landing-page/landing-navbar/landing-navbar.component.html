@@ -20,6 +20,8 @@
                 <!-- Dynamic Sections -->
                 <a *ngFor="let section of sections" [routerLink]="section.route" routerLinkActive="active-link"
                     [routerLinkActiveOptions]="{ exact: true }" class="nav-item"> {{ section.title }} </a>
+                <button type="button" class="nav-item nav-category" *ngFor="let category of categories"
+                    (click)="openCategory(category)"> {{ category.name }} </button>
                 <!-- ✅ Login Button -->
                 <a [routerLink]="loginRoute" routerLinkActive="active-link" class="login-btn"> Sign In </a>
             </div>
@@ -42,6 +44,8 @@
             section.title }} </a>
         <!-- ✅ Login (Mobile) -->
         <a class="mobile-item" routerLink="/login" (click)="closeMenu()"> Sign In </a>
+        <button type="button" class="mobile-item mobile-category p-0" *ngFor="let category of categories"
+            (click)="openCategory(category)"> {{ category.name }} </button>
         <!-- Quote -->
         <a class="btn-outline full-width" [routerLink]="quoteRoute" (click)="closeMenu()"> Free Quote </a>
     </div>

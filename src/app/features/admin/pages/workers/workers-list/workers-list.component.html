@@ -59,14 +59,30 @@
                     <!-- Actions -->
                     <td>
                         <div class="action-group">
-                            <button class="btn-icon" (click)="openWorkerModal(worker)">✏️</button>
-                            <button class="btn-icon" (click)="openAssignmentsModal(worker)">📋</button>
-                            <button class="btn-icon danger" (click)="deleteWorker(worker.workerId)">🗑</button>
+                            <!-- Edit -->
+                            <button class="btn-icon edit-btn" title="Edit Technician" (click)="openWorkerModal(worker)">
+                                <i class="fas fa-pen text-warning"></i>
+                            </button>
+                            <!-- Assignments -->
+                            <button class="btn-icon assignments-btn" title="View Assignments"
+                                (click)="openAssignmentsModal(worker)">
+                                <i class="fas fa-clipboard-list"></i>
+                            </button>
+                            <!-- Delete -->
+                            <button class="btn-icon delete-btn" title="Delete Technician"
+                                (click)="deleteWorker(worker.workerId)">
+                                <i class="fas fa-trash-alt text-danger"></i>
+                            </button>
+                            <!-- Lock -->
                             <button class="lock-btn" [class.locked]="isWorkerLocked(worker)"
                                 [disabled]="lockingWorkerId === worker.workerId" (click)="toggleWorkerLock(worker)">
-                                <span *ngIf="lockingWorkerId !== worker.workerId"> {{ isWorkerLocked(worker) ? 'Unlock'
-                                    : 'Lock' }} </span>
-                                <span *ngIf="lockingWorkerId === worker.workerId"> Saving... </span>
+                                <span *ngIf="lockingWorkerId !== worker.workerId">
+                                    <i class="fas" [ngClass]="isWorkerLocked(worker)
+                        ? 'fa-lock-open'
+                        : 'fa-lock'">
+                                    </i> {{ isWorkerLocked(worker) ? 'Unlock' : 'Lock' }} </span>
+                                <span *ngIf="lockingWorkerId === worker.workerId">
+                                    <i class="fas fa-spinner fa-spin"></i> Saving... </span>
                             </button>
                         </div>
                     </td>

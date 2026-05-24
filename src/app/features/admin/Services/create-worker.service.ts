@@ -10,6 +10,11 @@ import {
 import { Observable } from 'rxjs';
 import { WorkersResponseModel } from './workers.model';
 import { GetTechnicianAssignmentsApiResponse } from '../../technician-dashboard/Models/assignment.model';
+import {
+  AssignConsultationWorkerRequest,
+  AssignConsultationWorkerResultDto,
+  TechnicianForConsultationAssignmentDto,
+} from '../../Models/ConsultationWorkerConflictDto.model';
 export interface WorkerConflictDto {
   workerId: number;
   workerName: string;
@@ -100,6 +105,23 @@ export class CreateWorkerService {
   ): Observable<ApiResponse<TechnicianForAssignmentDto[]>> {
     return this.http.get<ApiResponse<TechnicianForAssignmentDto[]>>(
       `${this.baseUrl}/for-assignment/${requestId}`,
+    );
+  }
+
+  assignWorkerToConsultation(
+    data: AssignConsultationWorkerRequest,
+  ): Observable<ApiResponse<AssignConsultationWorkerResultDto>> {
+    return this.http.post<ApiResponse<AssignConsultationWorkerResultDto>>(
+      `${this.baseUrl}/assign-worker-consultation`,
+      data,
+    );
+  }
+
+  getWorkersForConsultationAssignment(
+    consultationRequestId: number,
+  ): Observable<ApiResponse<TechnicianForConsultationAssignmentDto[]>> {
+    return this.http.get<ApiResponse<TechnicianForConsultationAssignmentDto[]>>(
+      `${this.baseUrl}/for-consultation-assignment/${consultationRequestId}`,
     );
   }
 }

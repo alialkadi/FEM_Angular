@@ -19,6 +19,7 @@ import { MapGeocodingService } from './../../../Services/map-geocoding.service';
 
 import * as L from 'leaflet';
 import { CreateTechnicalConsultationRequest } from '../../../Models/Consultation.model';
+import { AppSettingService } from '../../../../admin/Services/app-setting.service';
 
 @Component({
   selector: 'app-landing-body',
@@ -82,6 +83,7 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
     private fb: FormBuilder,
     private technicalConsultationService: TechnicalConsultationService,
     private mapGeocodingService: MapGeocodingService,
+    private appSettingService: AppSettingService,
   ) {}
 
   ngOnInit(): void {
@@ -89,14 +91,11 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
     this.updateCardsPerView();
     this.getAll();
     this.loadCategories();
+    this.getConsultationPrice();
     window.addEventListener('resize', this.updateCardsPerViewBound, true);
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.initMap();
-    });
-  }
+  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     window.removeEventListener('resize', this.updateCardsPerViewBound, true);
@@ -105,7 +104,15 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
       this.map.remove();
     }
   }
-
+  consultationPrice: number = 0;
+  getConsultationPrice() {
+    this.appSettingService.getConsultationPrice().subscribe({
+      next: (res) => {
+        console.log(res);
+        this.consultationPrice = res.data;
+      },
+    });
+  }
   // =========================
   // VALIDATORS
   // =========================

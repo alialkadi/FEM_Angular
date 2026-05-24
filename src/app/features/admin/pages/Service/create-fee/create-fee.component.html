@@ -35,32 +35,49 @@
             </div>
             <!-- Linked Services -->
             <div *ngIf="!isGlobal" class="input-group full fade-in">
-                <label>Linked Services</label>
-                <div class="dropdown w-100">
-                    <button class="btn dropdown-toggle w-100 d-flex justify-content-between align-items-center"
-                        type="button" data-bs-toggle="dropdown">
-                        <span *ngIf="selectedServiceNames.length > 0; else placeholder"> {{ selectedServiceNames.join(',
-                            ') }} </span>
-                        <ng-template #placeholder>Select Services</ng-template>
-                    </button>
-                    <div class="dropdown-menu p-3 w-100 shadow-sm">
-                        <input type="text" class="form-control mb-2 search-box" placeholder="Search services..."
-                            [(ngModel)]="serviceSearch" [ngModelOptions]="{ standalone: true }"
-                            (input)="filterServices()" />
-                        <div *ngIf="filteredServices.length > 0; else noResults" class="service-list">
-                            <div class="form-check" *ngFor="let s of filteredServices">
-                                <input class="form-check-input" type="checkbox" [value]="s.id"
-                                    (change)="toggleServiceSelection(s.id, $event)"
-                                    [checked]="feeForm.value.serviceIds.includes(s.id)" id="service_{{ s.id }}" />
-                                <label class="form-check-label" for="service_{{ s.id }}">{{ s.name }}</label>
-                            </div>
+                <label>Category</label>
+                <select class="form-control" [(ngModel)]="selectedCategoryId" [ngModelOptions]="{ standalone: true }"
+                    (change)="onCategoryChange()">
+                    <option [ngValue]="null">Select Category</option>
+                    <option *ngFor="let c of categories" [ngValue]="c.id"> {{ c.name }} </option>
+                </select>
+                <label *ngIf="categoryTypes.length > 0">Category Type</label>
+                <select *ngIf="categoryTypes.length > 0" class="form-control" [(ngModel)]="selectedTypeId"
+                    [ngModelOptions]="{ standalone: true }" (change)="onTypeChange()">
+                    <option [ngValue]="null">Select Type</option>
+                    <option *ngFor="let t of categoryTypes" [ngValue]="t.id"> {{ t.name }} </option>
+                </select>
+                <label *ngIf="structures.length > 0">Structure</label>
+                <select *ngIf="structures.length > 0" class="form-control" [(ngModel)]="selectedStructureId"
+                    [ngModelOptions]="{ standalone: true }" (change)="onStructureChange()">
+                    <option [ngValue]="null">Select Structure</option>
+                    <option *ngFor="let s of structures" [ngValue]="s.id"> {{ s.name }} </option>
+                </select>
+                <label *ngIf="parts.length > 0">Part</label>
+                <select *ngIf="parts.length > 0" class="form-control" [(ngModel)]="selectedPartId"
+                    [ngModelOptions]="{ standalone: true }" (change)="onPartChange()">
+                    <option [ngValue]="null">Select Part</option>
+                    <option *ngFor="let p of parts" [ngValue]="p.id"> {{ p.name }} </option>
+                </select>
+                <label *ngIf="partOptions.length > 0">Part Option</label>
+                <select *ngIf="partOptions.length > 0" class="form-control" [(ngModel)]="selectedPartOptionId"
+                    [ngModelOptions]="{ standalone: true }" (change)="onPartOptionChange()">
+                    <option [ngValue]="null">Select Part Option</option>
+                    <option *ngFor="let o of partOptions" [ngValue]="o.id"> {{ o.name }} </option>
+                </select>
+                <div class="services-box" *ngIf="selectedCategoryId">
+                    <div *ngIf="visibleServices.length > 0; else noServices">
+                        <div class="form-check" *ngFor="let service of visibleServices">
+                            <input class="form-check-input" type="checkbox"
+                                [checked]="feeForm.value.serviceIds.includes(service.id)"
+                                (change)="toggleServiceSelection(service.id, $event)" [id]="'service_' + service.id" />
+                            <label class="form-check-label" [for]="'service_' + service.id"> {{ service.name }} </label>
                         </div>
-                        <ng-template #noResults>
-                            <p class="no-results">No matching services found</p>
-                        </ng-template>
                     </div>
+                    <ng-template #noServices>
+                        <p class="no-results"> No services are available for the selected level. </p>
+                    </ng-template>
                 </div>
-                <small class="hint">Select one or more services (search supported).</small>
             </div>
             <!-- Buttons -->
             <div class="action-row">

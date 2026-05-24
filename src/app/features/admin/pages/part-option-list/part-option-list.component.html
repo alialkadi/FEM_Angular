@@ -29,7 +29,7 @@
             <div class="fe-field">
                 <label>Structure</label>
                 <select (change)="onStructureChange($event)">
-                    <option value="">All Structures</option>
+                    <option value="">All Components</option>
                     <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
                 </select>
             </div>
@@ -46,7 +46,7 @@
                 <label>Search</label>
                 <!-- <i class="fa-solid fa-magnifying-glass"></i> -->
                 <input type="text" [value]="searchText" (input)="onSearchChange(($any($event.target)).value)"
-                    placeholder="Search option / part / structure / type..." />
+                    placeholder="Search option / part / component / type..." />
             </div>
         </div>
     </section>
@@ -160,9 +160,9 @@ Line 3">
                     </select>
                 </div>
                 <div class="fe-field">
-                    <label>Structure <span class="fe-required">*</span></label>
+                    <label>Component <span class="fe-required">*</span></label>
                     <select (change)="onStructureChange($event)">
-                        <option value="">Select Structure</option>
+                        <option value="">Select Component</option>
                         <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
                     </select>
                 </div>

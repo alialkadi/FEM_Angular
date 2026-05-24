@@ -75,6 +75,8 @@
                         <td class="actions-col">
                             <div class="actions">
                                 <button class="btn btn-edit" type="button" (click)="openEditModal(item)"> Edit </button>
+                                <button class="btn btn-edit" type="button"
+                                    (click)="openAssignWorkerConsultation(item.id)"> Assign Technician </button>
                                 <button class="btn btn-delete" type="button" [disabled]="deletingId === item.id"
                                     (click)="deleteConsultation(item.id)"> {{ deletingId === item.id ? 'Deleting...' :
                                     'Delete' }} </button>
@@ -140,7 +142,7 @@
                     </select>
                     <small class="error" *ngIf="getFieldError('portfolioType')"> Portfolio type is required. </small>
                 </div>
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label>Place ID</label>
                     <input type="text" formControlName="placeId" />
                 </div>
@@ -151,7 +153,7 @@
                 <div class="form-group">
                     <label>Longitude</label>
                     <input type="number" formControlName="longitude" />
-                </div>
+                </div> -->
                 <div class="form-group full">
                     <label>Message</label>
                     <textarea rows="5" formControlName="message"></textarea>
@@ -164,5 +166,90 @@
                     'Save Changes' }} </button>
             </div>
         </form>
+    </div>
+</div>
+<!-- ASSIGN CONSULTATION TECHNICIAN MODAL -->
+<div class="modal-overlay" *ngIf="assignPopupVisible" (click)="closeAssignPopup()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <div>
+                <h3>Assign Technician to Consultation #{{ selectedConsultationId }}</h3>
+                <p>Select technician(s) and appointment date/time for this technical consultation.</p>
+            </div>
+            <button type="button" class="modal-close" (click)="closeAssignPopup()">×</button>
+        </div>
+        <div class="edit-form">
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Appointment Date & Time</label>
+                    <input type="datetime-local" [(ngModel)]="appointmentDateTime" />
+                    <small class="error" *ngIf="assignMessage && !appointmentDateTime"> Appointment date and time is
+                        required. </small>
+                </div>
+                <div class="form-group full">
+                    <label>Assignment Notes</label>
+                    <textarea rows="3" [(ngModel)]="assignmentNotes"
+                        placeholder="Optional notes for technician"></textarea>
+                </div>
+                <div class="form-group full">
+                    <label>Search Technicians</label>
+                    <input type="text" placeholder="Search by name, phone, or email..." [(ngModel)]="workerSearchTerm"
+                        (input)="filterWorkers()" />
+                </div>
+            </div>
+            <div *ngIf="assignMessage" class="error" style="margin-bottom: 12px;"> {{ assignMessage }} </div>
+            <div *ngIf="assignLoading" class="state-card loading-state">
+                <div class="spinner"></div>
+                <p>Loading technicians...</p>
+            </div>
+            <div *ngIf="!assignLoading" class="workers-list">
+                <label class="worker-item" *ngFor="let w of filteredWorkers">
+                    <input type="checkbox" [checked]="isWorkerSelected(w.workerId)"
+                        (change)="toggleWorkerSelection($event, w)" />
+                    <div>
+                        <strong>{{ w.fullName }}</strong>
+                        <p>{{ w.phoneNumber }} - {{ w.email }}</p>
+                        <small *ngIf="isAlreadyAssigned(w.workerId)" class="muted"> Currently assigned to this
+                            consultation </small>
+                        <small *ngIf="!isAlreadyAssigned(w.workerId)" class="muted"> Active assignments: {{
+                            w.assignmentCount }} </small>
+                    </div>
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn secondary-btn" (click)="closeAssignPopup()"> Cancel </button>
+                <button type="button" class="btn primary-btn" [disabled]="assignSubmitting"
+                    (click)="submitConsultationWorkersAssignment()"> {{ assignSubmitting ? 'Assigning...' : 'Assign
+                    Technician' }} </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- CONSULTATION TECHNICIAN CONFLICT MODAL -->
+<div class="modal-overlay" *ngIf="workerConflictVisible" (click)="cancelForceAssign()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <div>
+                <h3>Technician Already Assigned</h3>
+                <p>One or more technicians are already assigned to another active consultation.</p>
+            </div>
+            <button type="button" class="modal-close" (click)="cancelForceAssign()">×</button>
+        </div>
+        <div class="edit-form">
+            <div class="workers-list">
+                <div class="worker-item" *ngFor="let c of conflictedWorkers">
+                    <div>
+                        <strong>{{ c.workerName }}</strong>
+                        <p>Assigned to Consultation #{{ c.existingConsultationRequestId }}</p>
+                        <small>Status: {{ c.existingStatus }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn secondary-btn" (click)="cancelForceAssign()"> Choose Another Technician
+                </button>
+                <button type="button" class="btn primary-btn" (click)="confirmForceAssign()"> Continue Anyway </button>
+            </div>
+        </div>
     </div>
 </div>

@@ -4,52 +4,30 @@
   ======================== -->
     <section class="section services-split" aria-label="Services">
         <div class="container">
-            <div class="services-layout">
-                <!-- LEFT: QUICK LINKS -->
-                <aside class="quick-links">
-                    <div class="section-head">
-                        <h2>Quick Links</h2>
-                        <p>Select service by category</p>
-                    </div>
-                    <!-- Loading -->
-                    <div *ngIf="categoriesLoading" class="quick-links-loading"> Loading... </div>
-                    <!-- Categories -->
-                    <div class="quick-links-grid" *ngIf="!categoriesLoading && categories.length">
-                        <button class="quick-link-card" *ngFor="let c of categories" (click)="openCategory(c)">
-                            <div class="quick-link-content">
-                                <h3>{{ c.name }}</h3>
-                                <span class="arrow">→</span>
+            <!-- RIGHT: SERVICES / CATEGORIES -->
+            <div class="services-main">
+                <header class="section-head services-head">
+                    <h2 class="section-title"> Fenestration <span style="color: var(--link-hover);">Categories</span>
+                    </h2>
+                </header>
+                <div class="services-grid services-grid--split" role="list">
+                    <article class="service-card" role="listitem" *ngFor="let c of categories" (click)="openCategory(c)"
+                        style="cursor: pointer;">
+                        <div class="service-media">
+                            <img class="service-img" [src]="c.fileUrl || './assets/landing-page/maintenance.jpg'"
+                                [alt]="c.name" loading="lazy" />
+                            <div class="service-overlay" aria-hidden="true"></div>
+                        </div>
+                        <div class="service-body">
+                            <h3 class="service-title">{{ c.name }}</h3>
+                            <p class="service-desc"> {{ c.description || 'Explore available service options under this
+                                category.' }} </p>
+                            <div class="service-actions">
+                                <button type="button" class="link"> Explore <span aria-hidden="true">→</span>
+                                </button>
                             </div>
-                        </button>
-                    </div>
-                    <!-- Empty -->
-                    <div *ngIf="!categoriesLoading && !categories.length" class="empty"> No categories available </div>
-                </aside>
-                <!-- RIGHT: SERVICES -->
-                <div class="services-main">
-                    <header class="section-head services-head">
-                        <h2 class="section-title"> Fenestration <span style="color: var(--link-hover);">Services</span>
-                        </h2>
-                        <!-- <p class="section-subtitle " style="text-align: center; font-size: 18px;">All services for windows  doors — installation,
-                            replacement, and long-term maintenance. </p> -->
-                    </header>
-                    <div class="services-grid services-grid--split" role="list">
-                        <article class="service-card" role="listitem" *ngFor="let s of services">
-                            <div class="service-media">
-                                <img class="service-img" [src]="s.imageUrl" [alt]="s.title" loading="lazy" />
-                                <div class="service-overlay" aria-hidden="true"></div>
-                            </div>
-                            <div class="service-body">
-                                <h3 class="service-title">{{ s.title }}</h3>
-                                <p class="service-desc">{{ s.description }}</p>
-                                <div class="service-actions">
-                                    <a class="link" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">
-                                        Explore <span aria-hidden="true">→</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
+                        </div>
+                    </article>
                 </div>
             </div>
         </div>
@@ -189,7 +167,12 @@
                 </div>
                 <div class="consultation-form-card">
                     <header class="section-head consultation-head">
-                        <h2 class="section-title">Request a Service Call</h2>
+                        <div class="section-header">
+                            <h2 class="section-title">Request a Service Call</h2>
+                            <div class="consultation-price" *ngIf="consultationPrice > 0"> Consultation Fee: <span>{{
+                                    consultationPrice | currency:'':'symbol':'1.0-0' }}</span>
+                            </div>
+                        </div>
                     </header>
                     <form [formGroup]="consultationForm" (ngSubmit)="submitConsultation()" class="consultation-form">
                         <div class="consultation-grid two-cols">

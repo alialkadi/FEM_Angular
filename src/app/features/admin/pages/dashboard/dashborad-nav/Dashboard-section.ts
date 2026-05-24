@@ -80,7 +80,7 @@ export const DASHBOARD_SECTIONS: DashboardSection[] = [
     roles: ['Admin'],
   },
   {
-    title: 'Customers',
+    title: 'Clients',
     icon: 'groups',
     route: '/admin/dashboard/customers',
     roles: ['Admin'],

@@ -85,6 +85,7 @@
     font-size: 0.82rem;
     color: #6b7280;
     line-height: 1.45;
+    white-space: pre-line;
   }
 }
 
@@ -336,6 +337,7 @@
   position: fixed;
   left: 0;
   right: 0;
+  z-index: 99;
   bottom: 0;
   padding: 12px 16px;
   background: rgba(248, 250, 252, 0.92);

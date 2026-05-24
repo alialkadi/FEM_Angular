@@ -1,6 +1,6 @@
 <div class="user-form-wrapper" *ngIf="requestedServices.length">
     <header class="form-header">
-        <h2>🧍‍♂️ Provide Your Information</h2>
+        <h2> Client Information</h2>
         <p>Please enter your contact details so we can process your request.</p>
     </header>
     <div class="response-message" *ngIf="responseMessage" [ngClass]="responseType">
@@ -84,7 +84,7 @@
         </section>
         <!-- Buttons -->
         <footer class="actions">
-            <button type="button" class="btn-secondary" (click)="cancel()">⬅ Back</button>
+            <!-- <button type="button" class="btn-secondary" (click)="cancel()">⬅ Back</button> -->
             <button type="submit" class="btn-primary" [disabled]="submitting">
                 <span *ngIf="!submitting">✅ Send Request</span>
                 <span *ngIf="submitting">Submitting...</span>

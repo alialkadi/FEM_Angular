@@ -4,7 +4,7 @@
         <div class="fe-card__head">
             <div>
                 <h2 class="fe-title">Parts</h2>
-                <p class="fe-subtitle">Filter parts by category, type, and structure.</p>
+                <p class="fe-subtitle">Filter parts by category, type, and component.</p>
             </div>
             <button class="fe-btn fe-btn--ghost" type="button" (click)="applyFilters()">
                 <i class="fa-solid fa-rotate-left"></i> Refresh </button>
@@ -27,7 +27,7 @@
             <div class="fe-field">
                 <label>Structure</label>
                 <select (change)="onStructureChange($event)">
-                    <option value="">All Structures</option>
+                    <option value="">All Components</option>
                     <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
                 </select>
             </div>
@@ -35,7 +35,7 @@
                 <label>Search</label>
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" [value]="searchText" (input)="onSearchChange(($any($event.target)).value)"
-                    placeholder="Search option / part / structure / type..." />
+                    placeholder="Search option / part / Component/ type..." />
             </div>
         </div>
     </section>
@@ -114,7 +114,7 @@
             <div class="fe-card__head">
                 <div>
                     <h3 class="fe-card__title">Add New Part</h3>
-                    <p class="fe-card__sub">Create a part under a structure.</p>
+                    <p class="fe-card__sub">Create a part under a component.</p>
                 </div>
             </div>
             <form class="fe-form" [formGroup]="crateForm" (ngSubmit)="onSave()">
@@ -145,10 +145,10 @@ Line 3">
                     </select>
                 </div>
                 <div class="fe-field">
-                    <label>Parent Structure <span class="fe-required">*</span></label>
+                    <label>Parent Component<span class="fe-required">*</span></label>
                     <select formControlName="structureId" (change)="onCreateStructureChange($event)"
                         [disabled]="!createCategoryTypeId">
-                        <option value="">Select Structure</option>
+                        <option value="">Select component</option>
                         <option *ngFor="let s of createStructures" [value]="s.id">{{ s.name }}</option>
                     </select>
                 </div>

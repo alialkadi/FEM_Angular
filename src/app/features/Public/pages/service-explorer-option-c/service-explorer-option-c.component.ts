@@ -1,6 +1,5 @@
 import { Router, ActivatedRoute } from '@angular/router';
-import { Component, OnInit } from '@angular/core';
-import { CategoryService } from '../../../admin/Services/CategoryService';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';import { CategoryService } from '../../../admin/Services/CategoryService';
 import { CategoryTypeService } from '../../../admin/Services/categoryTypeService.service';
 import {
   ExplorerItem,
@@ -55,7 +54,32 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
   ) {}
+@ViewChild('explorerTop') explorerTop!: ElementRef<HTMLElement>;
 
+private scrollExplorerToTop(): void {
+  setTimeout(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'auto'
+    });
+
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    this.explorerTop?.nativeElement?.scrollIntoView({
+      block: 'start',
+      inline: 'nearest',
+      behavior: 'auto'
+    });
+
+    document
+      .querySelectorAll('.shop-explorer, .content, .layout, .page-content, .main-content')
+      .forEach((el: any) => {
+        el.scrollTop = 0;
+      });
+  }, 0);
+}
   ngOnInit(): void {
     this.loadCategoriesAndHandleRoute();
   }
@@ -126,12 +150,12 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   selectCategory(c: Category, updateUrl: boolean = true) {
+    this.scrollExplorerToTop();
     this.resetAll();
     this.selectedCategory = c;
 
     this.isExplorerLoading = true;
     this.hasExplorerResultLoaded = false;
-
     if (updateUrl && c?.id) {
       this.router.navigate([], {
         relativeTo: this.route,
@@ -144,6 +168,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       next: (r) => {
         this.types = r.data?.categoryTypes ?? [];
         this.isExplorerLoading = false;
+
       },
       error: () => {
         this.types = [];
@@ -153,6 +178,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   selectType(t: CategoryType) {
+    this.scrollExplorerToTop();
     this.resetBelow('type');
     this.selectedType = t;
     this.loadExplorer();
@@ -164,22 +190,26 @@ export class ServiceExplorerOptionCComponent implements OnInit {
         this.resetBelow('type');
         this.structureId = item.id;
         this.selectedStructureName = item.name;
+        this.scrollExplorerToTop();
         break;
 
       case ExplorerItemType.Part:
         this.resetBelow('structure');
         this.partId = item.id;
         this.selectedPartName = item.name;
+        this.scrollExplorerToTop();
         break;
 
       case ExplorerItemType.PartOption:
         this.resetBelow('part');
         this.optionId = item.id;
         this.selectedOptionName = item.name;
+        this.scrollExplorerToTop();
         break;
 
       case ExplorerItemType.Service:
         this.toggleService(item);
+        this.scrollExplorerToTop();
         return;
     }
 
@@ -247,6 +277,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   toggleFilter(code: string, valueId: number) {
+    this.scrollExplorerToTop();
     this.selectedFilters[code] ??= [];
 
     const idx = this.selectedFilters[code].indexOf(valueId);
@@ -404,6 +435,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   goToCrumb(level: ExplorerCrumb['level']) {
+    this.scrollExplorerToTop();
     switch (level) {
       case 'category':
         this.selectedType = undefined;
@@ -444,6 +476,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   goBack() {
+    this.scrollExplorerToTop();
     if (this.optionId) {
       this.optionId = undefined;
       this.selectedOptionName = undefined;
@@ -544,6 +577,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   clearFilters() {
+    this.scrollExplorerToTop();
     this.selectedFilters = {};
     this.loadExplorer();
   }

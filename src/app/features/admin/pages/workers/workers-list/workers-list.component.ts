@@ -198,7 +198,7 @@ export class WorkersListComponent implements OnInit {
   deleteWorker(id: number): void {
     const confirmRef = this.dialog.open(ConfirmDialogComponent, {
       width: `350px`,
-      data: { message: `Are you sure you want to delete worker` },
+      data: { message: `Are you sure you want to delete technician` },
     });
     confirmRef.afterClosed().subscribe((result) => {
       if (result) {

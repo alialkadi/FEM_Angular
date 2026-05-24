@@ -1,19 +1,19 @@
 <div class="customers-page">
     <div class="page-header">
         <div>
-            <h2>Customers</h2>
+            <h2>Clients</h2>
             <p>Manage customer accounts and view their service requests.</p>
         </div>
-        <button class="primary-btn" (click)="openCreateModal()"> + Create Customer </button>
+        <button class="primary-btn" (click)="openCreateModal()"> + Create Client </button>
     </div>
     <div class="toolbar">
         <div class="search-box">
             <input type="text" placeholder="Search by name, email, or phone..." [(ngModel)]="searchTerm"
                 (input)="applySearch()" />
         </div>
-        <div class="count"> {{ filteredCustomers.length }} customers </div>
+        <div class="count"> {{ filteredCustomers.length }} clients </div>
     </div>
-    <div class="loading" *ngIf="loading"> Loading customers... </div>
+    <div class="loading" *ngIf="loading"> Loading clients... </div>
     <div class="table-card" *ngIf="!loading">
         <table>
             <thead>
@@ -47,7 +47,7 @@
                     </td>
                 </tr>
                 <tr *ngIf="filteredCustomers.length === 0">
-                    <td colspan="6" class="empty"> No customers found. </td>
+                    <td colspan="6" class="empty"> No clients found. </td>
                 </tr>
             </tbody>
         </table>
@@ -57,7 +57,7 @@
 <div class="modal-backdrop" *ngIf="showFormModal" (click)="closeFormModal()">
     <div class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-header">
-            <h3> {{ modalMode === 'create' ? 'Create Customer' : 'Edit Customer' }} </h3>
+            <h3> {{ modalMode === 'create' ? 'Create Client' : 'Edit Client' }} </h3>
             <button class="close-btn" (click)="closeFormModal()">×</button>
         </div>
         <form [formGroup]="customerForm" (ngSubmit)="submitForm()">

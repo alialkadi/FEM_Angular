@@ -12,10 +12,5 @@ export const LandingPageNavbar_SECTIONS: LandingPageNavbarSection[] = [
     icon: 'group',
     route: '/FenetrationMaintainence/Home/about-us',
   },
-  { title: 'Inspection Tiers', icon: 'group', route: '#' },
-  {
-    title: 'Basic Inspections',
-    icon: 'group',
-    route: '/public/FenestrationMaintainence/contact',
-  },
+  
 ];
