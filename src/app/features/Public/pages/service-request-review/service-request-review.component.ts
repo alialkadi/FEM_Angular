@@ -13,6 +13,7 @@ import { CommonModule } from '@angular/common';
 import { WishlistItem, WishlistService } from '../../Services/wishlist.service';
 import { FormsModule } from '@angular/forms';
 import { MetadataDataType } from '../../../Models/MetadataTargetType';
+import { SeoService } from '../../Services/seo.service';
 
 @Component({
   selector: 'app-service-request-review',
@@ -30,6 +31,7 @@ export class ServiceRequestReviewComponent {
     private serviceService: ServiceService,
     private router: Router,
     private wishlist: WishlistService,
+    private seo: SeoService,
   ) {}
   MetadataDataType = MetadataDataType;
   ngOnInit(): void {
@@ -67,6 +69,11 @@ export class ServiceRequestReviewComponent {
     });
 
     this.loadServiceDetails(mergedServices);
+    this.seo.update(
+      'Review Selected Services | Fenestration Services',
+      'Review your selected services before confirming your request.',
+      'noindex, nofollow',
+    );
   }
 
   private loadServiceDetails(services: ServiceResponse[]) {

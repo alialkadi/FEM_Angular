@@ -14,6 +14,7 @@ import { CategoryTypeService } from '../../../Services/categoryTypeService.servi
 import { EditPartDialogComponent } from '../../../../../shared/Dialogs/edit-part-dialog/edit-part-dialog.component';
 import { ToastService } from '../../../../../shared/Services/toast.service';
 import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-part-list',
@@ -53,6 +54,7 @@ export class PartListComponent implements OnInit {
     structureId: new FormControl('', Validators.required),
     description: new FormControl(''),
   });
+  sortingPartId: number | null = null;
 
   selectedFile: File | null = null;
   previewUrl: string | ArrayBuffer | null = null;
@@ -73,16 +75,23 @@ export class PartListComponent implements OnInit {
 
   /* ================= LOADERS ================= */
 
-  loadParts(): void {
+  loadParts(keepPage = false): void {
+    const currentPage = this.pageIndex;
+
     this.partService.getAllParts(true, 1, 1000).subscribe({
       next: (res) => {
+        console.log(res);
         if (!res.success) {
           this.toast.show(res.message, 'error');
           return;
         }
 
-        this.allParts = res.data.parts;
-        this.applyFilters();
+        this.allParts = (res.data.parts ?? []).sort(
+          (a, b) =>
+            (a.displayOrder ?? 0) - (b.displayOrder ?? 0) || a.id - b.id,
+        );
+
+        this.applyFilters(keepPage ? currentPage : 1);
       },
       error: () => this.toast.show('Failed to load parts', 'error'),
     });
@@ -202,34 +211,41 @@ export class PartListComponent implements OnInit {
     this.searchText = value ?? '';
     this.applyFilters();
   }
-  applyFilters(): void {
+  applyFilters(page = 1): void {
     const search = (this.searchText || '').trim().toLowerCase();
-    this.filteredParts = this.allParts.filter((p) => {
-      if (this.selectedCategoryId && p.categoryId !== this.selectedCategoryId)
-        return false;
 
-      if (
-        this.selectedCategoryTypeId &&
-        p.categoryTypeId !== this.selectedCategoryTypeId
-      )
-        return false;
+    this.filteredParts = this.allParts
+      .filter((p) => {
+        if (this.selectedCategoryId && p.categoryId !== this.selectedCategoryId)
+          return false;
 
-      if (
-        this.selectedStructureId &&
-        p.structureId !== this.selectedStructureId
-      )
-        return false;
-      if (search) {
-        const hay =
-          `${p.name ?? ''} ${p.strucutreName ?? ''} ${p.categoryName ?? ''} ${p.categoryTypeName ?? ''}`.toLowerCase();
+        if (
+          this.selectedCategoryTypeId &&
+          p.categoryTypeId !== this.selectedCategoryTypeId
+        )
+          return false;
 
-        if (!hay.includes(search)) return false;
-      }
-      return true;
-    });
+        if (
+          this.selectedStructureId &&
+          p.structureId !== this.selectedStructureId
+        )
+          return false;
+
+        if (search) {
+          const hay =
+            `${p.name ?? ''} ${p.strucutreName ?? ''} ${p.categoryName ?? ''} ${p.categoryTypeName ?? ''}`.toLowerCase();
+
+          if (!hay.includes(search)) return false;
+        }
+
+        return true;
+      })
+      .sort(
+        (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0) || a.id - b.id,
+      );
 
     this.totalCount = this.filteredParts.length;
-    this.pageIndex = 1;
+    this.pageIndex = Math.min(page, this.totalPage);
     this.updatePagedData();
   }
 
@@ -346,5 +362,81 @@ export class PartListComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = () => (this.previewUrl = reader.result);
     reader.readAsDataURL(this.selectedFile);
+  }
+
+  // ############ sorting ########## //
+  canSortParts(): boolean {
+    return (
+      this.selectedStructureId !== undefined && this.selectedStructureId > 0
+    );
+  }
+
+  isFirstPart(index: number): boolean {
+    return this.canSortParts() && this.pageIndex === 1 && index === 0;
+  }
+
+  isLastPart(index: number): boolean {
+    return (
+      this.canSortParts() &&
+      this.pageIndex === this.totalPage &&
+      index === this.Parts.length - 1
+    );
+  }
+
+  moveUp(item: Part, index: number): void {
+    if (!this.canSortParts()) {
+      this.toast.warning('Select a component first to reorder components.');
+      return;
+    }
+
+    if (this.isFirstPart(index)) return;
+
+    this.sortingPartId = item.id;
+
+    this.partService
+      .moveUp(item.id)
+      .pipe(finalize(() => (this.sortingPartId = null)))
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.toast.show(res.message || 'part moved up successfully.');
+            this.loadParts(true);
+          } else {
+            this.toast.show(res.message || 'Move failed.');
+          }
+        },
+        error: (err) => {
+          this.toast.show(err?.error?.message || 'Failed to move part up.');
+        },
+      });
+  }
+
+  moveDown(item: Part, index: number): void {
+    if (!this.canSortParts()) {
+      this.toast.show('Select a component first to reorder parts.');
+      return;
+    }
+
+    if (this.isLastPart(index)) return;
+
+    this.sortingPartId = item.id;
+
+    this.partService
+      .moveDown(item.id)
+      .pipe(finalize(() => (this.sortingPartId = null)))
+      .subscribe({
+        next: (res) => {
+          console.log(res);
+          if (res.success) {
+            this.toast.show(res.message || 'part moved down successfully.');
+            this.loadParts(true);
+          } else {
+            this.toast.show(res.message || 'Move failed.');
+          }
+        },
+        error: (err) => {
+          this.toast.show(err?.error?.message || 'Failed to move part down.');
+        },
+      });
   }
 }

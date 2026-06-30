@@ -230,6 +230,7 @@ export class MetadataAssignValueComponent implements OnInit {
         this.editingId = null;
         this.toast.show(res.message, 'success');
         this.loading = false;
+        this.loadValues();
       },
       error: () => {
         this.toast.show('Update failed', 'error');

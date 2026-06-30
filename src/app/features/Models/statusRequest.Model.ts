@@ -2,6 +2,7 @@ export interface ServiceRequestStatusUpdateDto {
   requestId: number;
   newStatusId: number;
   notes?: string;
+  reason?: string;
 }
 
 export interface AllowedStatusDto {

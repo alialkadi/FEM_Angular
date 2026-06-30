@@ -41,6 +41,12 @@
                     <label class="form-check-label fw-medium" for="isGlobalSwitch"> Global Fee (applies to all services)
                     </label>
                 </div>
+                <div class="form-check form-switch mt-3" *ngIf="mode !== 'services'">
+                    <input class="form-check-input" type="checkbox" formControlName="isVisible" id="isVisibleSwitch" />
+                    <label class="form-check-label fw-medium" for="isVisibleSwitch"> Visible to customer </label>
+                    <div class="text-muted small mt-1"> Hidden fees will still be calculated, but will not be shown to
+                        the customer. </div>
+                </div>
             </div>
             <!-- Section: Linked Services -->
             <div class="dialog-section shadow-sm p-4 mb-3 rounded-4"

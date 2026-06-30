@@ -37,6 +37,9 @@ import { EditServiceMetadataComponent } from './pages/Service/edit-service-metad
 import { EditServiceInputsComponent } from './pages/Service/edit-service-inputs/edit-service-inputs.component';
 import { StaticsComponent } from './pages/statics/statics.component';
 import { ConsultaionAdminComponent } from './pages/consultation/consultaion-admin/consultaion-admin.component';
+import { CustomersListComponent } from './pages/Customers/customers-list/customers-list.component';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -70,6 +73,7 @@ import { ConsultaionAdminComponent } from './pages/consultation/consultaion-admi
     EditServiceInputsComponent,
     StaticsComponent,
     ConsultaionAdminComponent,
+    CustomersListComponent,
   ],
   imports: [
     SharedModule,
@@ -80,6 +84,9 @@ import { ConsultaionAdminComponent } from './pages/consultation/consultaion-admi
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
+    MatSelect,
+    MatOptionModule,
+    MatSelectModule,
   ],
 })
 export class AdminModule {}

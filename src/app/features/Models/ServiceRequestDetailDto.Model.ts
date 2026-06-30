@@ -7,8 +7,23 @@ export interface ServiceRequestListDto {
   statusName: string;
   requestNumber: string;
   totalCost: number;
+  statusHistory: ServiceRequestStatusHistoryDto[];
 }
+export interface ServiceRequestStatusHistoryDto {
+  id: number;
 
+  oldStatusId: number | null;
+  oldStatusName: string | null;
+
+  newStatusId: number;
+  newStatusName: string;
+
+  changedByUserId: string;
+  changedByRole: string;
+
+  reason: string | null;
+  changedOn: string;
+}
 export interface PagedServiceRequestListResponse {
   requests: ServiceRequestListDto[];
   totalCount: number;
@@ -53,15 +68,23 @@ export interface ServiceRequestDetailDto {
   email: string;
   phoneNumber: string;
   address: string;
+  preferredContactMethod: string;
   requestedDate: string;
   statusId: number;
   statusName: string;
   requestNumber: string;
-
+  city: string;
   totalCost: number;
   notes?: string;
   requestedServices: ServiceRequestDetailItemDto[];
   serviceRequestAssignmentResponses: any[];
+  statusHistory: ServiceRequestStatusHistoryDto[];
+  originalTotalCost: number;
+  discountAmount: number;
+  totalAfterDiscount: number;
+  discountType?: number;
+  discountValue?: number;
+  discountHistory: ServiceRequestDiscountHistoryDto[];
 }
 
 export interface ServiceRequestResponseDto {
@@ -108,4 +131,36 @@ export interface ServiceRequestMetadataDto {
 
   // For text / number / boolean attributes
   valueText: string | null;
+}
+export enum DiscountType {
+  Percentage = 1,
+  FixedAmount = 2,
+}
+
+export interface ApplyRequestDiscountDto {
+  discountType: DiscountType;
+  discountValue: number;
+  reason?: string;
+}
+
+export interface ApplyRequestDiscountResponseDto {
+  requestId: number;
+  originalTotalCost: number;
+  discountType: DiscountType;
+  discountValue: number;
+  discountAmount: number;
+  totalAfterDiscount: number;
+  reason?: string;
+}
+export interface ServiceRequestDiscountHistoryDto {
+  id: number;
+  originalTotalCost: number;
+  discountType: number;
+  discountTypeName: string;
+  discountValue: number;
+  discountAmount: number;
+  totalAfterDiscount: number;
+  reason?: string;
+  appliedByUserId?: string;
+  appliedOn: string;
 }

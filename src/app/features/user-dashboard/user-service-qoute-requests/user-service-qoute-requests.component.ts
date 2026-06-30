@@ -54,6 +54,7 @@ export class UserServiceQouteRequestsComponent {
       next: (res) => {
         this.response = res;
         this.loading = false;
+        console.log(res);
       },
       error: (err) => {
         console.error('Failed to load requests', err);

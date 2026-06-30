@@ -52,8 +52,18 @@
                 <input type="number" placeholder="Delivery Days" formControlName="deliveryDays" />
             </div>
             <div class="inline-fields">
-                <input type="number" placeholder="Warranty Duration" formControlName="warrantyDuration" />
-                <select formControlName="warrantyUnit">
+                <input type="number" placeholder="Material Warranty Duration"
+                    formControlName="materialWarrantyDuration" />
+                <select formControlName="materialWarrantyUnit">
+                    <option value="Days">Days</option>
+                    <option value="Weeks">Weeks</option>
+                    <option value="Months">Months</option>
+                </select>
+            </div>
+            <div class="inline-fields">
+                <input type="number" placeholder="Workmanship Warranty Duration"
+                    formControlName="workmanshipwarrantyDuration" />
+                <select formControlName="workmanshipWarrantyUnit">
                     <option value="Days">Days</option>
                     <option value="Weeks">Weeks</option>
                     <option value="Months">Months</option>
@@ -118,7 +128,8 @@
                                         [ngModelOptions]="{ standalone: true }" />
                                 </td>
                                 <td>
-                                    <select [(ngModel)]="r.dependsOnValueId" [ngModelOptions]="{ standalone: true }">
+                                    <select [(ngModel)]="r.dependsOnInputValueId"
+                                        [ngModelOptions]="{ standalone: true }">
                                         <option [ngValue]="undefined">Always</option>
                                         <ng-container *ngFor="let opt of getDependencyOptions(input)">
                                             <option [ngValue]="opt.value.id"> {{ opt.parent.label }} = {{

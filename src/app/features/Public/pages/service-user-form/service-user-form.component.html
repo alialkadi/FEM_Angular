@@ -1,8 +1,23 @@
 <div class="user-form-wrapper" *ngIf="requestedServices.length">
     <header class="form-header">
-        <h2>🧍‍♂️ Provide Your Information</h2>
+        <h2> Client Information</h2>
         <p>Please enter your contact details so we can process your request.</p>
     </header>
+    <div class="response-message" *ngIf="responseMessage" [ngClass]="responseType">
+        <span class="response-icon"> {{ responseType === 'success' ? '✅' : '⚠️' }} </span>
+        <span> {{ responseMessage }} </span>
+    </div>
+    <div class="phone-confirm-box" *ngIf="showPhoneConfirm" #phoneConfirmBox>
+        <h4>Confirm Phone Number Update</h4>
+        <p> This email already exists with another phone number. You can either update the saved phone number to the new
+            one, or go back and enter the old phone number. </p>
+        <div class="phone-confirm-actions">
+            <button type="button" class="btn-primary" (click)="confirmPhoneOverwrite()" [disabled]="submitting"> Yes,
+                Update Phone & Continue </button>
+            <button type="button" class="btn-secondary" (click)="cancelPhoneOverwrite()" [disabled]="submitting"> No, I
+                Will Enter Old Phone </button>
+        </div>
+    </div>
     <form [formGroup]="userForm" (ngSubmit)="onSubmit()" novalidate>
         <div class="form-grid">
             <!-- First Name -->
@@ -27,12 +42,23 @@
             <div class="form-group">
                 <label for="phoneNumber">Phone Number</label>
                 <input id="phoneNumber" type="text" formControlName="phoneNumber" placeholder="+1 234 567 890" />
-                <small *ngIf="f.phoneNumber.invalid && f.phoneNumber.touched">Enter a valid phone number.</small>
+                <small *ngIf="f.phoneNumber.touched && f.phoneNumber.errors?.['required']"> Phone number is required.
+                </small>
+                <small *ngIf="f.phoneNumber.touched && f.phoneNumber.errors?.['minlength']"> Phone number must be at
+                    least 6 characters. </small>
+                <small *ngIf="f.phoneNumber.touched && f.phoneNumber.errors?.['pattern']"> Only numbers, spaces, + and -
+                    are allowed. </small>
+            </div>
+            <div class="form-group">
+                <label for="city">City</label>
+                <input id="city" type="text" formControlName="city" placeholder="calgary" />
+                <small *ngIf="f.city.invalid && f.city.touched">City is required.</small>
             </div>
             <!-- Address -->
             <div class="form-group full">
                 <label for="address">Address</label>
-                <textarea id="address" formControlName="address" placeholder="Your full address"></textarea>
+                <textarea id="address" formControlName="address"
+                    placeholder="Please enter your full address"></textarea>
                 <small *ngIf="f.address.invalid && f.address.touched">Address is required.</small>
             </div>
             <!-- Preferred Contact -->
@@ -53,17 +79,58 @@
                     <span>{{ item.calculation?.total | currency }}</span>
                 </li>
             </ul>
-            <div class="summary-total"> Total: <strong *ngFor="let item of requestedServices">
-                    {{item.service.calculatedTotal}} </strong>
+            <div class="summary-total"> Total: <strong> {{this.grandTotal | currency}} </strong>
             </div>
         </section>
         <!-- Buttons -->
         <footer class="actions">
-            <button type="button" class="btn-secondary" (click)="cancel()">⬅ Back</button>
+            <!-- <button type="button" class="btn-secondary" (click)="cancel()">⬅ Back</button> -->
             <button type="submit" class="btn-primary" [disabled]="submitting">
-                <span *ngIf="!submitting">✅ Submit Request</span>
+                <span *ngIf="!submitting">✅ Send Request</span>
                 <span *ngIf="submitting">Submitting...</span>
             </button>
         </footer>
     </form>
+</div>
+<div class="success-overlay" *ngIf="showSuccessPanel">
+    <div class="success-panel">
+        <div class="success-icon">✓</div>
+        <h2>Request Submitted Successfully</h2>
+        <p class="success-lead"> Thank you. Your service request has been received and is currently under review. </p>
+        <div class="success-info">
+            <div>
+                <span>Status</span>
+                <strong>Under Review</strong>
+            </div>
+            <div>
+                <span>Contact Method</span>
+                <strong>{{ submittedContactMethod }}</strong>
+            </div>
+        </div>
+        <div class="login-note">
+            <h4>You can login to follow your request</h4>
+            <p> Use your email address as the username: <strong>{{ submittedEmail }}</strong>
+            </p>
+            <p> Your phone number is your temporary password: <strong>{{ submittedPhone }}</strong>
+            </p>
+        </div>
+        <p class="review-note"> Our team will review your request and contact you through your chosen contact method.
+        </p>
+        <div class="success-actions">
+            <button type="button" class="login-btn" (click)="goToLogin()">
+                <span class="icon">🔐</span>
+                <span>
+                    <strong>Login Now</strong>
+                    <small>Track your request status</small>
+                </span>
+            </button>
+            <button type="button" class="home-btn" (click)="goHome()">
+                <span class="icon">🏠</span>
+                <span>
+                    <strong>Back to Home</strong>
+                    <small>Continue browsing services</small>
+                </span>
+            </button>
+        </div>
+    </div>
 </div>

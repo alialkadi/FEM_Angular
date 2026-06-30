@@ -1,26 +1,40 @@
-<div class="profile-container" *ngIf="!loading">
-    <h2>Profile Settings</h2>
-    <form [formGroup]="form" (ngSubmit)="save()">
-        <div class="form-row">
-            <label>User Name</label>
-            <input type="text" formControlName="userName" />
+<div class="profile-page">
+    <div class="profile-card" *ngIf="!loading; else loadingTpl">
+        <div class="profile-header">
+            <div>
+                <h2>Profile Settings</h2>
+                <p>Update your personal contact information.</p>
+            </div>
+            <div class="avatar"> {{ form.get('firstName')?.value?.charAt(0) || 'U' }} </div>
         </div>
-        <div class="form-row">
-            <label>First Name</label>
-            <input type="text" formControlName="firstName" />
-        </div>
-        <div class="form-row">
-            <label>Last Name</label>
-            <input type="text" formControlName="lastName" />
-        </div>
-        <div class="form-row">
-            <label>Phone Number</label>
-            <input type="text" formControlName="phoneNumber" />
-        </div>
-        <div class="form-row">
-            <label>Address</label>
-            <textarea rows="3" formControlName="address"></textarea>
-        </div>
-        <button class="save-btn" type="submit">Save Changes</button>
-    </form>
+        <div class="alert success" *ngIf="successMessage"> {{ successMessage }} </div>
+        <div class="alert error" *ngIf="errorMessage"> {{ errorMessage }} </div>
+        <form [formGroup]="form" (ngSubmit)="save()" class="profile-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" formControlName="firstName" placeholder="Enter first name" />
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" formControlName="lastName" placeholder="Enter last name" />
+                </div>
+                <div class="form-group full">
+                    <label>Phone Number</label>
+                    <input type="text" formControlName="phoneNumber" placeholder="Enter phone number" />
+                </div>
+                <div class="form-group full">
+                    <label>Address</label>
+                    <textarea rows="4" formControlName="address" placeholder="Enter address"></textarea>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="save-btn" [disabled]="saving"> {{ saving ? 'Saving...' : 'Save Changes' }}
+                </button>
+            </div>
+        </form>
+    </div>
+    <ng-template #loadingTpl>
+        <div class="profile-card loading-card"> Loading profile... </div>
+    </ng-template>
 </div>

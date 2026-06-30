@@ -122,8 +122,10 @@ export class UpdateServiceComponent implements OnInit {
           baseCost: s.baseCost,
           baseRate: s.baseRate,
 
-          warrantyDuration: s.warrantyDuration,
-          warrantyUnit: s.warrantyUnit,
+          materialWarrantyDuration: s.materialWarrantyDuration,
+          materialWarrantyUnit: s.materialWarrantyUnit,
+          workmanshipwarrantyDuration: s.workmanshipWarrantyDuration,
+          workmanshipWarrantyUnit: s.workmanshipWarrantyUnit,
           deliveryDays: s.deliveryDays,
           labors: s.labors,
 
@@ -296,12 +298,12 @@ export class UpdateServiceComponent implements OnInit {
               );
 
               if (
-                rate.dependsOnValueId !== undefined &&
-                rate.dependsOnValueId !== null
+                rate.dependsOnInputValueId !== undefined &&
+                rate.dependsOnInputValueId !== null
               ) {
                 formData.append(
                   `PricingInputs[${index}].DependsOnInputValueId`,
-                  rate.dependsOnValueId.toString(),
+                  rate.dependsOnInputValueId.toString(),
                 );
               } else {
                 // 🔥 Explicitly clear dependency
@@ -455,7 +457,7 @@ export class UpdateServiceComponent implements OnInit {
 
         value.rates.push({
           amount: rule.amount,
-          dependsOnValueId: rule.dependsOnInputValueId,
+          dependsOnInputValueId: rule.dependsOnInputValueId,
         });
       }
 

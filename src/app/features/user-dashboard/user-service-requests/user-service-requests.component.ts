@@ -7,6 +7,8 @@ import { UserServiceRequestService } from '../Services/user-service-request.serv
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { AuthService } from '../../../core/Auth/auth.service';
+import { PDFDocument } from 'pdf-lib';
+import * as QRCode from 'qrcode';
 
 @Component({
   selector: 'app-user-service-requests',
@@ -26,7 +28,40 @@ export class UserServiceRequestsComponent implements OnInit {
   updatingStatusRequestId: number | null = null;
 
   userId: string | null = null;
+  websiteLoginUrl =
+    'http://fenestrationservices.ca/FenetrationMaintainence/Home/login';
+  readonly gstRate = 0.05;
 
+  getNetTotal(services: any[] | undefined | null): number {
+    if (!services?.length) return 0;
+
+    return services.reduce((sum, s) => {
+      return sum + (s.baseCost ?? 0);
+    }, 0);
+  }
+
+  getGstTotal(services: any[] | undefined | null): number {
+    return this.getNetTotal(services) * this.gstRate;
+  }
+
+  getGrandTotalWithGst(services: any[] | undefined | null): number {
+    return this.getNetTotal(services) + this.getGstTotal(services);
+  }
+
+  getServiceGst(service: any): number {
+    return (service?.baseCost ?? 0) * this.gstRate;
+  }
+
+  getServiceTotalWithGst(service: any): number {
+    return (service?.baseCost ?? 0) + this.getServiceGst(service);
+  }
+  getReceiptNumber(req: UserServiceRequestDto): string {
+    return `${req.requestId}`;
+  }
+
+  getOrderNumber(req: UserServiceRequestDto): string {
+    return `${req.requestId}`;
+  }
   // statuses user is allowed to send
   userAllowedStatusOptions = [
     { id: 9, name: 'Canceled', label: 'Cancel Request', type: 'danger' },
@@ -78,22 +113,28 @@ export class UserServiceRequestsComponent implements OnInit {
     const normalized = statusName.toLowerCase();
 
     // user can only cancel requests before final states
-    return normalized === 'pending' || normalized === 'approved';
+    // return normalized === 'pending' || normalized === 'approved';
+    return normalized === 'pending';
   }
   approvePopupVisible = false;
   requestToApprove: UserServiceRequestDto | null = null;
   approveStatusId: number | null = null;
+  cancelReason = '';
+  cancelReasonError = '';
+
   updateStatus(
     req: UserServiceRequestDto,
     newStatusId: number,
     statusName: string,
+    reason?: string,
   ): void {
     if (!newStatusId) return;
     if (statusName === req.statusName) return;
 
     const dto = {
       requestId: req.requestId,
-      newStatusId: newStatusId,
+      newStatusId,
+      reason: reason?.trim() || undefined,
     };
 
     this.updatingStatusRequestId = req.requestId;
@@ -108,8 +149,8 @@ export class UserServiceRequestsComponent implements OnInit {
 
         this.updatingStatusRequestId = null;
         this.closeStatusDropdown();
-
-        console.log(res);
+        this.closeCancelPopup();
+        this.closeApprovePopup();
         this.loadRequests();
       },
       error: (err) => {
@@ -148,7 +189,15 @@ export class UserServiceRequestsComponent implements OnInit {
       this.closeStatusDropdown();
       return;
     }
-
+    if (statusName === 'Canceled') {
+      this.requestToCancel = req;
+      this.cancelStatusId = statusId;
+      this.cancelReason = '';
+      this.cancelReasonError = '';
+      this.cancelPopupVisible = true;
+      this.closeStatusDropdown();
+      return;
+    }
     this.updateStatus(req, statusId, statusName);
   }
   getServiceTotal(services: any[] | undefined | null): number {
@@ -172,50 +221,164 @@ export class UserServiceRequestsComponent implements OnInit {
     if (!fees?.length) return 0;
     return fees.reduce((sum, f) => sum + (f.amount ?? 0), 0);
   }
+  qrCodeDataUrl = '';
 
   async downloadReceipt(req: UserServiceRequestDto): Promise<void> {
+    if (this.downloadingPdf) return;
+
     this.printableRequest = req;
     this.downloadingPdf = true;
 
-    setTimeout(async () => {
-      try {
-        const element = this.receiptContent.nativeElement;
+    try {
+      this.qrCodeDataUrl = await QRCode.toDataURL(this.websiteLoginUrl, {
+        width: 180,
+        margin: 1,
+      });
 
-        const canvas = await html2canvas(element, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-        });
+      setTimeout(async () => {
+        try {
+          const element = this.receiptContent.nativeElement;
 
-        const imgData = canvas.toDataURL('image/png');
+          const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+          });
 
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
+          const warrantyResponse = await fetch(
+            'assets/documents/Warranty-Policy-Disclaimer.pdf',
+          );
 
-        const imgWidth = pdfWidth;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          if (!warrantyResponse.ok) {
+            throw new Error('Warranty PDF not found');
+          }
 
-        let heightLeft = imgHeight;
-        let position = 0;
+          const warrantyPdfBytes = await warrantyResponse.arrayBuffer();
+          const warrantyDoc = await PDFDocument.load(warrantyPdfBytes);
 
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
+          const finalDoc = await PDFDocument.create();
 
-        while (heightLeft > 0) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pdfHeight;
+          // Use warranty page size so receipt and warranty have same width/size
+          const firstWarrantyPage = warrantyDoc.getPage(0);
+          const { width: pageWidth, height: pageHeight } =
+            firstWarrantyPage.getSize();
+
+          const receiptPage = finalDoc.addPage([pageWidth, pageHeight]);
+
+          const imgData = canvas.toDataURL('image/png');
+          const receiptImage = await finalDoc.embedPng(imgData);
+
+          const margin = 24;
+          const availableWidth = pageWidth - margin * 2;
+          const availableHeight = pageHeight - margin * 2;
+
+          const imageRatio = receiptImage.width / receiptImage.height;
+          const pageRatio = availableWidth / availableHeight;
+
+          let drawWidth = availableWidth;
+          let drawHeight = availableHeight;
+
+          if (imageRatio > pageRatio) {
+            drawHeight = availableWidth / imageRatio;
+          } else {
+            drawWidth = availableHeight * imageRatio;
+          }
+
+          receiptPage.drawImage(receiptImage, {
+            x: (pageWidth - drawWidth) / 2,
+            y: pageHeight - drawHeight - margin,
+            width: drawWidth,
+            height: drawHeight,
+          });
+
+          const warrantyPages = await finalDoc.copyPages(
+            warrantyDoc,
+            warrantyDoc.getPageIndices(),
+          );
+
+          warrantyPages.forEach((page) => {
+            finalDoc.addPage(page);
+          });
+
+          const finalPdf = await finalDoc.save();
+
+          const finalPdfBuffer = finalPdf.buffer.slice(
+            finalPdf.byteOffset,
+            finalPdf.byteOffset + finalPdf.byteLength,
+          ) as ArrayBuffer;
+
+          const blob = new Blob([finalPdfBuffer], {
+            type: 'application/pdf',
+          });
+
+          const url = URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `Service-Receipt-${req.requestId}.pdf`;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          URL.revokeObjectURL(url);
+        } finally {
+          this.downloadingPdf = false;
+          this.printableRequest = null;
         }
+      }, 200);
+    } catch (error) {
+      console.error('PDF generation failed', error);
+      this.downloadingPdf = false;
+      this.printableRequest = null;
+    }
+  }
 
-        pdf.save(`Service-Receipt-${req.requestId}.pdf`);
-      } catch (error) {
-        console.error('PDF generation failed', error);
-      } finally {
-        this.downloadingPdf = false;
-        this.printableRequest = null;
-      }
-    }, 200);
+  cancelPopupVisible = false;
+  requestToCancel: UserServiceRequestDto | null = null;
+  cancelStatusId = 9;
+
+  openApprovePopup(req: UserServiceRequestDto, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!this.canUserUpdateStatus(req.statusName)) return;
+
+    this.requestToApprove = req;
+    this.approveStatusId = 3;
+    this.approvePopupVisible = true;
+  }
+
+  openCancelPopup(req: UserServiceRequestDto, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!this.canUserUpdateStatus(req.statusName)) return;
+
+    this.requestToCancel = req;
+    this.cancelPopupVisible = true;
+  }
+
+  confirmCancelRequest(): void {
+    if (!this.requestToCancel) return;
+
+    const reason = this.cancelReason.trim();
+
+    if (!reason) {
+      this.cancelReasonError = 'Cancellation reason is required.';
+      return;
+    }
+
+    this.updateStatus(
+      this.requestToCancel,
+      this.cancelStatusId,
+      'Canceled',
+      reason,
+    );
+  }
+
+  closeCancelPopup(): void {
+    this.cancelPopupVisible = false;
+    this.requestToCancel = null;
+    this.cancelReason = '';
+    this.cancelReasonError = '';
   }
 }

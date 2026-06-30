@@ -1,122 +1,125 @@
 <section class="landing-body" aria-label="Landing Body">
     <!-- =======================
-        SERVICES
+      CATEGORIES
   ======================== -->
-    <section class="section services-split" aria-label="Services">
+    <section class="section services-split" aria-label="Fenestration Categories">
         <div class="container">
-            <div class="services-layout">
-                <!-- LEFT: QUICK LINKS -->
-                <aside class="quick-links">
-                    <div class="section-head">
-                        <h2>Quick Links</h2>
-                        <p>Select service by category</p>
-                    </div>
-                    <!-- Loading -->
-                    <div *ngIf="categoriesLoading" class="quick-links-loading"> Loading... </div>
-                    <!-- Categories -->
-                    <div class="quick-links-grid" *ngIf="!categoriesLoading && categories.length">
-                        <button class="quick-link-card" *ngFor="let c of categories" (click)="openCategory(c)">
-                            <div class="quick-link-content">
-                                <h3>{{ c.name }}</h3>
-                                <span class="arrow">→</span>
+            <div class="services-main">
+                <header class="section-head services-head">
+                    <h2 class="section-title"> Fenestration <span>Categories</span>
+                    </h2>
+                </header>
+                <div class="services-grid services-grid--split" role="list">
+                    <article class="service-card" role="listitem" *ngFor="let c of categories"
+                        (click)="openCategory(c)">
+                        <div class="service-media">
+                            <img class="service-img" [src]="c.fileUrl || './assets/landing-page/maintenance.jpg'"
+                                [alt]="c.name" loading="lazy" />
+                            <div class="service-overlay" aria-hidden="true"></div>
+                        </div>
+                        <div class="service-body">
+                            <h3 class="service-title">{{ c.name }}</h3>
+                            <p class="service-desc"> {{ c.description || 'Explore available service options under this
+                                category.' }} </p>
+                            <div class="service-actions">
+                                <button type="button" class="link"> Explore <span aria-hidden="true">→</span>
+                                </button>
                             </div>
-                        </button>
-                    </div>
-                    <!-- Empty -->
-                    <div *ngIf="!categoriesLoading && !categories.length" class="empty"> No categories available </div>
-                </aside>
-                <!-- RIGHT: SERVICES -->
-                <div class="services-main">
-                    <header class="section-head services-head">
-                        <h2 class="section-title"> Fenestration <span style="color: var(--link-hover);">Services</span>
-                        </h2>
-                        <!-- <p class="section-subtitle " style="text-align: center; font-size: 18px;">All services for windows  doors — installation,
-                            replacement, and long-term maintenance. </p> -->
-                    </header>
-                    <div class="services-grid services-grid--split" role="list">
-                        <article class="service-card" role="listitem" *ngFor="let s of services">
-                            <div class="service-media">
-                                <img class="service-img" [src]="s.imageUrl" [alt]="s.title" loading="lazy" />
-                                <div class="service-overlay" aria-hidden="true"></div>
-                            </div>
-                            <div class="service-body">
-                                <h3 class="service-title">{{ s.title }}</h3>
-                                <p class="service-desc">{{ s.description }}</p>
-                                <div class="service-actions">
-                                    <a class="link" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">
-                                        Explore <span aria-hidden="true">→</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
+                        </div>
+                    </article>
                 </div>
             </div>
         </div>
     </section>
-    <section class="section advertised-services" aria-label="Featured Requestable Services" *ngIf="data.length">
+    <!-- =======================
+      FEATURED SERVICES CAROUSEL
+  ======================== -->
+    <section class="section advertised-services" aria-label="Featured Requestable Services" *ngIf="hasFeaturedRows">
         <div class="container">
             <header class="section-head">
                 <div class="kicker">
                     <span class="dot" aria-hidden="true"></span>
                     <span>Featured Services</span>
                 </div>
-                <h2 class="section-title"> Request a <span style="color: var(--link-hover)">Featured Service</span>
+                <h2 class="section-title"> Request a <span>Featured Service</span>
                 </h2>
-                <p class="section-subtitle"> Explore highlighted services with a clean visual presentation and request
-                    the one that fits your project. </p>
+                <p class="section-subtitle"> Photos shown are for reference and comparison purposes only. They are used
+                    to help identify the closest available match to the client’s existing product. The final supplied
+                    product may vary in color, finish, size, design, hardware style, and manufacturer availability. </p>
             </header>
-            <div class="advertised-carousel-wrap">
-                <button type="button" class="carousel-nav prev" (click)="prevSlide()" aria-label="Previous services">
-                    &#10094; </button>
-                <div class="advertised-carousel">
-                    <div class="advertised-track" [style.transform]="trackTranslate">
-                        <article class="advertised-card" *ngFor="let item of data; trackBy: trackByAdvertised">
-                            <div class="advertised-card__media">
-                                <img [src]="item.fileUrl" [alt]="item.name" loading="lazy" />
-                                <div class="advertised-card__overlay"></div>
-                                <div class="advertised-card__badge"> Featured </div>
-                            </div>
-                            <div class="advertised-card__body">
-                                <div class="advertised-card__head">
-                                    <h3>{{ item.name }}</h3>
-                                </div>
-                                <p class="advertised-card__desc"> {{ item.description }} </p>
-                                <div class="advertised-card__footer">
-                                    <button type="button" class="btn btn--primary"
-                                        (click)="requestAdvertisedService(item)"> Request Now </button>
-                                    <button type="button" class="cart-btn" [class.active]="isWishlisted(item.id)"
-                                        (click)="toggleWishlist(item)">
-                                        <span class="icon"> {{ isWishlisted(item.id) ? '🛒' : '＋' }} </span>
-                                        <span class="text"> {{ isWishlisted(item.id) ? 'Added' : 'Add to Cart' }}
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-                        </article>
+            <div class="featured-category-list">
+                <section class="featured-category-row" *ngFor="let row of featuredRows; trackBy: trackByFeaturedRow"
+                    [class.is-single]="row.services.length === 1" [class.is-two]="row.services.length === 2"
+                    [class.is-static]="row.services.length <= featuredItemsPerView">
+                    <div class="featured-category-head">
+                        <div>
+                            <span class="featured-category-label">Category</span>
+                            <h3>{{ row.categoryName }}</h3>
+                            <p> Browse featured services available under {{ row.categoryName }}. </p>
+                        </div>
+                        <div class="featured-category-count">
+                            <strong>{{ row.services.length }}</strong>
+                            <span>Service(s)</span>
+                        </div>
                     </div>
-                </div>
-                <button type="button" class="carousel-nav next" (click)="nextSlide()" aria-label="Next services">
-                    &#10095; </button>
-            </div>
-            <div class="carousel-dots" *ngIf="visibleDots.length > 1">
-                <button type="button" class="dot-btn" *ngFor="let dot of visibleDots"
-                    [class.active]="dot === currentSlide" (click)="goToSlide(dot)"
-                    [attr.aria-label]="'Go to group ' + (dot + 1)"></button>
+                    <div class="advertised-carousel-wrap"
+                        [class.no-slider]="row.services.length <= featuredItemsPerView"
+                        (mouseenter)="pauseFeaturedCarousel(row)" (mouseleave)="startFeaturedCarousel(row)">
+                        <button type="button" class="carousel-nav carousel-nav--prev"
+                            aria-label="Previous featured service" (click)="prevFeatured(row)"
+                            [disabled]="row.services.length <= featuredItemsPerView"> ‹ </button>
+                        <div class="advertised-carousel">
+                            <div class="advertised-track" [class.no-animation]="row.disableAnimation"
+                                [style.transform]="getFeaturedTranslate(row)">
+                                <article class="advertised-card" *ngFor="let item of getDisplayedFeaturedServices(row)">
+                                    <div class="advertised-card__media">
+                                        <img [src]="item.fileUrl || './assets/landing-page/maintenance.jpg'"
+                                            [alt]="item.name" loading="lazy" />
+                                        <div class="advertised-card__overlay" aria-hidden="true"></div>
+                                        <div class="advertised-card__badge">Featured</div>
+                                    </div>
+                                    <div class="advertised-card__body">
+                                        <div class="advertised-card__head">
+                                            <h3>{{ item.name }}</h3>
+                                        </div>
+                                        <p class="advertised-card__desc"> {{ item.description || 'Request this featured
+                                            maintenance service.' }} </p>
+                                        <div class="advertised-card__footer">
+                                            <button type="button" class="btn btn--primary"
+                                                (click)="requestAdvertisedService(item)"> Request Now </button>
+                                            <button type="button" class="cart-btn"
+                                                [class.active]="isWishlisted(item.id)" (click)="toggleWishlist(item)">
+                                                <span class="icon"> {{ isWishlisted(item.id) ? '🛒' : '＋' }} </span>
+                                                <span class="text"> {{ isWishlisted(item.id) ? 'Added' : 'Add to Cart'
+                                                    }} </span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+                        <button type="button" class="carousel-nav carousel-nav--next" aria-label="Next featured service"
+                            (click)="nextFeatured(row)" [disabled]="row.services.length <= featuredItemsPerView"> ›
+                        </button>
+                    </div>
+                    <div class="carousel-dots" *ngIf="row.services.length > featuredItemsPerView">
+                        <button type="button" class="dot-btn" *ngFor="let dot of getFeaturedDots(row); let i = index"
+                            [class.active]="i === row.index" (click)="goToFeatured(row, i)"
+                            [attr.aria-label]="'Go to featured slide ' + (i + 1)"></button>
+                    </div>
+                </section>
             </div>
         </div>
     </section>
     <!-- =======================
-        ABOUT / WHY US
+      WHY CHOOSE US
   ======================== -->
     <section class="section why-choose-us" aria-label="Why Choose Us">
         <div class="container">
             <div class="section-intro">
                 <h2 class="section-title section-title--light">Why Choose Us</h2>
             </div>
-            <!-- <div class="choice-timeline" aria-hidden="true"></div> -->
             <div class="choice-grid" role="list">
-                <!-- Left Card -->
                 <article class="choice-card" role="listitem">
                     <div class="choice-icon-wrap">
                         <span class="choice-icon" aria-hidden="true">
@@ -129,7 +132,6 @@
                         tailored estimate. </p>
                     <p class="choice-text"> This helps you plan with confidence and make decisions faster. </p>
                 </article>
-                <!-- Center Card -->
                 <article class="choice-card choice-card--featured" role="listitem">
                     <div class="choice-icon-wrap">
                         <span class="choice-icon" aria-hidden="true">
@@ -144,7 +146,6 @@
                     <p class="choice-text"> The result is a practical, cost-effective solution that extends system life
                         and reliability. </p>
                 </article>
-                <!-- Right Card -->
                 <article class="choice-card" role="listitem">
                     <div class="choice-icon-wrap">
                         <span class="choice-icon" aria-hidden="true">
@@ -158,38 +159,28 @@
                         and everyday reliability. </p>
                 </article>
             </div>
-            <!-- <div class="about-actions about-actions--center">
-                <a class="btn btn--primary" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']"> Explore
-                    Services </a>
-                <a class="btn btn--ghost btn--light" [routerLink]="['/public/FenestrationMaintainence/contact']">
-                    Request a Quote </a>
-            </div> -->
         </div>
     </section>
+    <!-- =======================
+      CONSULTATION
+  ======================== -->
     <section class="section consultation-section" aria-label="Technical Consultation">
         <div class="container">
             <div class="consultation-layout">
                 <div class="consultation-info">
-                    <header class="section-head">
-                        <h2 class="section-title">Service Requests</h2>
-                    </header>
-                    <div class="consultation-info-block">
-                        <h3>Office Headquarters</h3>
-                        <p>122 Industrial Way, Suite 400</p>
-                        <p>Fenestra Park, Architectural District</p>
-                    </div>
                     <div class="consultation-info-block">
                         <h3>Technical Support</h3>
                         <p>contact&#64;fenestrationservices.ca</p>
                     </div>
-                    <div class="consultation-map-card">
-                        <div id="consultation-map" class="consultation-map"></div>
-                        <div class="map-note"> Click on the map or drag the marker to select the address. </div>
-                    </div>
                 </div>
                 <div class="consultation-form-card">
                     <header class="section-head consultation-head">
-                        <h2 class="section-title">Request a Technical Consultation</h2>
+                        <div class="section-header">
+                            <h2 class="section-title">Request a Service Call</h2>
+                            <div class="consultation-price" *ngIf="consultationPrice > 0"> Consultation Fee: <span>{{
+                                    consultationPrice | currency:'':'symbol':'1.0-0' }}</span>
+                            </div>
+                        </div>
                     </header>
                     <form [formGroup]="consultationForm" (ngSubmit)="submitConsultation()" class="consultation-form">
                         <div class="consultation-grid two-cols">

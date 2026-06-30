@@ -4,6 +4,7 @@ export interface AppSettingResponse {
   id: number;
   rate: number;
   logistic: number;
+  consultationPrice: number;
   createdOn: string;
   modifyOn?: string;
 }
@@ -23,4 +24,7 @@ export interface ApiResponse<T> {
   response: T;
   errors?: string[];
   message?: string;
+}
+export interface UpdateConsultationPriceRequest {
+  consultationPrice: number;
 }

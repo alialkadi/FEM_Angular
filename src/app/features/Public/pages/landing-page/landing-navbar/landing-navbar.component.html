@@ -6,43 +6,72 @@
                 <span class="brand__mark">
                     <img src="./assets/landing-page/icon.png" />
                 </span>
-                <span class="brand__name"> <span style="">Fenestration </span> <strong
-                        style="color: var(--link-hover);">Services</strong>
+                <span class="brand__name"> Fenestration <strong>Services</strong>
                 </span>
             </a>
-            <!-- Desktop Navigation -->
+            <!-- Desktop -->
             <div class="nav__links">
-                <!-- Cart -->
-                <a class="nav-cart" *ngIf="cartCount" [routerLink]="cartRoute" routerLinkActive="active-link"
-                    [routerLinkActiveOptions]="{ exact: true }"> Cart <span *ngIf="cartCount" class="cart-count"> {{
-                        cartCount }} </span>
-                </a>
-                <!-- Dynamic Sections -->
                 <a *ngFor="let section of sections" [routerLink]="section.route" routerLinkActive="active-link"
                     [routerLinkActiveOptions]="{ exact: true }" class="nav-item"> {{ section.title }} </a>
-                <!-- ✅ Login Button -->
+                <!-- Services Mega Dropdown -->
+                <div class="mega-wrapper">
+                    <button type="button" class="nav-item mega-trigger"> Services <i
+                            class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="mega-menu">
+                        <div class="mega-header">
+                            <h4>Browse Services</h4>
+                            <p>Select a category or service type</p>
+                        </div>
+                        <div class="mega-grid">
+                            <div class="mega-category" *ngFor="let category of categories">
+                                <button type="button" class="mega-category-title" (click)="openCategory(category)"> {{
+                                    category.name }} </button>
+                                <button type="button" class="mega-type" *ngFor="let type of category.types"
+                                    (click)="openCategoryType(category, type)"> {{ type.name }} </button>
+                                <span class="mega-empty" *ngIf="!category.types?.length"> No types available </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a class="nav-cart" *ngIf="cartCount" [routerLink]="cartRoute" routerLinkActive="active-link"> Cart
+                    <span class="cart-count">{{ cartCount }}</span>
+                </a>
                 <a [routerLink]="loginRoute" routerLinkActive="active-link" class="login-btn"> Sign In </a>
             </div>
-            <!-- CTA / Hamburger -->
-            <div class="nav__right">
-                <button class="hamburger" (click)="toggleMenu()" [attr.aria-expanded]="mobileOpen"> ☰ </button>
-            </div>
+            <!-- Mobile Button -->
+            <button class="hamburger" type="button" (click)="toggleMenu()" [attr.aria-expanded]="mobileOpen">
+                <i class="fa-solid" [ngClass]="mobileOpen ? 'fa-xmark' : 'fa-bars'"></i>
+            </button>
         </nav>
     </div>
 </header>
-<!-- Mobile -->
+<!-- Mobile Menu -->
+<div class="mobile-backdrop" *ngIf="mobileOpen" (click)="closeMenu()"></div>
 <div class="mobile-menu" [class.open]="mobileOpen">
     <div class="mobile-panel">
-        <!-- Cart -->
-        <a class="mobile-item" *ngIf="cartCount" [routerLink]="cartRoute" (click)="closeMenu()"> Cart <span
-                *ngIf="cartCount" class="cart-count"> {{ cartCount }} </span>
-        </a>
-        <!-- Sections -->
         <a *ngFor="let section of sections" class="mobile-item" [routerLink]="section.route" (click)="closeMenu()"> {{
             section.title }} </a>
-        <!-- ✅ Login (Mobile) -->
-        <a class="mobile-item" routerLink="/login" (click)="closeMenu()"> Sign In </a>
-        <!-- Quote -->
+        <div class="mobile-divider"></div>
+        <div class="mobile-category-group" *ngFor="let category of categories">
+            <button type="button" class="mobile-item mobile-category" (click)="toggleMobileCategory(category.id)">
+                <span>{{ category.name }}</span>
+                <i class="fa-solid"
+                    [ngClass]="openedMobileCategoryId === category.id ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </button>
+            <div class="mobile-submenu" *ngIf="openedMobileCategoryId === category.id">
+                <button type="button" class="mobile-subitem main" (click)="openCategory(category)"> All {{ category.name
+                    }} </button>
+                <button type="button" class="mobile-subitem" *ngFor="let type of category.types"
+                    (click)="openCategoryType(category, type)"> {{ type.name }} </button>
+                <div class="mobile-empty" *ngIf="!category.types?.length"> No types available </div>
+            </div>
+        </div>
+        <div class="mobile-divider"></div>
+        <a class="mobile-item" *ngIf="cartCount" [routerLink]="cartRoute" (click)="closeMenu()"> Cart <span
+                class="cart-count">{{ cartCount }}</span>
+        </a>
+        <a class="mobile-item" [routerLink]="loginRoute" (click)="closeMenu()"> Sign In </a>
         <a class="btn-outline full-width" [routerLink]="quoteRoute" (click)="closeMenu()"> Free Quote </a>
     </div>
 </div>

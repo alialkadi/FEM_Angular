@@ -10,6 +10,8 @@ import { CategoryService } from '../../../Services/CategoryService';
 import { Category } from '../../../../Models/Category';
 import { MetadataTargetType } from '../../../../Models/MetadataTargetType';
 import { ConfirmDialogComponent } from '../../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
+import { ToastService } from '../../../../../shared/Services/toast.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-structure-list',
@@ -51,11 +53,14 @@ export class StructureListComponent {
     return Math.ceil(this.totalCount / this.pageSize) || 1;
   }
 
+  sortingStructureId: number | null = null;
+
   constructor(
     private dialog: MatDialog,
     private _structureService: StructureService,
     private _categoryTypeService: CategoryTypeService,
     private _categoryServie: CategoryService,
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -65,15 +70,15 @@ export class StructureListComponent {
 
   /* ================= LOADERS ================= */
 
-  loadAllStructures(): void {
+  loadAllStructures(keepPage = false): void {
+    const currentPage = this.pageIndex;
+
     this._structureService.getAllStructures(true, 1, 1000).subscribe({
       next: (res) => {
-        console.log(res);
         this.allStructures = res.data?.structures ?? [];
-        console.log(res);
-        this.applyFilters();
+        this.applyFilters(keepPage ? currentPage : 1);
       },
-      error: () => console.log('Failed to load structures'),
+      error: () => this.toast.show('Failed to load components.', 'error'),
     });
   }
 
@@ -131,11 +136,10 @@ export class StructureListComponent {
     this.applyFilters();
   }
 
-  applyFilters(): void {
+  applyFilters(page = 1): void {
     const search = (this.searchText || '').trim().toLowerCase();
 
     this.filteredStructures = this.allStructures.filter((s) => {
-      // Category filter
       if (this.selectedCategoryId) {
         const sid = (s as any).categoryId as number | undefined;
         const sname = (s as any).categoryName as string | undefined;
@@ -147,6 +151,7 @@ export class StructureListComponent {
             this.categories
               .find((c) => c.id === this.selectedCategoryId)
               ?.name?.toLowerCase() ?? '';
+
           if (
             selectedCategoryName &&
             (sname ?? '').toLowerCase() !== selectedCategoryName
@@ -155,12 +160,10 @@ export class StructureListComponent {
         }
       }
 
-      // Type filter
       if (this.selectedCategoryTypeId) {
         if ((s as any).typeId !== this.selectedCategoryTypeId) return false;
       }
 
-      // Search
       if (search) {
         const hay =
           `${s.name ?? ''} ${(s as any).typeName ?? ''} ${(s as any).categoryName ?? ''}`.toLowerCase();
@@ -171,10 +174,9 @@ export class StructureListComponent {
     });
 
     this.totalCount = this.filteredStructures.length;
-    this.pageIndex = 1;
+    this.pageIndex = Math.min(page, this.totalPage);
     this.updatePagedData();
   }
-
   /* ================= PAGINATION ================= */
 
   updatePagedData(): void {
@@ -324,5 +326,88 @@ export class StructureListComponent {
 
   closeMetadata(): void {
     this.selectedStructureForMetadata = null;
+  }
+
+  // ############ sorting ########## //
+  canSortStructures(): boolean {
+    return (
+      this.selectedCategoryTypeId !== undefined &&
+      this.selectedCategoryTypeId > 0
+    );
+  }
+
+  isFirstStructure(index: number): boolean {
+    return this.canSortStructures() && this.pageIndex === 1 && index === 0;
+  }
+
+  isLastStructure(index: number): boolean {
+    return (
+      this.canSortStructures() &&
+      this.pageIndex === this.totalPage &&
+      index === this.structures.length - 1
+    );
+  }
+
+  moveUp(item: Structure, index: number): void {
+    if (!this.canSortStructures()) {
+      this.toast.warning('Select a category type first to reorder components.');
+      return;
+    }
+
+    if (this.isFirstStructure(index)) return;
+
+    this.sortingStructureId = item.id;
+
+    this._structureService
+      .moveUp(item.id)
+      .pipe(finalize(() => (this.sortingStructureId = null)))
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.toast.show(res.message || 'Component moved up successfully.');
+            this.loadAllStructures(true);
+          } else {
+            this.toast.show(res.message || 'Move failed.');
+          }
+        },
+        error: (err) => {
+          this.toast.show(
+            err?.error?.message || 'Failed to move component up.',
+          );
+        },
+      });
+  }
+
+  moveDown(item: Structure, index: number): void {
+    if (!this.canSortStructures()) {
+      this.toast.show('Select a category type first to reorder components.');
+      return;
+    }
+
+    if (this.isLastStructure(index)) return;
+
+    this.sortingStructureId = item.id;
+
+    this._structureService
+      .moveDown(item.id)
+      .pipe(finalize(() => (this.sortingStructureId = null)))
+      .subscribe({
+        next: (res) => {
+          console.log(res);
+          if (res.success) {
+            this.toast.show(
+              res.message || 'Component moved down successfully.',
+            );
+            this.loadAllStructures(true);
+          } else {
+            this.toast.show(res.message || 'Move failed.');
+          }
+        },
+        error: (err) => {
+          this.toast.show(
+            err?.error?.message || 'Failed to move component down.',
+          );
+        },
+      });
   }
 }

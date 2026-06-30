@@ -20,7 +20,16 @@ import { ServiceExplorerOptionCComponent } from './pages/service-explorer-option
 import { ServiceUserFormComponent } from './pages/service-user-form/service-user-form.component';
 import { WishlistComponent } from './pages/Wishlist/wishlist.component';
 import { ServiceAdvertisedDetailComponent } from './pages/service-advertised-detail/service-advertised-detail.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { ApiTimingInterceptor } from './Interceptors/api-timing.interceptor';
+import { AboutUsComponent } from './pages/StaticFiles/about-us/about-us.component';
+import { FaqComponent } from './pages/StaticFiles/faq/faq.component';
+import { OurProcessComponent } from './pages/StaticFiles/our-process/our-process.component';
+import { PrivacyPolicyComponent } from './pages/StaticFiles/privacy-policy/privacy-policy.component';
+import { WhyUsComponent } from './pages/StaticFiles/why-us/why-us.component';
+import { ForgetrPasswordComponent } from '../../core/reset-password/forgetr-password/forgetr-password.component';
+import { OtpComponent } from '../../core/reset-password/otp/otp.component';
+import { ResetPasswordComponent } from '../../core/reset-password/reset-password/reset-password.component';
 
 @NgModule({
   declarations: [
@@ -37,6 +46,14 @@ import { HttpClientModule } from '@angular/common/http';
     ServiceUserFormComponent,
     WishlistComponent,
     ServiceAdvertisedDetailComponent,
+    AboutUsComponent,
+    WhyUsComponent,
+    OurProcessComponent,
+    FaqComponent,
+    PrivacyPolicyComponent,
+    ForgetrPasswordComponent,
+    OtpComponent,
+    ResetPasswordComponent,
   ],
   imports: [
     CommonModule,

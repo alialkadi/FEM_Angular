@@ -1,6 +1,5 @@
 import { Router, ActivatedRoute } from '@angular/router';
-import { Component, OnInit } from '@angular/core';
-import { CategoryService } from '../../../admin/Services/CategoryService';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';import { CategoryService } from '../../../admin/Services/CategoryService';
 import { CategoryTypeService } from '../../../admin/Services/categoryTypeService.service';
 import {
   ExplorerItem,
@@ -11,6 +10,9 @@ import {
 } from '../../../admin/Services/MetadataExplorerService.service';
 import { Category } from '../../../Models/Category';
 import { CategoryType } from '../../../Models/CategoryType';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { ApiTimingInterceptor } from '../../Interceptors/api-timing.interceptor';
+import { forkJoin, catchError, of } from 'rxjs';
 
 interface ExplorerCrumb {
   label: string;
@@ -52,23 +54,87 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
   ) {}
+@ViewChild('explorerTop') explorerTop!: ElementRef<HTMLElement>;
 
+private scrollExplorerToTop(): void {
+  setTimeout(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'auto'
+    });
+
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    this.explorerTop?.nativeElement?.scrollIntoView({
+      block: 'start',
+      inline: 'nearest',
+      behavior: 'auto'
+    });
+
+    document
+      .querySelectorAll('.shop-explorer, .content, .layout, .page-content, .main-content')
+      .forEach((el: any) => {
+        el.scrollTop = 0;
+      });
+  }, 0);
+}
   ngOnInit(): void {
     this.loadCategoriesAndHandleRoute();
   }
+  isExplorerLoading = false;
+  hasExplorerLoaded = false;
+  hasExplorerResultLoaded = false;
 
+  loadInitialExplorer(): void {
+    this.isExplorerLoading = true;
+    this.hasExplorerLoaded = false;
+
+    this.categoryService.getAllCategories(true).subscribe({
+      next: (res) => {
+        this.categories = res?.data.categories ?? [];
+
+        this.hasExplorerLoaded = true;
+        this.isExplorerLoading = false;
+      },
+      error: () => {
+        this.categories = [];
+
+        this.hasExplorerLoaded = true;
+        this.isExplorerLoading = false;
+      },
+    });
+  }
   private loadCategoriesAndHandleRoute(): void {
+    this.isExplorerLoading = true;
+    this.hasExplorerLoaded = false;
+
     this.categoryService.getAllCategories(true).subscribe({
       next: (r) => {
-        this.categories = r.data?.categories ?? [];
+        this.categories = r?.data?.categories ?? [];
+
+        this.hasExplorerLoaded = true;
+        this.isExplorerLoading = false;
+
         this.handleInitialCategoryFromQuery();
       },
       error: () => {
         this.categories = [];
+        this.hasExplorerLoaded = true;
+        this.isExplorerLoading = false;
       },
     });
   }
 
+  get showNoServicesAtLastLevel(): boolean {
+    return (
+      this.hasExplorerResultLoaded &&
+      !this.isExplorerLoading &&
+      !!this.selectedType &&
+      this.hasAnyItems === 0
+    );
+  }
   private handleInitialCategoryFromQuery(): void {
     this.route.queryParamMap.subscribe((params) => {
       const categoryIdParam = params.get('categoryId');
@@ -84,9 +150,12 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   selectCategory(c: Category, updateUrl: boolean = true) {
+    this.scrollExplorerToTop();
     this.resetAll();
     this.selectedCategory = c;
 
+    this.isExplorerLoading = true;
+    this.hasExplorerResultLoaded = false;
     if (updateUrl && c?.id) {
       this.router.navigate([], {
         relativeTo: this.route,
@@ -98,14 +167,18 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.typeService.getTypesByCategory(c.id!).subscribe({
       next: (r) => {
         this.types = r.data?.categoryTypes ?? [];
+        this.isExplorerLoading = false;
+
       },
       error: () => {
         this.types = [];
+        this.isExplorerLoading = false;
       },
     });
   }
 
   selectType(t: CategoryType) {
+    this.scrollExplorerToTop();
     this.resetBelow('type');
     this.selectedType = t;
     this.loadExplorer();
@@ -117,22 +190,26 @@ export class ServiceExplorerOptionCComponent implements OnInit {
         this.resetBelow('type');
         this.structureId = item.id;
         this.selectedStructureName = item.name;
+        this.scrollExplorerToTop();
         break;
 
       case ExplorerItemType.Part:
         this.resetBelow('structure');
         this.partId = item.id;
         this.selectedPartName = item.name;
+        this.scrollExplorerToTop();
         break;
 
       case ExplorerItemType.PartOption:
         this.resetBelow('part');
         this.optionId = item.id;
         this.selectedOptionName = item.name;
+        this.scrollExplorerToTop();
         break;
 
       case ExplorerItemType.Service:
         this.toggleService(item);
+        this.scrollExplorerToTop();
         return;
     }
 
@@ -142,7 +219,10 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   loadExplorer() {
     if (!this.selectedType) return;
 
-    const request: ServiceExplorerRequest = {
+    this.isExplorerLoading = true;
+    this.hasExplorerResultLoaded = false;
+
+    const filteredRequest: ServiceExplorerRequest = {
       categoryTypeId: this.selectedType.id,
       structureId: this.structureId,
       partId: this.partId,
@@ -150,14 +230,39 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       metadataFilters: this.buildMetadataFilters(),
     };
 
-    this.explorerService.explore(request).subscribe({
-      next: (res) => {
-        this.explorerItems = res?.items ?? [];
-        this.filters = this.normalizeFilters(res?.filters ?? []);
+    // This request ignores selected filters.
+    // It keeps all possible filter values visible, even if services are hidden.
+    const filtersOnlyRequest: ServiceExplorerRequest = {
+      categoryTypeId: this.selectedType.id,
+      structureId: this.structureId,
+      partId: this.partId,
+      partOptionId: this.optionId,
+      metadataFilters: [],
+    };
+
+    forkJoin({
+      filteredResult: this.explorerService
+        .explore(filteredRequest)
+        .pipe(catchError(() => of({ items: [], filters: [] }))),
+      allFiltersResult: this.explorerService
+        .explore(filtersOnlyRequest)
+        .pipe(catchError(() => of({ items: [], filters: [] }))),
+    }).subscribe({
+      next: ({ filteredResult, allFiltersResult }) => {
+        this.explorerItems = filteredResult?.items ?? [];
+
+        // Important: filters come from unfiltered services
+        this.filters = this.normalizeFilters(allFiltersResult?.filters ?? []);
+
+        this.hasExplorerResultLoaded = true;
+        this.isExplorerLoading = false;
       },
       error: () => {
         this.explorerItems = [];
         this.filters = [];
+
+        this.hasExplorerResultLoaded = true;
+        this.isExplorerLoading = false;
       },
     });
   }
@@ -172,6 +277,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   toggleFilter(code: string, valueId: number) {
+    this.scrollExplorerToTop();
     this.selectedFilters[code] ??= [];
 
     const idx = this.selectedFilters[code].indexOf(valueId);
@@ -234,6 +340,8 @@ export class ServiceExplorerOptionCComponent implements OnInit {
     this.filters = [];
     this.selectedFilters = {};
     this.selectedServices = [];
+    this.hasExplorerResultLoaded = false;
+    this.isExplorerLoading = false;
   }
 
   resetBelow(level: 'category' | 'type' | 'structure' | 'part') {
@@ -271,7 +379,8 @@ export class ServiceExplorerOptionCComponent implements OnInit {
       this.optionId = undefined;
       this.selectedOptionName = undefined;
     }
-
+    this.hasExplorerResultLoaded = false;
+    this.isExplorerLoading = false;
     this.explorerItems = [];
     this.filters = [];
     this.selectedFilters = {};
@@ -326,6 +435,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   goToCrumb(level: ExplorerCrumb['level']) {
+    this.scrollExplorerToTop();
     switch (level) {
       case 'category':
         this.selectedType = undefined;
@@ -366,6 +476,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   goBack() {
+    this.scrollExplorerToTop();
     if (this.optionId) {
       this.optionId = undefined;
       this.selectedOptionName = undefined;
@@ -466,6 +577,7 @@ export class ServiceExplorerOptionCComponent implements OnInit {
   }
 
   clearFilters() {
+    this.scrollExplorerToTop();
     this.selectedFilters = {};
     this.loadExplorer();
   }

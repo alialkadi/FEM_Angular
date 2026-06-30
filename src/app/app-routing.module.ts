@@ -8,6 +8,9 @@ import { PublicLayoutComponent } from './layouts/public-layout/public-layout.com
 import { UserLayoutComponent } from './layouts/user-layout/user-layout.component';
 import { TechniciaLayoutComponent } from './layouts/technicia-layout/technicia-layout.component';
 import { ServiceAdvertisedDetailComponent } from './features/Public/pages/service-advertised-detail/service-advertised-detail.component';
+import { ForgetrPasswordComponent } from './core/reset-password/forgetr-password/forgetr-password.component';
+import { OtpComponent } from './core/reset-password/otp/otp.component';
+import { ResetPasswordComponent } from './core/reset-password/reset-password/reset-password.component';
 
 const routes: Routes = [
   {
@@ -66,11 +69,18 @@ const routes: Routes = [
   },
   { path: 's/:slug', component: ServiceAdvertisedDetailComponent },
   { path: '', redirectTo: 'FenetrationMaintainence', pathMatch: 'full' },
+
   { path: '**', redirectTo: 'FenetrationMaintainence' },
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { enableTracing: false })],
+  imports: [
+    RouterModule.forRoot(routes, {
+      enableTracing: false,
+      scrollPositionRestoration: 'top',
+      anchorScrolling: 'enabled'
+    }),
+  ],
   exports: [RouterModule],
 })
 export class AppRoutingModule {}

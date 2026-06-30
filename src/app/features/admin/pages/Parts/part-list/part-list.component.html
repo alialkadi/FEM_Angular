@@ -4,7 +4,7 @@
         <div class="fe-card__head">
             <div>
                 <h2 class="fe-title">Parts</h2>
-                <p class="fe-subtitle">Filter parts by category, type, and structure.</p>
+                <p class="fe-subtitle">Filter parts by category, type, and component.</p>
             </div>
             <button class="fe-btn fe-btn--ghost" type="button" (click)="applyFilters()">
                 <i class="fa-solid fa-rotate-left"></i> Refresh </button>
@@ -25,9 +25,9 @@
                 </select>
             </div>
             <div class="fe-field">
-                <label>Structure</label>
+                <label>Component</label>
                 <select (change)="onStructureChange($event)">
-                    <option value="">All Structures</option>
+                    <option value="">All Components</option>
                     <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
                 </select>
             </div>
@@ -35,7 +35,7 @@
                 <label>Search</label>
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" [value]="searchText" (input)="onSearchChange(($any($event.target)).value)"
-                    placeholder="Search option / part / structure / type..." />
+                    placeholder="Search option / part / Component/ type..." />
             </div>
         </div>
     </section>
@@ -62,14 +62,14 @@
                         <tr>
                             <th>Part Name</th>
                             <th>Description</th>
-                            <th>Structure</th>
+                            <th>Component</th>
                             <th>Type</th>
                             <th class="fe-col-image">Image</th>
                             <th class="fe-col-actions">Actions</th>
                         </tr>
                     </thead>
-                    <tbody *ngIf="Parts.length; else feEmpty">
-                        <tr *ngFor="let item of Parts">
+                    <tbody *ngIf="Parts.length; else feEmpty;">
+                        <tr *ngFor="let item of Parts; let i = index">
                             <td class="fe-strong">{{ item.name }}</td>
                             <td class="fe-strong">{{ item.description }}</td>
                             <td class="fe-muted">{{ item.strucutreName }}</td>
@@ -79,6 +79,18 @@
                                 <span *ngIf="!item.fileUrl" class="fe-muted">No Image</span>
                             </td>
                             <td class="fe-actions">
+                                <button class="fe-icon" type="button" (click)="moveUp(item, i)"
+                                    [disabled]="!canSortParts() || isFirstPart(i) || sortingPartId === item.id"
+                                    title="Move Up">
+                                    <i class="fa-solid"
+                                        [ngClass]="sortingPartId === item.id ? 'fa-spinner fa-spin' : 'fa-arrow-up'"></i>
+                                </button>
+                                <button class="fe-icon" type="button" (click)="moveDown(item, i)"
+                                    [disabled]="!canSortParts() || isLastPart(i) || sortingPartId === item.id"
+                                    title="Move Down">
+                                    <i class="fa-solid"
+                                        [ngClass]="sortingPartId === item.id ? 'fa-spinner fa-spin' : 'fa-arrow-down'"></i>
+                                </button>
                                 <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
@@ -114,7 +126,7 @@
             <div class="fe-card__head">
                 <div>
                     <h3 class="fe-card__title">Add New Part</h3>
-                    <p class="fe-card__sub">Create a part under a structure.</p>
+                    <p class="fe-card__sub">Create a part under a component.</p>
                 </div>
             </div>
             <form class="fe-form" [formGroup]="crateForm" (ngSubmit)="onSave()">
@@ -124,7 +136,11 @@
                 </div>
                 <div class="fe-field">
                     <label>Part description </label>
-                    <input type="text" formControlName="description" placeholder="Enter part description" />
+                    <textarea formControlName="description" rows="4" placeholder="e.g.,
+Line 1
+Line 2
+Line 3">
+    </textarea>
                 </div>
                 <div class="fe-field">
                     <label>Category</label>
@@ -141,10 +157,10 @@
                     </select>
                 </div>
                 <div class="fe-field">
-                    <label>Parent Structure <span class="fe-required">*</span></label>
+                    <label>Parent Component<span class="fe-required">*</span></label>
                     <select formControlName="structureId" (change)="onCreateStructureChange($event)"
                         [disabled]="!createCategoryTypeId">
-                        <option value="">Select Structure</option>
+                        <option value="">Select component</option>
                         <option *ngFor="let s of createStructures" [value]="s.id">{{ s.name }}</option>
                     </select>
                 </div>

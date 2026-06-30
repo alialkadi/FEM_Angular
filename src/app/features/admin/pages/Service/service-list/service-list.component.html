@@ -5,9 +5,15 @@
             <h2>Service Management</h2>
             <p class="subtitle">Manage services, pricing, hierarchy and metadata</p>
         </div>
-        <div class="actions">
-            <input type="text" [(ngModel)]="searchTerm" placeholder="Search services..." (keyup)="onSearch()" />
-            <button class="primary-btn" [routerLink]="['/admin/dashboard/createservice']"> + New Service </button>
+        <div class="header-actions">
+            <button class="create-btn" [routerLink]="['/admin/dashboard/createservice']">
+                <i class="fa-solid fa-plus"></i> Create Service </button>
+            <div class="service-search-box">
+                <input type="text" [(ngModel)]="searchTerm"
+                    placeholder="Search by ID, service, category, type, structure, part, option..."
+                    (keyup.enter)="onSearch()" />
+                <button type="button" class="search-btn" (click)="onSearch()"> Search </button>
+            </div>
         </div>
     </div>
     <!-- ================= FILTER BAR ================= -->
@@ -21,7 +27,7 @@
             <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
         </select>
         <select (change)="onStructureChange($event)">
-            <option value="">Structure</option>
+            <option value="">Component</option>
             <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
         </select>
         <select (change)="onPartChange($event)">
@@ -42,13 +48,14 @@
                 <th>Name</th>
                 <th>Hierarchy</th>
                 <th>Pricing</th>
-                <th>Warranty</th>
+                <!-- <th>Warranty</th> -->
                 <th>Metadata</th>
+                <th>Order</th>
                 <th class="actions-col">Actions</th>
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let service of services">
+            <tr *ngFor="let service of services;let i = index">
                 <!-- NAME -->
                 <td>
                     <strong>{{ service.name }}</strong>
@@ -56,10 +63,17 @@
                 </td>
                 <!-- HIERARCHY -->
                 <td>
-                    <div class="hierarchy">
-                        <span *ngIf="service.structureName">📐 {{ service.structureName }}</span>
-                        <span *ngIf="service.partName">🧩 {{ service.partName }}</span>
-                        <span *ngIf="service.partOptionName">⚙️ {{ service.partOptionName }}</span>
+                    <div class="full-hierarchy">
+                        <div class="hierarchy-path">
+                            <span *ngIf="service.categoryName">{{ service.categoryName }}</span>
+                            <span *ngIf="service.categoryTypeName">{{ service.categoryTypeName }}</span>
+                            <span *ngIf="service.structureName">{{ service.structureName }}</span>
+                            <span *ngIf="service.partName">{{ service.partName }}</span>
+                            <span *ngIf="service.partOptionName">{{ service.partOptionName }}</span>
+                        </div>
+                        <div class="hierarchy-scope"> Linked to: <strong> {{ service.partOptionName ? 'Part Option' :
+                                service.partName ? 'Part' : 'Component' }} </strong>
+                        </div>
                     </div>
                 </td>
                 <!-- PRICING -->
@@ -68,7 +82,7 @@
                     <div class="meta">Delivery: {{ service.deliveryDays }} days</div>
                 </td>
                 <!-- WARRANTY -->
-                <td> {{ service.warrantyDuration }} {{ service.warrantyUnit }} </td>
+                <!-- <td> {{ service.materialWarrantyDuration }} {{ service.materialWarrantyUnit }} </td> -->
                 <!-- METADATA -->
                 <td>
                     <div class="metadata">
@@ -77,6 +91,20 @@
                         <span *ngIf="!service.metadata?.length" class="muted"> — </span>
                     </div>
                 </td>
+                <button class="fe-icon" type="button" (click)="moveUp(service, i)"
+                    [disabled]="!canSortServices() || isFirstService(i) || sortingServiceId === service.id"
+                    title="Move Up">
+                    <i class="fa-solid"
+                        [ngClass]="sortingServiceId === service.id ? 'fa-spinner fa-spin' : 'fa-arrow-up'">
+                    </i>
+                </button>
+                <button class="fe-icon" type="button" (click)="moveDown(service, i)"
+                    [disabled]="!canSortServices() || isLastService(i) || sortingServiceId === service.id"
+                    title="Move Down">
+                    <i class="fa-solid"
+                        [ngClass]="sortingServiceId === service.id ? 'fa-spinner fa-spin' : 'fa-arrow-down'">
+                    </i>
+                </button>
                 <!-- ACTIONS -->
                 <td class="actions-cell d-flex flex-row align-content-center">
                     <div class="advertise-actions">

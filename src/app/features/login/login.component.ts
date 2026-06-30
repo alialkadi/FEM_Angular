@@ -12,10 +12,10 @@ import { LoginResponse } from './Models/LoginResponse';
 })
 export class LoginComponent {
   email: string = '';
-  phoneNumber: string = '';
+  password: string = '';
   error: string = '';
   loading: boolean = false;
-
+  showPassword = false;
   constructor(
     private auth: AuthService,
     private router: Router,
@@ -23,60 +23,56 @@ export class LoginComponent {
   ) {}
 
   login() {
-    this.loading = true;
+  this.loading = true;
+  this.error = '';
 
-    const request: LoginRequest = {
-      email: this.email,
-      phoneNumber: this.phoneNumber,
-    };
+  const request: LoginRequest = {
+    email: this.email,
+    password: this.password,
+  };
 
-    this.auth.login(request).subscribe({
-      next: (res) => {
-        // console.log(res);
+  this.auth.login(request).subscribe({
+    next: (res) => {
+      if (res.data?.isSuccessful && res.data?.token) {
+        localStorage.setItem('app_token', res.data.token);
 
-        if (res.data?.isSuccessful && res.data?.token) {
-          localStorage.setItem('app_token', res.data.token);
+        const userRole = this.auth.getRole();
 
-          const userRole = this.auth.getRole();
-
-          if (userRole === 'Admin') {
-            this.router.navigate(['/admin/dashboard']);
-          } else if (userRole === 'Worker') {
-            this.router.navigate(['/technician/dashboard']);
-          } else {
-            this.router.navigate(['/user']);
-          }
+        if (userRole === 'Admin') {
+          this.router.navigate(['/admin/dashboard']);
+        } else if (userRole === 'Worker') {
+          this.router.navigate(['/technician/dashboard']);
         } else {
-          this.error = res.errors?.[0] || 'Login failed';
+          this.router.navigate(['/user']);
         }
+      } else {
+        this.error = res.errors?.[0] || 'Login failed';
+      }
 
-        this.loading = false;
-      },
-      error: (err) => {
-        // console.log('Full error:', err);
-        this.loading = false;
-        const backendError = err?.error;
+      this.loading = false;
+    },
 
-        // 1. Validation errors (ModelState)
-        if (backendError?.errors) {
-          const messages: string[] = [];
+    error: (err) => {
+      this.loading = false;
 
-          Object.keys(backendError.errors).forEach((field) => {
-            messages.push(...backendError.errors[field]);
-          });
+      const backendError = err?.error;
 
-          this.toastService.show(messages.join(' | '));
-          return;
-        }
+      if (backendError?.errors) {
+        const messages: string[] = [];
 
-        // 2. General error message (fallback)
-        const message =
-          backendError?.message ||
-          backendError?.title ||
-          'Something went wrong';
+        Object.keys(backendError.errors).forEach((field) => {
+          messages.push(...backendError.errors[field]);
+        });
 
-        this.toastService.show(message);
-      },
-    });
-  }
+        this.error = messages.join(' | ');
+        return;
+      }
+
+      this.error =
+        backendError?.message ||
+        backendError?.title ||
+        'Something went wrong';
+    },
+  });
+}
 }

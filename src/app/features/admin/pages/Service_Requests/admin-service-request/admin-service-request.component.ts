@@ -3,6 +3,8 @@ import {
   ServiceRequestListDto,
   ServiceRequestDetailDto,
   PagedServiceRequestListResponse,
+  DiscountType,
+  ApplyRequestDiscountDto,
 } from '../../../../Models/ServiceRequestDetailDto.Model';
 
 import { AdminServiceRequestService } from '../../../Services/admin-service-request.service';
@@ -88,6 +90,16 @@ export class AdminServiceRequestComponent implements OnInit {
   conflictedWorkers: WorkerConflictDto[] = [];
   pendingAssignPayload: AssignWorkerRequest | null = null;
   statCards: StatCard[] = [];
+  discountPopupVisible = false;
+  discountLoading = false;
+  discountMessage = '';
+
+  discountRequestId: number | null = null;
+  discountType: DiscountType = DiscountType.Percentage;
+  discountValue: number | null = null;
+  discountReason = '';
+  searchTerm: string | null = null;
+  DiscountType = DiscountType;
   constructor(
     private adminService: AdminServiceRequestService,
     private statusService: ServiceRequestStatusService,
@@ -180,6 +192,7 @@ export class AdminServiceRequestComponent implements OnInit {
         this.filterStatus ?? undefined,
         this.filterFromDate ?? undefined,
         this.filterToDate ?? undefined,
+        this.searchTerm?.trim() || undefined,
       )
       .subscribe({
         next: (res: PagedServiceRequestListResponse) => {
@@ -200,6 +213,7 @@ export class AdminServiceRequestComponent implements OnInit {
       next: (res) => {
         if (res.success) {
           this.allStatuses = res.data;
+          console.log(res);
         }
       },
     });
@@ -233,7 +247,17 @@ export class AdminServiceRequestComponent implements OnInit {
   closeDropdown() {
     this.openDropdownId = null;
   }
+  selectedStatusRequestId: number | null = null;
+  selectedStatusId: number | null = null;
+  getSelectedStatusName(requestId: number, statusId: number): string {
+    const status = this.allowedStatusesByRequestId[requestId]?.find(
+      (x) => x.id === statusId,
+    );
 
+    return status?.name || '';
+  }
+  statusReason = '';
+  showReasonPopup = false;
   onSelectStatus(requestId: number, newStatusId: number) {
     const dto = { requestId, newStatusId, notes: 'Status changed by Admin' };
     console.log(dto);
@@ -255,7 +279,77 @@ export class AdminServiceRequestComponent implements OnInit {
       },
     });
   }
+  private reasonRequiredStatusIds = [6, 7, 9, 10];
+  // 6 On Hold, 7 Awaiting Payment, 9 Canceled, 10 Rejected
 
+  openStatusReasonPopup(
+    requestId: number,
+    statusId: number,
+    statusName: string,
+  ): void {
+    this.selectedStatusRequestId = requestId;
+    this.selectedStatusId = statusId;
+    this.statusReason = '';
+
+    this.closeDropdown();
+
+    const requiresReason = this.reasonRequiredStatusIds.includes(
+      Number(statusId),
+    );
+
+    if (requiresReason) {
+      setTimeout(() => {
+        this.showReasonPopup = true;
+      });
+      return;
+    }
+
+    this.submitStatusChange();
+  }
+  submitStatusChange(): void {
+    if (!this.selectedStatusRequestId || !this.selectedStatusId) {
+      return;
+    }
+
+    const dto: ServiceRequestStatusUpdateDto = {
+      requestId: this.selectedStatusRequestId,
+      newStatusId: this.selectedStatusId,
+      reason: this.statusReason,
+    };
+
+    this.statusService.updateStatus(dto).subscribe({
+      next: (res) => {
+        if (res.success) {
+          const updated = res.data;
+
+          const req = this.requests.find(
+            (r) => r.id === this.selectedStatusRequestId,
+          );
+
+          if (req) {
+            req.statusId = updated.statusId;
+            req.statusName = updated.statusName;
+          }
+
+          this.toast.show(res.message, 'success');
+
+          this.closeDropdown();
+          this.closeReasonPopup();
+        }
+      },
+      error: () => {
+        this.toast.show('Failed to update status', 'error');
+      },
+    });
+  }
+  closeReasonPopup(): void {
+    this.showReasonPopup = false;
+
+    this.selectedStatusRequestId = null;
+    this.selectedStatusId = null;
+
+    this.statusReason = '';
+  }
   /* ------------------------------------------------------
    *  DETAILS POPUP
    * ------------------------------------------------------ */
@@ -476,14 +570,19 @@ export class AdminServiceRequestComponent implements OnInit {
       status: this.filterStatus,
       from: this.filterFromDate,
       to: this.filterToDate,
+      search: this.searchTerm,
     });
   }
-
+  searchRequests(): void {
+    this.page = 1;
+    this.loadRequests();
+  }
   clearFilters() {
     this.filterStatus = null;
     this.filterFromDate = null;
     this.filterToDate = null;
     this.page = 1;
+    this.searchTerm = null;
     this.loadRequests();
   }
 
@@ -569,5 +668,94 @@ export class AdminServiceRequestComponent implements OnInit {
         (id) => id !== workerId,
       );
     }
+  }
+
+  openDiscountPopup(requestId: number): void {
+    this.discountRequestId = requestId;
+    this.discountType = DiscountType.Percentage;
+    this.discountValue = null;
+    this.discountReason = '';
+    this.discountMessage = '';
+    this.discountPopupVisible = true;
+  }
+
+  closeDiscountPopup(): void {
+    this.discountPopupVisible = false;
+    this.discountRequestId = null;
+    this.discountValue = null;
+    this.discountReason = '';
+    this.discountMessage = '';
+  }
+
+  submitDiscount(): void {
+    if (!this.discountRequestId) return;
+
+    if (!this.discountValue || this.discountValue <= 0) {
+      this.discountMessage = 'Discount value must be greater than zero.';
+      return;
+    }
+
+    if (
+      this.discountType === DiscountType.Percentage &&
+      this.discountValue > 100
+    ) {
+      this.discountMessage = 'Percentage discount cannot be more than 100%.';
+      return;
+    }
+
+    const dto: ApplyRequestDiscountDto = {
+      discountType: this.discountType,
+      discountValue: this.discountValue,
+      reason: this.discountReason,
+    };
+
+    this.discountLoading = true;
+    this.discountMessage = '';
+
+    this.adminService.applyDiscount(this.discountRequestId, dto).subscribe({
+      next: (res) => {
+        this.discountLoading = false;
+
+        if (res.success) {
+          const data = res.data;
+
+          const listRequest = this.requests.find(
+            (x) => x.id === data.requestId,
+          );
+          if (listRequest) {
+            listRequest.totalCost = data.totalAfterDiscount;
+          }
+
+          if (this.selectedRequest) {
+            this.selectedRequest.totalCost = data.totalAfterDiscount;
+
+            (this.selectedRequest as any).originalTotalCost =
+              data.originalTotalCost;
+            (this.selectedRequest as any).discountAmount = data.discountAmount;
+            (this.selectedRequest as any).discountValue = data.discountValue;
+            (this.selectedRequest as any).discountType = data.discountType;
+            (this.selectedRequest as any).totalAfterDiscount =
+              data.totalAfterDiscount;
+          }
+
+          this.toast.show(
+            res.message || 'Discount applied successfully.',
+            'success',
+          );
+          this.closeDiscountPopup();
+        } else {
+          this.discountMessage = res.message || 'Failed to apply discount.';
+        }
+      },
+      error: (err) => {
+        this.discountLoading = false;
+        this.discountMessage =
+          err?.error?.message || 'Failed to apply discount.';
+      },
+    });
+  }
+  isCanceledStatus(statusName?: string | null): boolean {
+    const normalized = (statusName || '').trim().toLowerCase();
+    return normalized === 'canceled' || normalized === 'cancelled';
   }
 }

@@ -5,6 +5,12 @@ import {
   UpdateTechnicalConsultationRequest,
 } from '../../../../Public/Models/Consultation.model';
 import { TechnicalConsultationService } from '../../../../Public/Services/technical-consultation.service';
+import {
+  TechnicianForConsultationAssignmentDto,
+  ConsultationWorkerConflictDto,
+  AssignConsultationWorkerRequest,
+} from '../../../../Models/ConsultationWorkerConflictDto.model';
+import { CreateWorkerService } from '../../../Services/create-worker.service';
 
 @Component({
   selector: 'app-consultaion-admin',
@@ -31,8 +37,27 @@ export class ConsultaionAdminComponent {
 
   editForm!: FormGroup;
 
+  assignPopupVisible = false;
+  workerConflictVisible = false;
+  assignLoading = false;
+  assignSubmitting = false;
+  assignMessage = '';
+
+  selectedConsultationId: number | null = null;
+  selectedWorkerIds: number[] = [];
+
+  workersForAssignment: TechnicianForConsultationAssignmentDto[] = [];
+  filteredWorkers: TechnicianForConsultationAssignmentDto[] = [];
+  conflictedWorkers: ConsultationWorkerConflictDto[] = [];
+
+  workerSearchTerm = '';
+  appointmentDateTime = '';
+  assignmentNotes = '';
+
+  lastAssignPayload: AssignConsultationWorkerRequest | null = null;
   constructor(
     private consultationService: TechnicalConsultationService,
+    private workerService: CreateWorkerService,
     private fb: FormBuilder,
   ) {}
 
@@ -254,5 +279,178 @@ export class ConsultaionAdminComponent {
     if (!fullName) return '';
     const parts = fullName.split(' ');
     return parts.length > 1 ? parts.slice(1).join(' ') : '';
+  }
+
+  openAssignWorkerConsultation(consultationId: number): void {
+    this.selectedConsultationId = consultationId;
+    this.assignPopupVisible = true;
+    this.assignMessage = '';
+    this.workerSearchTerm = '';
+    this.appointmentDateTime = '';
+    this.assignmentNotes = '';
+    this.selectedWorkerIds = [];
+    this.workersForAssignment = [];
+    this.filteredWorkers = [];
+
+    document.body.style.overflow = 'hidden';
+
+    this.loadWorkersForConsultationAssignment(consultationId);
+  }
+
+  loadWorkersForConsultationAssignment(consultationId: number): void {
+    this.assignLoading = true;
+
+    this.workerService
+      .getWorkersForConsultationAssignment(consultationId)
+      .subscribe({
+        next: (res) => {
+          this.workersForAssignment = res.data || [];
+          this.filteredWorkers = [...this.workersForAssignment];
+          console.log(res)
+        this.workersForAssignment = (res.data || []).sort((a, b) =>
+  Number(b.isAssignedToCurrentRequest) - Number(a.isAssignedToCurrentRequest)
+);
+
+this.filteredWorkers = [...this.workersForAssignment];
+
+this.selectedWorkerIds = this.workersForAssignment
+  .filter(w => w.isAssignedToCurrentRequest)
+  .map(w => w.workerId);
+          this.assignLoading = false;
+        },
+        error: (err) => {
+          console.error('Error loading consultation workers:', err);
+          this.assignMessage = 'Failed to load technicians.';
+          this.assignLoading = false;
+        },
+      });
+  }
+
+  closeAssignPopup(): void {
+    this.assignPopupVisible = false;
+    this.workerConflictVisible = false;
+    this.selectedConsultationId = null;
+    this.selectedWorkerIds = [];
+    this.workersForAssignment = [];
+    this.filteredWorkers = [];
+    this.conflictedWorkers = [];
+    this.workerSearchTerm = '';
+    this.appointmentDateTime = '';
+    this.assignmentNotes = '';
+    this.assignMessage = '';
+    this.lastAssignPayload = null;
+
+    document.body.style.overflow = 'auto';
+  }
+
+  filterWorkers(): void {
+    const term = this.workerSearchTerm.trim().toLowerCase();
+
+    if (!term) {
+      this.filteredWorkers = [...this.workersForAssignment];
+      return;
+    }
+
+    this.filteredWorkers = this.workersForAssignment.filter(
+      (w) =>
+        w.fullName.toLowerCase().includes(term) ||
+        w.phoneNumber.toLowerCase().includes(term) ||
+        w.email.toLowerCase().includes(term),
+    );
+  }
+
+  toggleWorkerSelection(
+    event: Event,
+    worker: TechnicianForConsultationAssignmentDto,
+  ): void {
+    const checked = (event.target as HTMLInputElement).checked;
+
+    if (checked) {
+      if (!this.selectedWorkerIds.includes(worker.workerId)) {
+        this.selectedWorkerIds.push(worker.workerId);
+      }
+    } else {
+      this.selectedWorkerIds = this.selectedWorkerIds.filter(
+        (id) => id !== worker.workerId,
+      );
+    }
+  }
+
+  isWorkerSelected(workerId: number): boolean {
+    return this.selectedWorkerIds.includes(workerId);
+  }
+
+ isAlreadyAssigned(workerId: number): boolean {
+  return this.workersForAssignment.some(
+    w => w.workerId === workerId && w.isAssignedToCurrentRequest
+  );
+}
+
+  submitConsultationWorkersAssignment(forceAssign = false): void {
+    if (!this.selectedConsultationId) {
+      this.assignMessage = 'No consultation selected.';
+      return;
+    }
+
+    if (!this.selectedWorkerIds.length) {
+      this.assignMessage = 'Please select at least one technician.';
+      return;
+    }
+
+    if (!this.appointmentDateTime) {
+      this.assignMessage = 'Please select appointment date and time.';
+      return;
+    }
+
+    const appointment = new Date(this.appointmentDateTime);
+
+    if (appointment <= new Date()) {
+      this.assignMessage = 'Appointment date and time must be in the future.';
+      return;
+    }
+
+    const payload: AssignConsultationWorkerRequest = {
+      consultationRequestId: this.selectedConsultationId,
+      workerIds: this.selectedWorkerIds,
+      appointmentDateTime: appointment.toISOString(),
+      notes: this.assignmentNotes?.trim() || undefined,
+      forceAssign,
+    };
+
+    this.lastAssignPayload = payload;
+    this.assignSubmitting = true;
+    this.assignMessage = '';
+
+    this.workerService.assignWorkerToConsultation(payload).subscribe({
+      next: (res) => {
+        const result = res.data;
+        console.log(res);
+        if (result?.requiresConfirmation) {
+          this.conflictedWorkers = result.conflicts || [];
+          this.workerConflictVisible = true;
+          this.assignSubmitting = false;
+          return;
+        }
+
+        this.assignSubmitting = false;
+        this.closeAssignPopup();
+        this.loadConsultations(this.currentPage);
+      },
+      error: (err) => {
+        console.error('Error assigning consultation technicians:', err);
+        this.assignMessage = 'Failed to assign technician to consultation.';
+        this.assignSubmitting = false;
+      },
+    });
+  }
+
+  confirmForceAssign(): void {
+    this.workerConflictVisible = false;
+    this.submitConsultationWorkersAssignment(true);
+  }
+
+  cancelForceAssign(): void {
+    this.workerConflictVisible = false;
+    this.conflictedWorkers = [];
   }
 }

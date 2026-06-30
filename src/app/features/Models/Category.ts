@@ -8,9 +8,11 @@ export interface Category {
   fileUrl?: string;
   typesCount: number;
   description: string;
+  displayOrder: number;
 }
 export interface CreateCategory {
   name: string;
+  dispalyOrder?: number;
 }
 export interface CategoryListResponse {
   totalCount: number;

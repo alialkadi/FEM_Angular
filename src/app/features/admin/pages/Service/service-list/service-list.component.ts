@@ -1,3 +1,4 @@
+import { ToastService } from './../../../../../shared/Services/toast.service';
 import { Component, OnInit } from '@angular/core';
 import { ApiResponse } from '../../../../Models/ApiResponse';
 import {
@@ -36,6 +37,7 @@ export class ServiceListComponent implements OnInit {
   constructor(
     private serviceService: ServiceService,
     private dialog: MatDialog,
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -60,12 +62,20 @@ export class ServiceListComponent implements OnInit {
       .subscribe({
         next: (res: ApiResponse<any>) => {
           if (res.success) {
-            this.services = res.data.services;
-            this.allServices = res.data.services;
+            this.allServices = res.data.services ?? [];
+
+            if (this.searchTerm.trim()) {
+              this.onSearch();
+            } else {
+              this.services = [...this.allServices];
+            }
+
             this.totalCount = res.data.totalNumber;
-            console.log(res);
-            console.log(this.totalCount);
+          } else {
+            this.services = [];
+            this.allServices = [];
           }
+
           this.isLoading = false;
         },
         error: () => {
@@ -106,16 +116,32 @@ export class ServiceListComponent implements OnInit {
       return;
     }
 
-    this.services = this.allServices.filter(
-      (s) =>
+    this.services = this.allServices.filter((s) => {
+      const metadataText = s.metadata
+        ?.map((m: any) =>
+          [m.attributeName, m.attributeCode, m.valueText, m.valueName, m.value]
+            .filter(Boolean)
+            .join(' '),
+        )
+        .join(' ')
+        .toLowerCase();
+
+      return (
+        s.id?.toString().includes(term) ||
         s.name?.toLowerCase().includes(term) ||
         s.description?.toLowerCase().includes(term) ||
+        s.categoryName?.toLowerCase().includes(term) ||
+        s.categoryTypeName?.toLowerCase().includes(term) ||
         s.structureName?.toLowerCase().includes(term) ||
         s.partName?.toLowerCase().includes(term) ||
-        s.partOptionName?.toLowerCase().includes(term),
-    );
+        s.partOptionName?.toLowerCase().includes(term) ||
+        metadataText?.includes(term)
+      );
+    });
   }
   clearFilters(): void {
+    this.searchTerm = '';
+
     this.selectedCategoryId =
       this.selectedCategoryTypeId =
       this.selectedStructureId =
@@ -551,5 +577,79 @@ export class ServiceListComponent implements OnInit {
       this.onDelete(this.menuState.serviceId, this.menuState.service?.name);
     }
     this.closeMenu();
+  }
+  sortingServiceId: number | null = null;
+
+  canSortServices(): boolean {
+    return (
+      !!this.selectedStructureId ||
+      !!this.selectedPartId ||
+      !!this.selectedPartOptionId
+    );
+  }
+
+  isFirstService(index: number): boolean {
+    return this.page === 1 && index === 0;
+  }
+
+  isLastService(index: number): boolean {
+    return index === this.services.length - 1;
+  }
+  private refreshAfterSort(): void {
+    this.page = 1; // optional, but safer after sorting
+    this.loadServices();
+    this.loadFilters(); // refresh hierarchy too if order affects filters
+  }
+
+  moveUp(service: ServiceResponse, index: number): void {
+    if (!this.canSortServices() || this.isFirstService(index) || !service.id)
+      return;
+
+    this.sortingServiceId = service.id;
+
+    this.serviceService.moveServiceUp(service.id).subscribe({
+      next: (res: any) => {
+        this.sortingServiceId = null;
+
+        if (res?.isSuccessful === true || res?.data === true) {
+          this.refreshAfterSort();
+        } else {
+          // this.toast.show(
+          //   res?.message || 'Could not move service up.',
+          //   'error',
+          // );
+        }
+      },
+      error: () => {
+        this.sortingServiceId = null;
+        this.toast.show('Failed to move service up.', 'error');
+      },
+    });
+  }
+
+  moveDown(service: ServiceResponse, index: number): void {
+    if (!this.canSortServices() || this.isLastService(index) || !service.id)
+      return;
+
+    this.sortingServiceId = service.id;
+
+    this.serviceService.moveServiceDown(service.id).subscribe({
+      next: (res: any) => {
+        this.sortingServiceId = null;
+
+        if (res?.isSuccessful === true || res?.data === true) {
+          this.refreshAfterSort();
+        } else {
+          // this.toast.show(
+          //   res?.message || 'Could not move service down.',
+          //   'error',
+          // );
+        }
+      },
+      error: () => {
+        this.sortingServiceId = null;
+        this.toast.show('Failed to move service down.', 'error');
+      },
+    });
   }
 }

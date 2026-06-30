@@ -9,6 +9,7 @@ export interface Part {
   categoryTypeId: number;
   fileUrl?: string;
   description: string;
+  displayOrder: number;
 }
 
 export interface PartListResponse {

@@ -109,8 +109,10 @@ export interface ServiceResponse {
   name?: string;
   description?: string;
   baseCost?: number;
-  warrantyDuration?: number;
-  warrantyUnit?: string;
+  materialWarrantyDuration?: number;
+  workmanshipWarrantyUnit?: string;
+  workmanshipWarrantyDuration?: number;
+  materialWarrantyUnit?: string;
   deliveryDays?: number;
   structureId?: number;
   fileUrl?: string;
@@ -119,11 +121,14 @@ export interface ServiceResponse {
   partName?: string;
   labors?: number;
   structureName?: string;
+  categoryName?: string;
+  categoryTypeName?: string;
   partOptionName?: string;
   applyGlobalFees?: boolean;
   applyLogistics?: boolean;
   baseRate?: number;
   pricingMode?: number;
+  displayOrder?: number;
   calculatedTotal?: number; // added dynamically after cost calculation
   metadata?: ServiceSelectedMetadataDto[];
 

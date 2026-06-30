@@ -2,11 +2,18 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../environment.prod';
 import { HttpClient } from '@angular/common/http';
-import { LoginRequest } from '../../features/login/Models/LoginRequest';
+import {
+  ChangePasswordRequest,
+  ForgetPasswordRequest,
+  LoginRequest,
+  OperationResult,
+  ResetPasswordRequest,
+} from '../../features/login/Models/LoginRequest';
 import { Observable } from 'rxjs';
 import { LoginResponse } from '../../features/login/Models/LoginResponse';
 import { jwtDecode } from 'jwt-decode';
 import { DecodedToken } from '../Models/auth.models';
+import { ApiResponse } from '../../features/Models/ApiResponse';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -117,5 +124,26 @@ export class AuthService {
 
   logout() {
     if (this.isBrowser) localStorage.removeItem(this.key);
+  }
+
+  forgotPassword(dto: ForgetPasswordRequest) {
+    return this.http.post<OperationResult>(
+      `${environment.apiUrl}/Auth/forgot-password`,
+      dto,
+    );
+  }
+
+  verifyOtp(dto: ResetPasswordRequest) {
+    return this.http.post<ApiResponse<any>>(
+      `${environment.apiUrl}/Auth/verify-reset-otp`,
+      dto,
+    );
+  }
+
+  changeForgottenPassword(dto: ChangePasswordRequest) {
+    return this.http.post<ApiResponse<any>>(
+      `${environment.apiUrl}/Auth/change-forgotten-password`,
+      dto,
+    );
   }
 }

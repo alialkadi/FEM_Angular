@@ -4,15 +4,16 @@
         <div class="footer-top">
             <a class="footer-brand" [routerLink]="['/']" aria-label="Go to homepage">
                 <!-- <span class="brand-mark" aria-hidden="true"></span> -->
-                <span class="brand-text" style="color: white;">Fenestration <strong>Services</strong></span>
+                <span class="brand-text" style="color: white;">Fenestration <strong
+                        style="color: var(--link-hover);">Services</strong></span>
             </a>
             <div class="footer-cta">
                 <p class="cta-text">Need a quick quote or help choosing the right service?</p>
                 <div class="cta-actions">
                     <a class="btn btn--primary" [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">
                         Explore Services </a>
-                    <a class="btn btn--ghost" [routerLink]="['/public/FenestrationMaintainence/contact']"> Request a
-                        Quote </a>
+                    <!-- <a class="btn btn--ghost" [routerLink]="['/public/FenestrationMaintainence/contact']"> Request a
+                        Quote </a> -->
                 </div>
             </div>
         </div>
@@ -23,13 +24,11 @@
             <section class="footer-col" aria-label="Services links">
                 <h3 class="col-title">Services</h3>
                 <ul class="col-links">
-                    <li><a [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">Repair Services</a>
+                    <li><span class="muted-link">Repair Services</span>
                     </li>
-                    <li><a [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">Installation Services</a>
+                    <li><span class="muted-link">Installation Services</span>
                     </li>
-                    <li><a [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">Inspection Services</a>
-                    </li>
-                    <li><a [routerLink]="['/FenetrationMaintainence/Home/serviceexplorer']">Maintenance Services</a>
+                    <li><span class="muted-link">Maintenance Services</span>
                     </li>
                 </ul>
             </section>
@@ -37,12 +36,13 @@
             <section class="footer-col" aria-label="Areas we serve">
                 <h3 class="col-title">Areas We Serve</h3>
                 <ul class="col-links">
-                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Calgary</a></li>
-                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Airdrie</a></li>
-                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Cochrane</a></li>
-                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Okotoks</a></li>
-                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Chestermere</a></li>
-                    <li><a href="#" class="muted-link" (click)="$event.preventDefault()">Rocky View County</a></li>
+                    <li><span class="muted-link" (click)="$event.preventDefault()">Calgary</span></li>
+                    <li><span class="muted-link" (click)="$event.preventDefault()">Airdrie</span></li>
+                    <li><span class="muted-link" (click)="$event.preventDefault()">Cochrane</span></li>
+                    <li><span class="muted-link" (click)="$event.preventDefault()">Okotoks</span></li>
+                    <li><span class="muted-link" (click)="$event.preventDefault()">Chestermere</span></li>
+                    <li><span class="muted-link" (click)="$event.preventDefault()">Rocky View County</span>
+                    </li>
                 </ul>
             </section>
             <!-- Contact -->
@@ -60,7 +60,7 @@
                     </div>
                     <div class="contact-row">
                         <span class="label">Hours</span>
-                        <span class="value muted">Mon–Fri • 8:00 AM – 8:00 PM</span>
+                        <span class="value muted">Mon–Fri • 8:00 AM – 5:00 PM</span>
                     </div>
                     <div class="contact-row">
                         <span class="label">Address</span>
@@ -72,11 +72,11 @@
             <section class="footer-col" aria-label="Help links">
                 <h3 class="col-title">Help</h3>
                 <ul class="col-links">
-                    <li><a [routerLink]="['/public/FenestrationMaintainence/how-it-works']">How it works</a></li>
-                    <li><a [routerLink]="['/public/FenestrationMaintainence/quote']">Get a real-time quote</a></li>
-                    <li><a [routerLink]="['/public/FenestrationMaintainence/measure-guide']">How to measure</a></li>
-                    <li><a [routerLink]="['/public/FenestrationMaintainence/hardware-guide']">Identify hardware</a></li>
-                    <li><a [routerLink]="['/public/FenestrationMaintainence/book']">How to book a service</a></li>
+                    <li><a [routerLink]="['/FenetrationMaintainence/Home/about-us']">About Us</a></li>
+                    <li><a [routerLink]="['/FenetrationMaintainence/Home/why-us']">Why Us</a></li>
+                    <li><a [routerLink]="['/FenetrationMaintainence/Home/our-process']">How It Works</a></li>
+                    <li><a [routerLink]="['/FenetrationMaintainence/Home/faq']">Frequently Asked Questions</a>
+                    </li>
                 </ul>
             </section>
         </div>
@@ -85,9 +85,8 @@
         <div class="footer-bottom">
             <p class="copyright"> © {{ currentYear }} Fenestration Services. All rights reserved. </p>
             <div class="bottom-links">
-                <a [routerLink]="['/public/FenestrationMaintainence/privacy']">Privacy</a>
-                <span class="sep" aria-hidden="true">•</span>
-                <a [routerLink]="['/public/FenestrationMaintainence/terms']">Terms</a>
+                <li><a [routerLink]="['/FenetrationMaintainence/Home/privacy-policy']">Privacy Policy</a>
+                </li>
             </div>
         </div>
     </div>

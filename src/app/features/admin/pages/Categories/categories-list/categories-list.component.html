@@ -25,11 +25,12 @@
                             <th class="fe-col-image">Image</th>
                             <th>Description</th>
                             <th>Types Count</th>
+                            <th>Order</th>
                             <th class="fe-col-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody *ngIf="categories.length; else feEmpty">
-                        <tr *ngFor="let item of categories">
+                        <tr *ngFor="let item of categories; let i = index">
                             <td class="fe-strong">{{ item.name }}</td>
                             <td>
                                 <img *ngIf="item.fileUrl" [src]="item.fileUrl" alt="Category Image" class="fe-thumb" />
@@ -37,7 +38,16 @@
                             </td>
                             <td class="fe-muted">{{ item.description }}</td>
                             <td class="fe-muted">{{ item.typesCount }}</td>
+                            <td class="fe-muted"> {{ item.displayOrder }} </td>
                             <td class="fe-actions">
+                                <button class="fe-icon" type="button" (click)="moveUp(item, i)"
+                                    [disabled]="isFirstCategory(i) || sortingCategoryId === item.id" title="Move Up">
+                                    <i class="fa-solid fa-arrow-up"></i>
+                                </button>
+                                <button class="fe-icon" type="button" (click)="moveDown(item, i)"
+                                    [disabled]="isLastCategory(i) || sortingCategoryId === item.id" title="Move Down">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                </button>
                                 <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
@@ -87,7 +97,11 @@
                 </div>
                 <div class="fe-field">
                     <label>Category description <span class="fe-required">*</span></label>
-                    <input type="text" formControlName="description" placeholder="e.g., ...." />
+                    <textarea formControlName="description" rows="4" placeholder="e.g.,
+Line 1
+Line 2
+Line 3">
+    </textarea>
                 </div>
                 <div class="fe-field">
                     <label>Upload Image</label>

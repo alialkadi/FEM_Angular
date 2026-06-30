@@ -59,7 +59,7 @@
                         </tr>
                     </thead>
                     <tbody *ngIf="categoryTypes.length; else feEmpty">
-                        <tr *ngFor="let item of categoryTypes">
+                        <tr *ngFor="let item of categoryTypes; let i = index">
                             <td class="fe-strong">{{ item.name }}</td>
                             <td class="fe-muted">{{ item.categoryName }}</td>
                             <td class="fe-muted">{{ item.description }}</td>
@@ -68,6 +68,16 @@
                                 <span *ngIf="!item.fileUrl" class="fe-muted">No Image</span>
                             </td>
                             <td class="fe-actions">
+                                <button class="fe-icon" type="button" (click)="moveUp(item, i)"
+                                    [disabled]="!canSortTypes() || isFirstType(i) || sortingTypeId === item.id"
+                                    title="Move Up">
+                                    <i class="fa-solid fa-arrow-up"></i>
+                                </button>
+                                <button class="fe-icon" type="button" (click)="moveDown(item, i)"
+                                    [disabled]="!canSortTypes() || isLastType(i) || sortingTypeId === item.id"
+                                    title="Move Down">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                </button>
                                 <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
@@ -114,7 +124,11 @@
                 </div>
                 <div class="fe-field">
                     <label>Type description <span class="fe-required">*</span></label>
-                    <input type="text" formControlName="description" placeholder="e.g., Sliding Window" />
+                    <textarea formControlName="description" rows="4" placeholder="e.g.,
+Line 1
+Line 2
+Line 3">
+    </textarea>
                 </div>
                 <div class="fe-field">
                     <label>Parent Category <span class="fe-required">*</span></label>

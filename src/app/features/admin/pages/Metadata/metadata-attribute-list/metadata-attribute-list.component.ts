@@ -40,6 +40,7 @@ export class MetadataAttributeListComponent implements OnInit {
       next: (res) => {
         this.attributes = res.data.data;
         this.toast.show(res.message, 'success');
+        console.log(res);
         this.loading = false;
       },
       error: (err) => {

@@ -6,4 +6,6 @@ export interface AdvertisedServiceListItemDto {
   fileUrl: string;
   advertiseSlug: string;
   AdvertisedOn: Date;
+  categoryId: number;
+  categoryName: number;
 }

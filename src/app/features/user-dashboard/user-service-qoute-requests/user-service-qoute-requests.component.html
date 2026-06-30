@@ -87,6 +87,29 @@
                     <span class="locked-status">No user action available</span>
                 </ng-template>
             </div>
+            <div class="status-history-card" *ngIf="s.statusHistory?.length">
+                <div class="section-title">
+                    <h4>Status History</h4>
+                    <span>{{ s.statusHistory.length }} update(s)</span>
+                </div>
+                <div class="status-timeline">
+                    <div class="timeline-item" *ngFor="let h of s.statusHistory">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-status">
+                                <span class="old-status"> {{ h.oldStatusName || 'New Request' }} </span>
+                                <span class="arrow">→</span>
+                                <span class="new-status"> {{ h.newStatusName }} </span>
+                            </div>
+                            <div class="timeline-meta">
+                                <span>{{ h.changedByRole }}</span>
+                                <span>{{ h.changedOn | date:'medium' }}</span>
+                            </div>
+                            <p class="timeline-reason" *ngIf="h.reason"> {{ h.reason }} </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="client-card">
                 <h4>Your Information</h4>
                 <div class="info-grid">

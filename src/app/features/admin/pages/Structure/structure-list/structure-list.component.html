@@ -59,7 +59,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of structures">
+                        <tr *ngFor="let item of structures; let i = index;">
                             <td>
                                 <div class="fe-strong">{{ item.name }}</div>
                             </td>
@@ -73,6 +73,18 @@
                             <td>{{ item.typeName }}</td>
                             <td>{{ item.categoryName }}</td>
                             <td class="fe-actions">
+                                <button class="fe-icon" type="button" (click)="moveUp(item, i)"
+                                    [disabled]="!canSortStructures() || isFirstStructure(i) || sortingStructureId === item.id"
+                                    title="Move Up">
+                                    <i class="fa-solid"
+                                        [ngClass]="sortingStructureId === item.id ? 'fa-spinner fa-spin' : 'fa-arrow-up'"></i>
+                                </button>
+                                <button class="fe-icon" type="button" (click)="moveDown(item, i)"
+                                    [disabled]="!canSortStructures() || isLastStructure(i) || sortingStructureId === item.id"
+                                    title="Move Down">
+                                    <i class="fa-solid"
+                                        [ngClass]="sortingStructureId === item.id ? 'fa-spinner fa-spin' : 'fa-arrow-down'"></i>
+                                </button>
                                 <button class="fe-icon fe-icon--edit" type="button" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
@@ -132,7 +144,11 @@
                 <!-- description -->
                 <div class="fe-field">
                     <label>Component description </label>
-                    <input type="text" formControlName="description" placeholder="e.g., Window Frame" />
+                    <textarea formControlName="description" rows="4" placeholder="e.g.,
+Line 1
+Line 2
+Line 3">
+    </textarea>
                 </div>
                 <!-- Category (CREATE) -->
                 <div class="fe-field">

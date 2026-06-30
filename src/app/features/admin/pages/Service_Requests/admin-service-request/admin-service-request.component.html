@@ -25,6 +25,15 @@
         <p>Loading requests...</p>
     </div>
     <div class="filters">
+        <div class="filter-item search-filter">
+            <label>Search</label>
+            <div class="search-box">
+                <input type="text" placeholder="Request No., User Name, or Email" [(ngModel)]="searchTerm"
+                    (keyup.enter)="searchRequests()" />
+                <button type="button" class="search-btn" (click)="searchRequests()">
+                    <i class="fa-solid fa-magnifying-glass"></i> Search </button>
+            </div>
+        </div>
         <!-- Status -->
         <div class="filter-item">
             <label>Status</label>
@@ -66,25 +75,46 @@
                     <td>{{ r.requestNumber }}</td>
                     <td>{{ r.userFullName }}</td>
                     <td>{{ r.email }}</td>
-                    <td class="status-cell">
-                        <!-- Current Status Badge (clickable to toggle dropdown) -->
-                        <div class="status-container status-badge" [ngClass]="getStatusClass(r.statusName)"
-                            (click)="toggleDropdown(r.id)">
-                            <span class=""> {{ r.statusName }} </span>
-                            <span class="chevron">&#x25BC;</span>
-                        </div>
-                        <!-- Inline Dropdown for selecting new status -->
-                        <div class="status-dropdown" *ngIf="openDropdownId === r.id" (mouseleave)="closeDropdown()">
-                            <div *ngFor="let s of allowedStatusesByRequestId[r.id]" class="status-option"
-                                [class.selected]="s.name === r.statusName" (click)="onSelectStatus(r.id, s.id)"> {{
-                                s.name }} </div>
-                        </div>
+                    <td class="request-status-td">
+                        <ng-container *ngIf="isCanceledStatus(r.statusName); else editableStatus">
+                            <span class="request-status-selected-chip request-status-locked-chip"
+                                [ngClass]="getStatusClass(r.statusName || 'Canceled')"> {{ r.statusName || 'Canceled' }}
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                        </ng-container>
+                        <ng-template #editableStatus>
+                            <mat-form-field appearance="outline" class="request-status-select-field">
+                                <mat-select class="request-status-select" [value]="r.statusId || null"
+                                    panelClass="request-status-select-panel" (selectionChange)="
+    openStatusReasonPopup(
+      r.id,
+      $event.value,
+      getSelectedStatusName(r.id, $event.value)
+    )
+  ">
+                                    <mat-select-trigger>
+                                        <span class="request-status-selected-chip"
+                                            [ngClass]="getStatusClass(r.statusName || 'Pending')"> {{ r.statusName ||
+                                            'Select Status' }} </span>
+                                    </mat-select-trigger>
+                                    <!-- keep current status available for display -->
+                                    <mat-option *ngIf="r.statusId" class="request-status-option-hidden"
+                                        [value]="r.statusId"> {{ r.statusName || 'Current Status' }} </mat-option>
+                                    <mat-option class="request-status-option"
+                                        *ngFor="let s of allowedStatusesByRequestId[r.id]" [value]="s.id">
+                                        <span class="request-status-option-chip" [ngClass]="getStatusClass(s.name)"> {{
+                                            s.name }} </span>
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </ng-template>
                     </td>
                     <td>{{ r.requestedDate | date: 'short' }}</td>
                     <td>{{ r.totalCost | currency }}</td>
                     <td>
                         <button class="view-btn" (click)="openDetails(r.id)"> View Details </button>
                         <button class="assign-btn" (click)="openAssignWorker(r.id)"> Assign Technician </button>
+                        <button class="assign-btn" (click)="openDiscountPopup(r.id)"> Apply Discount </button>
                     </td>
                 </tr>
             </tbody>
@@ -125,7 +155,10 @@
                     <div><label>Name</label><span>{{ selectedRequest.fullName }}</span></div>
                     <div><label>Email</label><span>{{ selectedRequest.email }}</span></div>
                     <div><label>Phone</label><span>{{ selectedRequest.phoneNumber }}</span></div>
-                    <div class="full"><label>Address</label><span>{{ selectedRequest.address }}</span></div>
+                    <div><label>Address</label><span>{{ selectedRequest.address }}</span></div>
+                    <div><label>City</label><span>{{ selectedRequest.city }}</span></div>
+                    <div><label>Preferred Contact Method</label><span class="text-danger">{{
+                            selectedRequest.preferredContactMethod }}</span></div>
                 </div>
             </section>
             <!-- REQUEST META -->
@@ -136,11 +169,62 @@
                     </div>
                     <div><label>Request No.</label><span>{{ selectedRequest.requestNumber }}</span>
                     </div>
-                    <div><label>Total Cost</label><span class="highlight">{{ selectedRequest.totalCost | currency
-                            }}</span></div>
+                    <div>
+                        <label>Total Cost</label>
+                        <span class="highlight">{{ selectedRequest.totalCost | currency }}</span>
+                    </div>
+                    <div>
+                        <label>Discount</label>
+                        <button class="assign-btn" (click)="openDiscountPopup(selectedRequest.id)"> Apply Discount
+                        </button>
+                    </div>
                     <div class="full" *ngIf="selectedRequest.notes">
                         <label>Notes</label>
                         <span>{{ selectedRequest.notes }}</span>
+                    </div>
+                </div>
+            </section>
+            <section class="info-card" *ngIf="selectedRequest?.discountHistory?.length">
+                <h4>Discount History</h4>
+                <div class="status-history">
+                    <div class="history-item" *ngFor="let d of selectedRequest.discountHistory">
+                        <div class="history-line">
+                            <span class="history-status old"> {{ d.originalTotalCost | currency }} </span>
+                            <span class="history-arrow">→</span>
+                            <span class="history-status new"> {{ d.totalAfterDiscount | currency }} </span>
+                        </div>
+                        <div class="history-meta">
+                            <span> {{ d.discountTypeName }} - {{ d.discountType === 1 ? d.discountValue + '%' :
+                                (d.discountValue | currency) }} </span>
+                            <span>{{ d.appliedOn | date:'medium' }}</span>
+                        </div>
+                        <p class="history-reason">
+                            <strong>Discount Amount:</strong> {{ d.discountAmount | currency }}
+                        </p>
+                        <p class="history-reason" *ngIf="d.reason">
+                            <strong>Reason:</strong> {{ d.reason }}
+                        </p>
+                    </div>
+                </div>
+            </section>
+            <!-- STATUS HISTORY -->
+            <section class="info-card" *ngIf="selectedRequest.statusHistory?.length">
+                <h4>Status History</h4>
+                <div class="status-history">
+                    <div class="history-item" *ngFor="let h of selectedRequest.statusHistory">
+                        <div class="history-line">
+                            <span class="history-status old"> {{ h.oldStatusName || 'New Request' }} </span>
+                            <span class="history-arrow">→</span>
+                            <span class="history-status new"> {{ h.newStatusName }} </span>
+                        </div>
+                        <div class="history-meta">
+                            <span>{{ h.changedByRole }}</span>
+                            <span>{{ h.changedOn | date:'medium' }}</span>
+                        </div>
+                        <p class="history-reason" *ngIf="h.reason">
+                            <strong>Reason:</strong> {{ h.reason }}
+                        </p>
+                        <p class="history-reason muted" *ngIf="!h.reason"> No reason provided. </p>
                     </div>
                 </div>
             </section>
@@ -156,7 +240,7 @@
                             <p class="muted"> {{ s.description || 'No description provided' }} </p>
                         </div>
                         <div class="price-box">
-                            <span>Base {{ s.baseCost | currency }}</span>
+                            <span>Total {{ s.baseCost | currency }}</span>
                             <strong>{{ s.calculatedTotal | currency }}</strong>
                         </div>
                     </div>
@@ -313,6 +397,55 @@
             </div>
             <button class="assign-confirm-btn" (click)="confirmForceAssign()"> Continue Anyway </button>
             <button class="clear-btn" (click)="cancelForceAssign()"> Choose Another Technician </button>
+        </div>
+    </div>
+</div>
+<!-- STATUS REASON POPUP -->
+<div class="overlay" *ngIf="showReasonPopup">
+    <div class="popup reason-popup">
+        <header class="popup-header">
+            <h3>Status Change Reason</h3>
+            <button class="close-btn" (click)="closeReasonPopup()"> × </button>
+        </header>
+        <div class="popup-content">
+            <label class="reason-label"> Please enter the reason for this status change </label>
+            <textarea [(ngModel)]="statusReason" rows="5" placeholder="Enter reason..." class="reason-textarea">
+            </textarea>
+            <div class="reason-actions">
+                <button class="clear-btn" (click)="closeReasonPopup()"> Cancel </button>
+                <button class="assign-confirm-btn" [disabled]="!statusReason?.trim()" (click)="submitStatusChange()">
+                    Confirm Status Change </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- DISCOUNT POPUP -->
+<div class="overlay" *ngIf="discountPopupVisible">
+    <div class="popup reason-popup">
+        <header class="popup-header">
+            <h3>Apply Discount</h3>
+            <button class="close-btn" (click)="closeDiscountPopup()">×</button>
+        </header>
+        <div class="popup-content">
+            <label class="reason-label">Discount Type</label>
+            <select class="search-input" [(ngModel)]="discountType">
+                <option [ngValue]="DiscountType.Percentage">Percentage</option>
+                <option [ngValue]="DiscountType.FixedAmount">Fixed Amount</option>
+            </select>
+            <label class="reason-label"> {{ discountType === DiscountType.Percentage ? 'Percentage Value' : 'Fixed
+                Amount' }} </label>
+            <input type="number" class="search-input" [(ngModel)]="discountValue" min="0"
+                [max]="discountType === DiscountType.Percentage ? 100 : null" placeholder="Enter discount value" />
+            <label class="reason-label">Reason</label>
+            <textarea [(ngModel)]="discountReason" rows="4" placeholder="Enter discount reason..."
+                class="reason-textarea">
+      </textarea>
+            <div *ngIf="discountMessage" class="assign-status"> {{ discountMessage }} </div>
+            <div class="reason-actions">
+                <button class="clear-btn" (click)="closeDiscountPopup()"> Cancel </button>
+                <button class="assign-confirm-btn" [disabled]="discountLoading || !discountValue"
+                    (click)="submitDiscount()"> {{ discountLoading ? 'Applying...' : 'Apply Discount' }} </button>
+            </div>
         </div>
     </div>
 </div>

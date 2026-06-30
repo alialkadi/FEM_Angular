@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProfileResponseDto } from '../Models/ProfileResponse.Model';
 import { ProfileService } from '../Services/profile.service';
 
@@ -10,8 +10,13 @@ import { ProfileService } from '../Services/profile.service';
 })
 export class UserProfileComponent {
   loading = true;
+  saving = false;
+
   profile!: ProfileResponseDto;
   form!: FormGroup;
+
+  successMessage = '';
+  errorMessage = '';
 
   constructor(
     private profileService: ProfileService,
@@ -22,25 +27,52 @@ export class UserProfileComponent {
     this.load();
   }
 
-  load() {
-    this.profileService.getProfile().subscribe(res => {
-      this.profile = res;
-      this.form = this.fb.group({
-        userName: [res.userName],
-        firstName: [res.firstName],
-        lastName: [res.lastName],
-        phoneNumber: [res.phoneNumber],
-        address: [res.address]
-      });
-      this.loading = false;
+  load(): void {
+    this.loading = true;
+
+    this.profileService.getProfile().subscribe({
+      next: (res) => {
+        this.profile = res;
+
+        this.form = this.fb.group({
+          firstName: [res.firstName, Validators.required],
+          lastName: [res.lastName, Validators.required],
+          phoneNumber: [res.phoneNumber, Validators.required],
+          address: [res.address]
+        });
+
+        this.loading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load profile information.';
+        this.loading = false;
+      }
     });
   }
 
-  save() {
-    if (this.form.invalid) return;
+  save(): void {
+    this.successMessage = '';
+    this.errorMessage = '';
 
-    this.profileService.updateProfile(this.form.value).subscribe(res => {
-      alert(res.message);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.saving = true;
+
+    this.profileService.updateProfile(this.form.value).subscribe({
+      next: (res) => {
+        this.successMessage = res.message || 'Profile updated successfully.';
+        this.saving = false;
+      },
+      error: (err) => {
+        this.errorMessage =
+          err?.error?.message ||
+          err?.error?.errors?.[0] ||
+          'Failed to update profile.';
+        this.saving = false;
+      }
     });
   }
 }

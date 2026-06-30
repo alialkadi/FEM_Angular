@@ -15,6 +15,7 @@
                 <th>Name</th>
                 <th>Amount</th>
                 <th>Global</th>
+                <th>Visible</th>
                 <th>Description</th>
                 <th>Linked Services</th>
                 <th>Actions</th>
@@ -26,6 +27,10 @@
                 <td>{{ fee.amount | currency }}</td>
                 <td>
                     <span class="badge" [class.global]="fee.isGlobal"> {{ fee.isGlobal ? 'Yes' : 'No' }} </span>
+                </td>
+                <td>
+                    <span class="badge" [class.visible]="fee.isVisible" [class.hidden-fee]="!fee.isVisible"> {{
+                        fee.isVisible ? 'Visible' : 'Hidden' }} </span>
                 </td>
                 <td>
                     <span class="description" [title]="fee.description"> {{ fee.description || '-' }} </span>
@@ -59,8 +64,15 @@
                 <button type="button" class="close-btn" (click)="closeModal()">&times;</button>
             </div>
             <div class="custom-modal-body">
-                <ul *ngIf="selectedFee?.services?.length! > 0; else noServices">
-                    <li *ngFor="let s of selectedFee?.services">{{ s.name }}</li>
+                <ul class="linked-services-list" *ngIf="selectedFee?.services?.length! > 0; else noServices">
+                    <li class="linked-service-item" *ngFor="let s of selectedFee?.services">
+                        <div class="service-title"> {{ s.name }} </div>
+                        <div class="service-path" *ngIf="hasServiceHierarchy(s); else noHierarchy"> {{ getServicePath(s)
+                            }} </div>
+                        <ng-template #noHierarchy>
+                            <div class="service-path muted"> No hierarchy available for this service. </div>
+                        </ng-template>
+                    </li>
                 </ul>
                 <ng-template #noServices>
                     <p>No linked services for this fee.</p>

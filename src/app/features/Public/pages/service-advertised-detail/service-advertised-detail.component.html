@@ -1,110 +1,122 @@
-<div class="review-wrapper" *ngIf="!loading; else loadingTpl">
-    <!-- PAGE HEADER -->
-    <header class="page-header">
-        <h2 class="page-title">🧾 Review Your Selected Services</h2>
-        <p class="page-subtitle"> Review pricing, inputs, and steps before confirming your request. </p>
-    </header>
-    <!-- SERVICES GRID -->
-    <div class="cards-grid">
-        <div *ngFor="let item of requestedServices" class="service-card">
-            <!-- CARD HEADER -->
-            <header class="card-header">
-                <div class="title-group">
-                    <h3 class="service-name">{{ item.service.name }}</h3>
-                    <p class="service-desc"> {{ item.service.description || 'No description provided.' }} </p>
-                </div>
-                <div class="price-tag">
-                    <span class="label">Total</span>
-                    <span class="value">{{ item.calculation?.total | currency }}</span>
-                </div>
-            </header>
-            <!-- INPUTS -->
-            <section class="card-section inputs-section" *ngIf="item.service.inputs?.length">
-                <h4>🧩 Service Inputs</h4>
-                <div class="inputs-grid">
-                    <ng-container *ngFor="let input of item.service.inputs">
-                        <div *ngIf="isInputVisible(item, input)"
-                            class="input-row level-{{ input.dependsOnInputDefinitionId ? 2 : 1 }}">
-                            <label> {{ input.label }} <small *ngIf="input.dependsOnInputDefinitionId"> (depends on {{
-                                    getParentLabel(item, input) }}) </small>
-                            </label>
-                            <select *ngIf="input.values?.length"
-                                [value]="getAnswer(item, input.code)?.selectedValueCode || ''"
-                                (change)="setAnswer(item, input.code, $any($event.target).value)">
-                                <option value="">-- select --</option>
-                                <option *ngFor="let v of getVisibleValues(item, input)" [value]="v.code"> {{
-                                    v.displayName }} </option>
-                            </select>
-                            <input *ngIf="!input.values?.length" type="number"
-                                [value]="getAnswer(item, input.code)?.numericValue ?? ''"
-                                (input)="setAnswer(item, input.code, +$any($event.target).value)" />
-                        </div>
-                    </ng-container>
-                </div>
-            </section>
-            <!-- COST BREAKDOWN -->
-            <section class="card-section cost-breakdown" *ngIf="item.calculation">
-                <h4>💰 Cost Breakdown</h4>
-                <div class="fees-list">
-                    <div class="fee-row">
-                        <span>Base Cost</span>
-                        <span>{{ item.calculation.baseCost | currency }}</span>
-                    </div>
-                    <div *ngFor="let fee of item.calculation.globalFees" class="fee-row">
-                        <span>🌍 {{ fee.name }}</span>
-                        <span>{{ fee.amount | currency }}</span>
-                    </div>
-                    <div *ngFor="let fee of item.calculation.serviceSpecificFees" class="fee-row">
-                        <span>🧰 {{ fee.name }}</span>
-                        <span>{{ fee.amount | currency }}</span>
-                    </div>
-                </div>
-                <div class="total-box">
-                    <div>
-                        <span>Subtotal</span>
-                        <span>{{ item.calculation.subTotal | currency }}</span>
-                    </div>
-                    <div class="final">
-                        <span>Total</span>
-                        <span>{{ item.calculation.total | currency }}</span>
-                    </div>
-                </div>
-            </section>
-            <!-- STEPS -->
-            <section class="card-section steps-section">
-                <h4>🛠 Service Steps</h4>
-                <ol *ngIf="item.steps?.length; else noSteps">
-                    <li *ngFor="let step of item.steps">
-                        <span class="step-number">#{{ step.stepOrder }}</span>
-                        <span class="step-desc">{{ step.description }}</span>
-                    </li>
-                </ol>
-                <ng-template #noSteps>
-                    <div class="no-steps">No steps defined.</div>
-                </ng-template>
-            </section>
-            <!-- ACTIONS -->
-            <div class="card-actions">
-                <button class="wishlist-btn" (click)="toggleWishlist(item)"> {{ isWishlisted(item.service.id) ? '❤️
-                    Saved' : '♡ Save' }} </button>
-                <!-- optional: keep remove but redirect to explorer/home -->
-                <button class="remove-btn" (click)="removeFromReview(item)">❌ Remove</button>
-            </div>
-        </div>
-    </div>
-    <!-- SUMMARY -->
-    <footer class="summary-footer">
-        <div class="summary-box">
-            <h3>Total for All Services</h3>
-            <h2>{{ overallTotal | currency }}</h2>
-            <button class="confirm-btn" (click)="confirmRequest()" [disabled]="!canConfirm"> ✔ Confirm & Submit Request
-            </button>
-        </div>
-    </footer>
+<div *ngIf="!loading; else loadingTpl">
 </div>
 <ng-template #loadingTpl>
-    <div class="loading-container">
+    <div class="loading-state">
         <div class="spinner"></div>
         <p>Loading services…</p>
     </div>
 </ng-template>
+<ng-container *ngIf="!loading; else loadingTpl">
+    <div class="not-found-page" *ngIf="notFound; else serviceTpl">
+        <div class="not-found-card">
+            <span class="not-found-code">404</span>
+            <h1>Service Not Available</h1>
+            <p> The service you are looking for is not available, removed, or the link is incorrect. </p>
+            <button type="button" class="back-btn" routerLink="/services"> Back to Services </button>
+        </div>
+    </div>
+    <ng-template #serviceTpl>
+        <div class="review-shell">
+            <div class="slug-page" *ngIf="service">
+                <div class="review-card" *ngFor="let item of requestedServices">
+                    <!-- HEADER -->
+                    <header class="review-card__header">
+                        <div class="service-info">
+                            <h3>{{ item.service.name }}</h3>
+                            <p>{{ item.service.description || 'No description provided.' }}</p>
+                        </div>
+                        <div class="service-total">
+                            <span>Total</span>
+                            <strong>{{ item.calculation?.total | currency }}</strong>
+                        </div>
+                    </header>
+                    <!-- CHIPS -->
+                    <div class="service-meta">
+                        <span>Inputs {{ item.service.inputs?.length || 0 }}</span>
+                        <span>Steps {{ item.steps?.length || 0 }}</span>
+                    </div>
+                    <!-- INPUTS -->
+                    <section class="review-section" *ngIf="item.service.inputs?.length">
+                        <h4>Service Inputs</h4>
+                        <div class="input-list">
+                            <ng-container *ngFor="let input of item.service.inputs">
+                                <div *ngIf="isInputVisible(item, input)" class="input-item"
+                                    [class.input-item--child]="input.dependsOnInputDefinitionId">
+                                    <label> {{ input.label }} <span *ngIf="input.isRequired" class="required">*</span>
+                                    </label>
+                                    <small *ngIf="input.dependsOnInputDefinitionId"> Depends on {{ getParentLabel(item,
+                                        input) }} </small>
+                                    <select *ngIf="input.values?.length"
+                                        [value]="getAnswer(item, input.code)?.selectedValueCode || ''"
+                                        (change)="setAnswer(item, input.code, $any($event.target).value)">
+                                        <option value="">Select option</option>
+                                        <option *ngFor="let v of getVisibleValues(item, input)" [value]="v.code"> {{
+                                            v.displayName }} </option>
+                                    </select>
+                                    <input *ngIf="!input.values?.length" type="number"
+                                        [value]="getAnswer(item, input.code)?.numericValue ?? ''"
+                                        (input)="setAnswer(item, input.code, +$any($event.target).value)"
+                                        placeholder="Enter value" />
+                                </div>
+                            </ng-container>
+                        </div>
+                    </section>
+                    <!-- PRICING -->
+                    <section class="review-section" *ngIf="item.calculation">
+                        <h4>Pricing</h4>
+                        <div class="pricing-list">
+                            <div class="pricing-row">
+                                <span>Net Price</span>
+                                <strong>{{ item.calculation.baseCost | currency }}</strong>
+                            </div>
+                            <div class="pricing-row">
+                                <span>GST</span>
+                                <strong>{{ item.calculation.baseCost * 0.05 | currency }}</strong>
+                            </div>
+                            <div class="pricing-row" *ngFor="let fee of item.calculation.globalFees">
+                                <span>{{ fee.name }}</span>
+                                <strong>{{ fee.amount | currency }}</strong>
+                            </div>
+                            <div class="pricing-row" *ngFor="let fee of item.calculation.serviceSpecificFees">
+                                <span>{{ fee.name }}</span>
+                                <strong>{{ fee.amount | currency }}</strong>
+                            </div>
+                            <div class="pricing-row pricing-row--total">
+                                <span>Total</span>
+                                <strong>{{ item.calculation.total | currency }}</strong>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- STEPS -->
+                    <section class="review-section">
+                        <h4>About The Service</h4>
+                        <div class="steps-list" *ngIf="item.steps?.length; else noSteps">
+                            <div class="step-card" *ngFor="let step of item.steps">
+                                <span class="step-number">{{ step.stepOrder }}</span>
+                                <p>{{ step.description }}</p>
+                            </div>
+                        </div>
+                        <ng-template #noSteps>
+                            <div class="empty-state">No steps defined.</div>
+                        </ng-template>
+                    </section>
+                    <!-- ACTIONS -->
+                    <div class="review-actions">
+                        <button type="button" class="save-btn" (click)="toggleWishlist(item)"> {{
+                            isWishlisted(item.service.id) ? 'Saved' : 'Save' }} </button>
+                        <button type="button" class="remove-btn" (click)="removeFromReview(item)"> Remove </button>
+                    </div>
+                </div>
+                <!-- OVERALL FOOTER -->
+                <footer class="review-summary" *ngIf="requestedServices?.length">
+                    <div>
+                        <span>Overall Total</span>
+                        <strong>{{ overallTotal | currency }}</strong>
+                    </div>
+                    <button type="button" class="confirm-btn" (click)="confirmRequest()" [disabled]="!canConfirm">
+                        Confirm Request </button>
+                </footer>
+            </div>
+        </div>
+    </ng-template>
+</ng-container>

@@ -16,7 +16,7 @@ import { Router } from '@angular/router';
           ></i>
 
           <ul class="dropdown" *ngIf="dropdownOpen">
-            <li *ngIf="title == 'Admin'" (click)="openSettings()">
+            <li *ngIf="role == 'Admin'" (click)="openSettings()">
               <i class="bi bi-gear-fill"></i> Settings
             </li>
             <li class="logout" (click)="logout()">
@@ -137,7 +137,7 @@ import { Router } from '@angular/router';
 export class PageHeaderComponent {
   dropdownOpen = false;
   title = 'Panel'; // default
-
+  role = '';
   constructor(private router: Router) {}
 
   ngOnInit() {
@@ -172,8 +172,9 @@ export class PageHeaderComponent {
         payload.role ||
         payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
       console.log(role);
+      this.role = role;
       switch (role || '') {
-        case 'admin':
+        case 'Admin':
           this.title = 'Admin Panel';
           break;
         case 'Worker':

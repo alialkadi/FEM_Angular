@@ -16,6 +16,7 @@ import { StructureService } from '../../Services/structure-service.service';
 import { EditPartOptionDialogComponent } from '../../../../shared/Dialogs/edit-part-option-dialog/edit-part-option-dialog.component';
 import { ToastService } from '../../../../shared/Services/toast.service';
 import { ConfirmDialogComponent } from '../../../../shared/Dialogs/confirm-dialog/confirm-dialog.component';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-part-option-list',
@@ -44,7 +45,7 @@ export class PartOptionListComponent implements OnInit {
   pageSize = 15;
   pageSizes = [15, 25, 50, 100];
   totalCount = 0;
-
+  sortingPartOptionId: number | null = null;
   /* ================= FORM ================= */
   crateForm = new FormGroup({
     name: new FormControl('', Validators.required),
@@ -82,7 +83,13 @@ export class PartOptionListComponent implements OnInit {
         this.allPartOptions = res.data.partOptions;
         this.applyFilters();
       },
-      error: () => this.toast.show('Failed to load Part Options', 'error'),
+      error: (err) => {
+        console.log(err);
+        this.toast.show(
+          err.error.message || 'Failed to load Part Options',
+          'error',
+        );
+      },
     });
   }
 
@@ -307,5 +314,78 @@ export class PartOptionListComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = () => (this.previewUrl = reader.result);
     reader.readAsDataURL(this.selectedFile);
+  }
+
+  /* ================= SORTING ================= */
+
+  canSortPartOptions(): boolean {
+    return this.selectedPartId !== undefined && this.selectedPartId > 0;
+  }
+
+  isFirstPartOption(index: number): boolean {
+    return this.canSortPartOptions() && this.pageIndex === 1 && index === 0;
+  }
+
+  isLastPartOption(index: number): boolean {
+    return (
+      this.canSortPartOptions() &&
+      this.pageIndex === this.totalPage &&
+      index === this.PartOptions.length - 1
+    );
+  }
+
+  moveUp(item: PartOption, index: number): void {
+    if (!this.canSortPartOptions()) {
+      this.toast.show('Select a part first to reorder its options.', 'error');
+      return;
+    }
+
+    if (this.isFirstPartOption(index)) return;
+
+    this.sortingPartOptionId = item.id;
+
+    this.partOptionService
+      .moveUp(item.id)
+      .pipe(finalize(() => (this.sortingPartOptionId = null)))
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.loadPartOptions();
+          } else {
+            this.toast.show(res.message || 'Move failed.', 'error');
+          }
+        },
+        error: () => {
+          this.toast.show('Failed to move part option up.', 'error');
+        },
+      });
+  }
+
+  moveDown(item: PartOption, index: number): void {
+    if (!this.canSortPartOptions()) {
+      this.toast.show('Select a part first to reorder its options.', 'error');
+      return;
+    }
+
+    if (this.isLastPartOption(index)) return;
+
+    this.sortingPartOptionId = item.id;
+
+    this.partOptionService
+      .moveDown(item.id)
+      .pipe(finalize(() => (this.sortingPartOptionId = null)))
+      .subscribe({
+        next: (res) => {
+          console.log(res);
+          if (res.success) {
+            this.loadPartOptions();
+          } else {
+            this.toast.show(res.message || 'Move failed.', 'error');
+          }
+        },
+        error: () => {
+          this.toast.show('Failed to move part option down.', 'error');
+        },
+      });
   }
 }

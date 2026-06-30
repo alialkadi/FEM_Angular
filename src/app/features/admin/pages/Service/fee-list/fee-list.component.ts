@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
-import { FeeResponse } from '../../../../Models/FeeResponse.Model';
+import {
+  FeeResponse,
+  ServiceMiniResponse,
+} from '../../../../Models/FeeResponse.Model';
 import { FeeService } from '../../../Services/fee.service';
 import { EditFeeDialogComponent } from '../../../../../shared/Dialogs/edit-fee-dialog/edit-fee-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -78,8 +81,11 @@ export class FeeListComponent {
             );
             this.loadFees();
           },
-          error: () => {
-            this.toast.show(`Failed to delete fee "${fee.name}"`, 'error');
+          error: (err) => {
+            this.toast.show(
+              err.error.message ?? `Failed to delete fee "${fee.name}"`,
+              'error',
+            );
           },
         });
       }
@@ -115,5 +121,31 @@ export class FeeListComponent {
   closeModal(): void {
     this.showModal = false;
     this.selectedFee = null;
+  }
+  getServicePath(service: ServiceMiniResponse): string {
+    if (service.path) {
+      return service.path;
+    }
+
+    return [
+      service.categoryName,
+      service.categoryTypeName,
+      service.structureName,
+      service.partName,
+      service.partOptionName,
+      service.name,
+    ]
+      .filter(Boolean)
+      .join(' > ');
+  }
+
+  hasServiceHierarchy(service: ServiceMiniResponse): boolean {
+    return !!(
+      service.categoryName ||
+      service.categoryTypeName ||
+      service.structureName ||
+      service.partName ||
+      service.partOptionName
+    );
   }
 }

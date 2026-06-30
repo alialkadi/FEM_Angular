@@ -27,9 +27,9 @@
             </div>
             <!-- Structure -->
             <div class="fe-field">
-                <label>Structure</label>
+                <label>Component</label>
                 <select (change)="onStructureChange($event)">
-                    <option value="">All Structures</option>
+                    <option value="">All Components</option>
                     <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
                 </select>
             </div>
@@ -46,7 +46,7 @@
                 <label>Search</label>
                 <!-- <i class="fa-solid fa-magnifying-glass"></i> -->
                 <input type="text" [value]="searchText" (input)="onSearchChange(($any($event.target)).value)"
-                    placeholder="Search option / part / structure / type..." />
+                    placeholder="Search option / part / component / type..." />
             </div>
         </div>
     </section>
@@ -75,13 +75,13 @@
                             <th class="fe-col-image">Image</th>
                             <th class="fe-col-image">Description</th>
                             <th>Part</th>
-                            <th>Structure</th>
+                            <th>Component</th>
                             <th>Category Type</th>
                             <th class="fe-col-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody *ngIf="PartOptions.length; else feEmpty">
-                        <tr *ngFor="let item of PartOptions">
+                        <tr *ngFor="let item of PartOptions;let i = index;">
                             <td class="fe-strong">{{ item.name }}</td>
                             <td>
                                 <img *ngIf="item.fileUrl" [src]="item.fileUrl" class="fe-thumb" alt="Option Image" />
@@ -92,6 +92,20 @@
                             <td class="fe-muted">{{ item.strucutreName }}</td>
                             <td class="fe-muted">{{ item.categoryTypeName }}</td>
                             <td class="fe-actions">
+                                <button class="fe-icon" type="button" (click)="moveUp(item, i)"
+                                    [disabled]="!canSortPartOptions() || isFirstPartOption(i) || sortingPartOptionId === item.id"
+                                    title="Move Up">
+                                    <i class="fa-solid"
+                                        [ngClass]="sortingPartOptionId === item.id ? 'fa-spinner fa-spin' : 'fa-arrow-up'">
+                                    </i>
+                                </button>
+                                <button class="fe-icon" type="button" (click)="moveDown(item, i)"
+                                    [disabled]="!canSortPartOptions() || isLastPartOption(i) || sortingPartOptionId === item.id"
+                                    title="Move Down">
+                                    <i class="fa-solid"
+                                        [ngClass]="sortingPartOptionId === item.id ? 'fa-spinner fa-spin' : 'fa-arrow-down'">
+                                    </i>
+                                </button>
                                 <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
@@ -139,7 +153,11 @@
                 </div>
                 <div class="fe-field">
                     <label>Description </label>
-                    <input type="text" formControlName="description" placeholder="e.g. Operator 01" />
+                    <textarea formControlName="description" rows="4" placeholder="e.g.,
+Line 1
+Line 2
+Line 3">
+    </textarea>
                 </div>
                 <div class="fe-field">
                     <label>Category</label>
@@ -156,9 +174,9 @@
                     </select>
                 </div>
                 <div class="fe-field">
-                    <label>Structure <span class="fe-required">*</span></label>
+                    <label>Component <span class="fe-required">*</span></label>
                     <select (change)="onStructureChange($event)">
-                        <option value="">Select Structure</option>
+                        <option value="">Select Component</option>
                         <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
                     </select>
                 </div>

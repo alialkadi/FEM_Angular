@@ -11,6 +11,14 @@ import { ServiceUserFormComponent } from './pages/service-user-form/service-user
 import { WishlistComponent } from './pages/Wishlist/wishlist.component';
 import { ServiceAdvertisedDetailComponent } from './pages/service-advertised-detail/service-advertised-detail.component';
 import { LoginComponent } from '../login/login.component';
+import { AboutUsComponent } from './pages/StaticFiles/about-us/about-us.component';
+import { FaqComponent } from './pages/StaticFiles/faq/faq.component';
+import { OurProcessComponent } from './pages/StaticFiles/our-process/our-process.component';
+import { PrivacyPolicyComponent } from './pages/StaticFiles/privacy-policy/privacy-policy.component';
+import { WhyUsComponent } from './pages/StaticFiles/why-us/why-us.component';
+import { ForgetrPasswordComponent } from '../../core/reset-password/forgetr-password/forgetr-password.component';
+import { OtpComponent } from '../../core/reset-password/otp/otp.component';
+import { ResetPasswordComponent } from '../../core/reset-password/reset-password/reset-password.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'Home', pathMatch: 'full' },
@@ -24,7 +32,24 @@ const routes: Routes = [
       { path: 'service-user-form', component: ServiceUserFormComponent },
       { path: 'Wishlist', component: WishlistComponent },
       { path: 'login', component: LoginComponent },
+      { path: 'about-us', component: AboutUsComponent },
+      { path: 'why-us', component: WhyUsComponent },
+      { path: 'our-process', component: OurProcessComponent },
+      { path: 'faq', component: FaqComponent },
+      { path: 'privacy-policy', component: PrivacyPolicyComponent },
       { path: 's/:slug', component: ServiceAdvertisedDetailComponent },
+      {
+        path: 'forgot-password',
+        component: ForgetrPasswordComponent,
+      },
+      {
+        path: 'verify-otp',
+        component: OtpComponent,
+      },
+      {
+        path: 'reset-password',
+        component: ResetPasswordComponent,
+      },
     ],
   },
 ];

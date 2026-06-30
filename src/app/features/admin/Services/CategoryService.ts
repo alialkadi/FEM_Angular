@@ -1,45 +1,76 @@
-import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { environment } from "../../../environment.prod";
-import { AuthService } from "../../../core/Auth/auth.service";
-import { ApiResponse } from "../../Models/ApiResponse";
-import { Category, CategoryListResponse, CreateCategory } from "../../Models/Category";
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environment.prod';
+import { AuthService } from '../../../core/Auth/auth.service';
+import { ApiResponse } from '../../Models/ApiResponse';
+import {
+  Category,
+  CategoryListResponse,
+  CreateCategory,
+} from '../../Models/Category';
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class CategoryService {
-  constructor(private _http: HttpClient, private auth: AuthService) { }
-    
-  getAllCategories(all: boolean = false ,page?: number , pageSize?: number ): Observable<ApiResponse<CategoryListResponse>> {
-     let params = new HttpParams().set('all', all);
+  constructor(
+    private _http: HttpClient,
+    private auth: AuthService,
+  ) {}
 
-  if (page !== undefined) params = params.set('page', page);
-  if (pageSize !== undefined) params = params.set('pageSize', pageSize);
+  getAllCategories(
+    all: boolean = false,
+    page?: number,
+    pageSize?: number,
+  ): Observable<ApiResponse<CategoryListResponse>> {
+    let params = new HttpParams().set('all', all);
+
+    if (page !== undefined) params = params.set('page', page);
+    if (pageSize !== undefined) params = params.set('pageSize', pageSize);
     return this._http.get<ApiResponse<CategoryListResponse>>(
-      `${environment.apiUrl}/Category`, {params});
+      `${environment.apiUrl}/Category`,
+      { params },
+    );
   }
 
-  getById(id: number): Observable<ApiResponse<Category>>{
-    return this._http.get<ApiResponse<Category>>(`${environment.apiUrl}/Category/${id}`)
+  getById(id: number): Observable<ApiResponse<Category>> {
+    return this._http.get<ApiResponse<Category>>(
+      `${environment.apiUrl}/Category/${id}`,
+    );
   }
   CreateCategory(data: FormData): Observable<ApiResponse<Category>> {
-    return this._http.post<ApiResponse<Category>>(`${environment.apiUrl}/Category`, data)
+    return this._http.post<ApiResponse<Category>>(
+      `${environment.apiUrl}/Category`,
+      data,
+    );
   }
 
   DeleteCategory(id: number): Observable<ApiResponse<boolean>> {
     return this._http.delete<ApiResponse<boolean>>(
-      `${environment.apiUrl}/Category/${id}`
+      `${environment.apiUrl}/Category/${id}`,
     );
   }
 
-updateCategory(id: number, data: FormData): Observable<ApiResponse<Category>> {
-  return this._http.put<ApiResponse<Category>>(
-    `${environment.apiUrl}/Category/${id}`,
-    data  // ✅ set content-type
-  );
-}
+  updateCategory(
+    id: number,
+    data: FormData,
+  ): Observable<ApiResponse<Category>> {
+    return this._http.put<ApiResponse<Category>>(
+      `${environment.apiUrl}/Category/${id}`,
+      data, // ✅ set content-type
+    );
+  }
 
+  moveUp(id: number): Observable<ApiResponse<boolean>> {
+    return this._http.patch<ApiResponse<boolean>>(
+      `${environment.apiUrl}/Category/${id}/move-up`,
+      {},
+    );
+  }
 
- 
-  
+  moveDown(id: number): Observable<ApiResponse<boolean>> {
+    return this._http.patch<ApiResponse<boolean>>(
+      `${environment.apiUrl}/Category/${id}/move-down`,
+      {},
+    );
+  }
 }
