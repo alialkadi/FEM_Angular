@@ -14,21 +14,36 @@
                     <h3>{{ item.service.name }}</h3>
                     <p>{{ item.service.description || 'No description provided.' }}</p>
                 </div>
-                <div class="service-review-card__price" *ngIf="item.calculation?.total && item.calculation!.total > 0">
-                    <span>Total</span>
-                    <strong> {{ item.calculation?.total | currency }} </strong>
+                <div class="service-photo-wrap">
+                    <img class="service-photo" [src]="item.service.fileUrl " *ngIf="item.service.fileUrl"
+                        [alt]="item.service.name" />
+                    <div class="service-review-card__price"
+                        *ngIf="item.calculation?.total && item.calculation!.total > 0">
+                        <span>Total</span>
+                        <strong>{{ item.calculation?.total | currency }}</strong>
+                    </div>
                 </div>
             </div>
             <!-- meta -->
             <div class="service-review-card__meta">
-                <span class="mini-chip"> Inputs {{ item.service.inputs?.length || 0 }} </span>
-                <span class="mini-chip"> Steps {{ item.steps?.length || 0 }} </span>
-                <span class="mini-chip" *ngIf="item.service.warrantyDuration && item.service.warrantyDuration > 0">
-                    Warranty: {{ item.service.warrantyDuration }} {{ item.service.warrantyUnit }} </span>
+                <span class="mini-chip mini-chip--required"
+                    *ngIf="item.service.inputs?.length && !areRequiredVisibleInputsCompleted(item)"> ⚠ Required Inputs
+                    {{ item.service.inputs?.length }} </span>
+                <!-- <span class="mini-chip" *ngIf="item.steps.length > 0"> Steps {{ item.steps?.length || 0 }} </span> -->
+                <span class="mini-chip"
+                    *ngIf="item.service.materialWarrantyDuration && item.service.materialWarrantyDuration > 0"> Material
+                    Warranty: {{ item.service.materialWarrantyDuration }} {{ item.service.materialWarrantyUnit }}
+                </span>
+                <span class="mini-chip"
+                    *ngIf="item.service.workmanshipWarrantyDuration && item.service.workmanshipWarrantyDuration > 0">
+                    Workmanship Warranty: {{ item.service.workmanshipWarrantyDuration }} {{
+                    item.service.workmanshipWarrantyUnit }} </span>
             </div>
             <!-- inputs -->
             <section class="mini-section" *ngIf="item.service.inputs?.length">
                 <h4>Inputs</h4>
+                <div class="input-warning" *ngIf="!areRequiredVisibleInputsCompleted(item)"> Please fill the required
+                    inputs before sending your request. </div>
                 <div class="mini-inputs">
                     <ng-container *ngFor="let input of item.service.inputs">
                         <div *ngIf="isInputVisible(item, input)" class="mini-input-row"
@@ -36,8 +51,8 @@
                             <div class="mini-input-row__label">
                                 <label> {{ input.label }} <span *ngIf="input.isRequired" class="required">*</span>
                                 </label>
-                                <small *ngIf="input.dependsOnInputDefinitionId"> depends on {{ getParentLabel(item,
-                                    input) }} </small>
+                                <!-- <small *ngIf="input.dependsOnInputDefinitionId"> depends on {{ getParentLabel(item,
+                                    input) }} </small> -->
                             </div>
                             <div class="mini-input-row__control">
                                 <!-- SELECT AS CHIPS -->
@@ -132,8 +147,13 @@
     <footer class="review-footer">
         <div class="review-footer__box">
             <div class="review-footer__total" *ngIf="overallTotal > 0">
-                <span>Overall Total</span>
+                <span>Estimated Overall Total</span>
                 <strong>{{ overallTotal | currency }}</strong>
+            </div>
+            <div class="request-disclaimer">
+                <div class="request-disclaimer__item">✓ No Payment Today</div>
+                <div class="request-disclaimer__item">✓ No Obligation or Commitment</div>
+                <div class="request-disclaimer__item">✓ Final Quote Confirmed Before Work Starts</div>
             </div>
             <button class="confirm-btn" (click)="confirmRequest()" [disabled]="!canConfirm"> Send Request </button>
         </div>

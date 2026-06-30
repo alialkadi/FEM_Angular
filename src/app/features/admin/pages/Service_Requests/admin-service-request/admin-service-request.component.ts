@@ -98,7 +98,7 @@ export class AdminServiceRequestComponent implements OnInit {
   discountType: DiscountType = DiscountType.Percentage;
   discountValue: number | null = null;
   discountReason = '';
-
+  searchTerm: string | null = null;
   DiscountType = DiscountType;
   constructor(
     private adminService: AdminServiceRequestService,
@@ -192,6 +192,7 @@ export class AdminServiceRequestComponent implements OnInit {
         this.filterStatus ?? undefined,
         this.filterFromDate ?? undefined,
         this.filterToDate ?? undefined,
+        this.searchTerm?.trim() || undefined,
       )
       .subscribe({
         next: (res: PagedServiceRequestListResponse) => {
@@ -569,14 +570,19 @@ export class AdminServiceRequestComponent implements OnInit {
       status: this.filterStatus,
       from: this.filterFromDate,
       to: this.filterToDate,
+      search: this.searchTerm,
     });
   }
-
+  searchRequests(): void {
+    this.page = 1;
+    this.loadRequests();
+  }
   clearFilters() {
     this.filterStatus = null;
     this.filterFromDate = null;
     this.filterToDate = null;
     this.page = 1;
+    this.searchTerm = null;
     this.loadRequests();
   }
 
@@ -747,5 +753,9 @@ export class AdminServiceRequestComponent implements OnInit {
           err?.error?.message || 'Failed to apply discount.';
       },
     });
+  }
+  isCanceledStatus(statusName?: string | null): boolean {
+    const normalized = (statusName || '').trim().toLowerCase();
+    return normalized === 'canceled' || normalized === 'cancelled';
   }
 }

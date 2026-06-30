@@ -73,6 +73,7 @@ button:not(.danger):not(.secondary) {
 button.secondary {
   background: #e5e7eb;
   color: #374151;
+  margin: 1px;
 }
 
 button.danger {
@@ -318,4 +319,23 @@ td.actions button {
   .modal-card {
     max-height: 90vh;
   }
+}
+.value-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.value-rule-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+}
+.value-rule-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #fff;
 }

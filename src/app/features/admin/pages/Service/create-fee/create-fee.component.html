@@ -26,12 +26,21 @@
                     placeholder="Optional: describe this fee’s purpose"></textarea>
             </div>
             <!-- Global Toggle -->
-            <div class="toggle-row">
-                <label class="toggle-label">Apply Globally?</label>
-                <label class="switch">
-                    <input type="checkbox" formControlName="isGlobal" (change)="toggleGlobal()" />
-                    <span class="slider"></span>
-                </label>
+            <div class="row" style="flex-wrap: nowrap;">
+                <div class="toggle-row">
+                    <label class="toggle-label">Apply Globally?</label>
+                    <label class="switch">
+                        <input type="checkbox" formControlName="isGlobal" (change)="toggleGlobal()" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <label class="toggle-label">Visible</label>
+                    <label class="switch">
+                        <input type="checkbox" formControlName="isVisible" (change)="toggleVisible()" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
             <!-- Linked Services -->
             <div *ngIf="!isGlobal" class="input-group full fade-in">

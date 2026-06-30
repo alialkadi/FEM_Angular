@@ -32,7 +32,7 @@ export class CategoryTypesComponent {
   /* ================= FILTER STATE ================= */
   selectedCategoryId?: number;
   searchText = '';
-
+  sortingTypeId: number | null = null;
   /* ================= PAGINATION ================= */
   totalCount = 0;
   pageIndex = 1;
@@ -111,6 +111,8 @@ export class CategoryTypesComponent {
   onCategoryFilterChange(event: Event): void {
     this.selectedCategoryId =
       +(event.target as HTMLSelectElement).value || undefined;
+
+    this.pageIndex = 1;
     this.applyFilters();
   }
 
@@ -251,6 +253,78 @@ export class CategoryTypesComponent {
           error: () =>
             this.toast.show('Failed to update category type.', 'error'),
         });
+    });
+  }
+
+  /* ================= SORTING ================= */
+
+  canSortTypes(): boolean {
+    return this.selectedCategoryId !== undefined && this.selectedCategoryId > 0;
+  }
+
+  isFirstType(index: number): boolean {
+    return this.canSortTypes() && this.pageIndex === 1 && index === 0;
+  }
+
+  isLastType(index: number): boolean {
+    return (
+      this.canSortTypes() &&
+      this.pageIndex === this.totalPages &&
+      index === this.categoryTypes.length - 1
+    );
+  }
+
+  moveUp(item: CategoryType, index: number): void {
+    if (!this.canSortTypes()) {
+      this.toast.show('Select a category first to reorder its types.', 'error');
+      return;
+    }
+
+    if (this.isFirstType(index)) return;
+
+    this.sortingTypeId = item.id;
+
+    this._catogryTypeService.moveUp(item.id).subscribe({
+      next: (res) => {
+        this.sortingTypeId = null;
+
+        if (res.success) {
+          this.loadAllCategoryTypes();
+        } else {
+          this.toast.show(res.message, 'error');
+        }
+      },
+      error: () => {
+        this.sortingTypeId = null;
+        this.toast.show('Failed to move category type up.', 'error');
+      },
+    });
+  }
+
+  moveDown(item: CategoryType, index: number): void {
+    if (!this.canSortTypes()) {
+      this.toast.show('Select a category first to reorder its types.', 'error');
+      return;
+    }
+
+    if (this.isLastType(index)) return;
+
+    this.sortingTypeId = item.id;
+
+    this._catogryTypeService.moveDown(item.id).subscribe({
+      next: (res) => {
+        this.sortingTypeId = null;
+
+        if (res.success) {
+          this.loadAllCategoryTypes();
+        } else {
+          this.toast.show(res.message, 'error');
+        }
+      },
+      error: () => {
+        this.sortingTypeId = null;
+        this.toast.show('Failed to move category type down.', 'error');
+      },
     });
   }
 }

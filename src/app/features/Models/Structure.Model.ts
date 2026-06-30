@@ -6,6 +6,7 @@ export interface Structure {
   categoryName?: string;
   fileUrl?: string;
   description: string;
+  displayOrder?: number;
 }
 
 export interface StructureListResponse {

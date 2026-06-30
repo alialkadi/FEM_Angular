@@ -4,14 +4,12 @@
             <h2> <span style="color: var(--link-hover);">Service</span> Explorer</h2>
             <p>Browse step-by-step and select the services you want to request.</p>
         </div>
-        <div class="topbar-right">
-            <button class="btn-outline explorer-floating-back" type="button" (click)="goBack()"
-                *ngIf="breadcrumbs.length && !isExplorerLoading"> ← Back </button>
+        <!-- <div class="topbar-right">
             <button class="btn-primary" type="button" (click)="requestServices()"
                 *ngIf="selectedServices.length && !isExplorerLoading"> Continue <span class="pill">{{
                     selectedServices.length }}</span>
             </button>
-        </div>
+        </div> -->
     </header>
     <!-- BREADCRUMBS -->
     <div class="crumbbar" *ngIf="breadcrumbs.length && !isExplorerLoading">
@@ -89,7 +87,8 @@
                             <h3>Choose Category</h3>
                             <p class="muted">Start by selecting a category.</p>
                         </div>
-                        <span class="step">Step 1</span>
+                        <button class="btn-outline " type="button" (click)="goBack()"
+                            *ngIf="breadcrumbs.length && !isExplorerLoading"> ← Back </button>
                     </div>
                     <div class="cards">
                         <button class="hcard" *ngFor="let c of categories" type="button" (click)="selectCategory(c)">
@@ -117,7 +116,8 @@
                             <h3>Choose Type</h3>
                             <p class="muted">Choose a type inside {{ selectedCategory?.name }}.</p>
                         </div>
-                        <span class="step">Step 2</span>
+                        <button class="btn-outline " type="button" (click)="goBack()"
+                            *ngIf="breadcrumbs.length && !isExplorerLoading"> ← Back </button>
                     </div>
                     <div class="cards">
                         <button class="hcard" *ngFor="let t of types" type="button" (click)="selectType(t)">
@@ -145,7 +145,8 @@
                             <h3>Components</h3>
                             <p class="muted">Pick a component.</p>
                         </div>
-                        <span class="step">Step 3</span>
+                        <button class="btn-outline " type="button" (click)="goBack()"
+                            *ngIf="breadcrumbs.length && !isExplorerLoading"> ← Back </button>
                     </div>
                     <div class="cards">
                         <button class="hcard" *ngFor="let s of structures" type="button" (click)="selectItem(s)">
@@ -173,7 +174,8 @@
                             <h3>Components</h3>
                             <p class="muted">Parts and options may appear together.</p>
                         </div>
-                        <span class="step">Step 4</span>
+                        <button class="btn-outline " type="button" (click)="goBack()"
+                            *ngIf="breadcrumbs.length && !isExplorerLoading"> ← Back </button>
                     </div>
                     <div class="cards">
                         <button class="hcard" *ngFor="let p of parts" type="button" (click)="selectItem(p)">
@@ -216,10 +218,16 @@
                         <div>
                             <h3>Services</h3>
                             <p class="muted"> Tap to select. Selected services become your request items. </p>
+                            <p class="section-subtitle"> Photos shown are for reference and comparison purposes only.
+                                They are used to help identify the closest available match to the client’s existing
+                                product. The final supplied product may vary in color, finish, size, design, hardware
+                                style, and manufacturer availability. </p>
                         </div>
                         <div class="selected-chip" *ngIf="selectedServices.length"> Selected: <strong>{{
                                 selectedServices.length }}</strong>
                         </div>
+                        <button class="btn-outline " type="button" (click)="goBack()"
+                            *ngIf="breadcrumbs.length && !isExplorerLoading"> ← Back </button>
                     </div>
                     <div class="cards">
                         <button class="hcard hcard--service" *ngFor="let s of services" type="button"

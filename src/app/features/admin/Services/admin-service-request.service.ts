@@ -19,6 +19,7 @@ export class AdminServiceRequestService {
     status?: string,
     fromDate?: string | null,
     toDate?: string | null,
+    searchTerm?: string | null,
   ) {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
 
@@ -33,6 +34,7 @@ export class AdminServiceRequestService {
     if (toDate && toDate.trim() !== '') {
       params = params.set('toDate', toDate);
     }
+    if (searchTerm) params = params.set('searchTerm', searchTerm);
 
     return this.http.get<PagedServiceRequestListResponse>(
       `${this.base}/ServiceRequest/get-all`,

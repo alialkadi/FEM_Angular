@@ -5,6 +5,7 @@ export interface CategoryType {
   categoryName?: string | null;
   description: string;
   fileUrl?: string | null;
+  displayOrder: number;
 }
 export interface CategoryTypeListResponse {
   totalCount: number;

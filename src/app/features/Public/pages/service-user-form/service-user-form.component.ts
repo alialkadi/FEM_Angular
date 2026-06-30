@@ -20,6 +20,10 @@ export class ServiceUserFormComponent implements OnInit {
   pendingPayload: any = null;
   @ViewChild('phoneConfirmBox')
   phoneConfirmBox?: ElementRef;
+  showSuccessPanel = false;
+  submittedEmail = '';
+  submittedPhone = '';
+  submittedContactMethod = '';
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -128,19 +132,20 @@ export class ServiceUserFormComponent implements OnInit {
         }
 
         this.responseType = 'success';
-        this.responseMessage =
-          res?.message ||
-          'Your service request has been submitted successfully.';
+        this.responseMessage = '';
+
+        this.submittedEmail = this.userForm.value.email ?? '';
+        this.submittedPhone = this.userForm.value.phoneNumber ?? '';
+        this.submittedContactMethod =
+          this.userForm.value.preferredContactMethod ?? 'Phone';
+
+        this.showSuccessPanel = true;
 
         this.requestedServices.forEach((r) => {
           this.wishlist.remove(r.service.id);
         });
 
         window.history.replaceState({}, document.title);
-
-        setTimeout(() => {
-          this.router.navigate(['/FenetrationMaintainence/Home/success']);
-        }, 1800);
       },
 
       error: (err) => {
@@ -157,7 +162,13 @@ export class ServiceUserFormComponent implements OnInit {
   confirmPhoneOverwrite() {
     this.onSubmit(true);
   }
+  goToLogin() {
+    this.router.navigate(['/FenetrationMaintainence/Home/login']);
+  }
 
+  goHome() {
+    this.router.navigate(['/FenetrationMaintainence/Home']);
+  }
   cancelPhoneOverwrite() {
     this.showPhoneConfirm = false;
     this.responseType = 'error';
@@ -168,5 +179,11 @@ export class ServiceUserFormComponent implements OnInit {
     this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
       state: { requestedServices: this.requestedServices },
     });
+  }
+  get grandTotal(): number {
+    return this.requestedServices.reduce(
+      (sum, item) => sum + Number(item.calculation?.total ?? 0),
+      0,
+    );
   }
 }

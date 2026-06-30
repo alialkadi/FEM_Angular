@@ -6,7 +6,7 @@ import { Part, PartListResponse } from '../../Models/Part.Models';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PartService {
   private baseurl = environment.apiUrl;
@@ -16,7 +16,7 @@ export class PartService {
   getAllParts(
     all: boolean = false,
     page?: number,
-    pageSize?: number
+    pageSize?: number,
   ): Observable<ApiResponse<PartListResponse>> {
     let params = new HttpParams().set('all', all);
     if (page !== undefined) params = params.set('page', page);
@@ -24,33 +24,42 @@ export class PartService {
 
     return this.http.get<ApiResponse<PartListResponse>>(
       `${this.baseurl}/Part`,
-      { params }
+      { params },
     );
   }
 
   getPartsByStructure(id: number): Observable<ApiResponse<PartListResponse>> {
     return this.http.get<ApiResponse<PartListResponse>>(
-      `${this.baseurl}/Part/byStructure/${id}`
+      `${this.baseurl}/Part/byStructure/${id}`,
     );
   }
 
   createPart(data: FormData): Observable<ApiResponse<Part>> {
-    return this.http.post<ApiResponse<Part>>(
-      `${this.baseurl}/Part`,
-      data
-    );
+    return this.http.post<ApiResponse<Part>>(`${this.baseurl}/Part`, data);
   }
 
   deletePart(id: number): Observable<ApiResponse<boolean>> {
-    return this.http.delete<ApiResponse<boolean>>(
-      `${this.baseurl}/Part/${id}`
-    );
+    return this.http.delete<ApiResponse<boolean>>(`${this.baseurl}/Part/${id}`);
   }
 
   updatePart(id: number, data: FormData): Observable<ApiResponse<boolean>> {
     return this.http.put<ApiResponse<boolean>>(
       `${this.baseurl}/Part/${id}`,
-      data
+      data,
+    );
+  }
+
+  moveUp(id: number): Observable<ApiResponse<boolean>> {
+    return this.http.patch<ApiResponse<boolean>>(
+      `${this.baseurl}/Part/${id}/move-up`,
+      {},
+    );
+  }
+
+  moveDown(id: number): Observable<ApiResponse<boolean>> {
+    return this.http.patch<ApiResponse<boolean>>(
+      `${this.baseurl}/Part/${id}/move-down`,
+      {},
     );
   }
 }

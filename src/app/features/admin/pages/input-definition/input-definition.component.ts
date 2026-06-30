@@ -22,6 +22,38 @@ export interface UpdateInputValueRequest {
   sortOrder: number;
   isActive: boolean;
 }
+export interface AssociatedServiceValueDto {
+  pricingId: number;
+  inputValueId?: number | null;
+  inputValueCode?: string | null;
+  inputValueDisplayName?: string | null;
+  pricingBehavior: PricingInputBehavior;
+  isRequired: boolean;
+  amount: number;
+  priority: number;
+  min?: number | null;
+  max?: number | null;
+  dependsOnInputDefinitionId?: number | null;
+  dependsOnInputValueId?: number | null;
+  dependsOnInputValueDisplayName?: string | null;
+}
+
+export interface AssociatedServiceDto {
+  serviceId: number;
+  serviceName: string;
+  baseCost: number;
+
+  structureId?: number | null;
+  structureName?: string | null;
+
+  partId?: number | null;
+  partName?: string | null;
+
+  partOptionId?: number | null;
+  partOptionName?: string | null;
+
+  values: AssociatedServiceValueDto[];
+}
 @Component({
   selector: 'app-input-definition',
   templateUrl: './input-definition.component.html',
@@ -64,7 +96,10 @@ export class InputDefinitionComponent implements OnInit {
   showEditValueModal = false;
   editingValue: any | null = null;
   updatingValue = false;
-
+  associatedServices: AssociatedServiceDto[] = [];
+  selectedServicesDefinition: InputDefinitionDto | null = null;
+  showAssociatedServices = false;
+  loadingAssociatedServices = false;
   private buildEditValueForm(): void {
     this.editValueForm = this.fb.group({
       displayName: ['', Validators.required],
@@ -499,14 +534,14 @@ export class InputDefinitionComponent implements OnInit {
     this.inputValueService.delete(value.id).subscribe({
       next: (res) => {
         if (res.success) {
-          this.toast.show('Value deleted.', 'success');
+          this.toast.show(res.message || 'Value deleted.', 'success');
           this.loadValues(this.selectedDefinition!.id);
         } else {
           this.toast.show(res.message ?? 'Delete failed.', 'error');
         }
       },
-      error: () => {
-        this.toast.show('Delete failed.', 'error');
+      error: (err) => {
+        this.toast.show(err.error.message ?? 'Delete failed.', 'error');
       },
     });
   }
@@ -516,15 +551,20 @@ export class InputDefinitionComponent implements OnInit {
 
     this.service.delete(definition.id).subscribe({
       next: (res) => {
+        console.log(res);
         if (res.success) {
-          this.toast.show('Input definition deleted.', 'success');
+          this.toast.show(
+            res.message ?? 'Input definition deleted.',
+            'success',
+          );
           this.loadDefinitions();
         } else {
           this.toast.show(res.message ?? 'Delete failed.', 'error');
         }
       },
-      error: () => {
-        this.toast.show('Delete failed.', 'error');
+      error: (err) => {
+        console.log(err);
+        this.toast.show(err.error.message ?? 'Delete failed.', 'error');
       },
     });
   }
@@ -589,5 +629,63 @@ export class InputDefinitionComponent implements OnInit {
         this.toast.show(err.error?.message ?? 'Update value failed.', 'error');
       },
     });
+  }
+
+  openAssociatedServices(definition: InputDefinitionDto): void {
+    this.selectedServicesDefinition = definition;
+    this.showAssociatedServices = true;
+    this.loadingAssociatedServices = true;
+    this.associatedServices = [];
+
+    this.service.getAssociatedServices(definition.id).subscribe({
+      next: (res) => {
+        this.loadingAssociatedServices = false;
+        this.associatedServices =
+          res.isSuccessful && res.response ? res.response : [];
+      },
+      error: (err) => {
+        this.loadingAssociatedServices = false;
+        this.toast.show(
+          err.error?.message ?? 'Failed to load associated services.',
+          'error',
+        );
+      },
+    });
+  }
+
+  closeAssociatedServices(): void {
+    this.showAssociatedServices = false;
+    this.selectedServicesDefinition = null;
+    this.associatedServices = [];
+  }
+  getAssociatedLinkedTo(s: AssociatedServiceDto): string {
+    if (s.partOptionName) return `Part Option: ${s.partOptionName}`;
+    if (s.partName) return `Part: ${s.partName}`;
+    if (s.structureName) return `Structure: ${s.structureName}`;
+
+    return '-';
+  }
+
+  getPricingAmountLabel(v: AssociatedServiceValueDto): string {
+    switch (v.pricingBehavior) {
+      case PricingInputBehavior.Fixed:
+        return `Fixed: ${v.amount}`;
+
+      case PricingInputBehavior.Rate:
+        return `Rate: ${v.amount}`;
+
+      case PricingInputBehavior.Dimensional:
+        return 'Dimensional';
+
+      case PricingInputBehavior.None:
+        return 'No pricing';
+
+      default:
+        return `${v.amount}`;
+    }
+  }
+
+  getValueLabel(v: AssociatedServiceValueDto): string {
+    return v.inputValueDisplayName || v.inputValueCode || 'Default input rule';
   }
 }

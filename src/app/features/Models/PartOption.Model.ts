@@ -11,6 +11,7 @@ export interface PartOption {
   fileUrl?: string;
   categoryId?: number;
   description: string;
+  displayOrder: number;
 }
 
 export interface PartOptionList {

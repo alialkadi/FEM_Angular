@@ -47,35 +47,35 @@ interface FeeHierarchyGroup {
 @Component({
   selector: 'app-create-fee',
   templateUrl: './create-fee.component.html',
-  styleUrl: './create-fee.component.scss'
+  styleUrl: './create-fee.component.scss',
 })
 export class CreateFeeComponent {
-
   feeForm!: FormGroup;
   isSubmitting = false;
   isGlobal = true;
-serviceSearch = '';
- services: FeeServiceNode[] = [];
-filteredServices: FeeServiceNode[] = [];
-serviceHierarchy: FeeHierarchyGroup[] = [];
-selectedCategoryId: number | null = null;
-selectedTypeId: number | null = null;
-selectedStructureId: number | null = null;
-selectedPartId: number | null = null;
-selectedPartOptionId: number | null = null;
+  isVisible = true;
+  serviceSearch = '';
+  services: FeeServiceNode[] = [];
+  filteredServices: FeeServiceNode[] = [];
+  serviceHierarchy: FeeHierarchyGroup[] = [];
+  selectedCategoryId: number | null = null;
+  selectedTypeId: number | null = null;
+  selectedStructureId: number | null = null;
+  selectedPartId: number | null = null;
+  selectedPartOptionId: number | null = null;
 
-categories: any[] = [];
-categoryTypes: any[] = [];
-structures: any[] = [];
-parts: any[] = [];
-partOptions: any[] = [];
+  categories: any[] = [];
+  categoryTypes: any[] = [];
+  structures: any[] = [];
+  parts: any[] = [];
+  partOptions: any[] = [];
 
-visibleServices: ServiceMiniResponse[] = [];
+  visibleServices: ServiceMiniResponse[] = [];
   constructor(
     private fb: FormBuilder,
     private feeService: FeeService,
     private serviceService: ServiceService,
-    private toast: ToastService
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -85,9 +85,7 @@ visibleServices: ServiceMiniResponse[] = [];
 
   get selectedServiceNames(): string[] {
     const ids = this.feeForm.value.serviceIds || [];
-    return this.services
-      .filter(s => ids.includes(s.id))
-      .map(s => s.name);
+    return this.services.filter((s) => ids.includes(s.id)).map((s) => s.name);
   }
 
   initializeForm(): void {
@@ -95,155 +93,168 @@ visibleServices: ServiceMiniResponse[] = [];
       name: ['', Validators.required],
       amount: [0, [Validators.required, Validators.min(0)]],
       isGlobal: [true],
+      isVisible: [false],
       description: [''],
       serviceIds: [[]],
     });
   }
 
- loadServices(): void {
-  this.serviceService.getAllServices(true).subscribe({
-    next: (res: ApiResponse<any>) => {
-      if (res.success) {
-        this.services = res.data.services ?? [];
+  loadServices(): void {
+    this.serviceService.getAllServices(true).subscribe({
+      next: (res: ApiResponse<any>) => {
+        console.log(res);
+        if (res.success) {
+          this.services = res.data.services ?? [];
 
-        this.categories = this.getUnique(
-          this.services,
-          'categoryId',
-          'categoryName'
+          this.categories = this.getUnique(
+            this.services,
+            'categoryId',
+            'categoryName',
+          );
+        } else {
+          this.toast.show(res.message, 'error');
+        }
+      },
+      error: (err) => {
+        this.toast.show(
+          err.error?.message ?? 'Failed to load services.',
+          'error',
         );
-      } else {
-        this.toast.show(res.message, 'error');
-      }
-    },
-    error: (err) => {
-      this.toast.show(err.error?.message ?? 'Failed to load services.', 'error');
-    }
-  });
+      },
+    });
   }
   getUnique(items: any[], idKey: string, nameKey: string): any[] {
-  const map = new Map<number, any>();
+    const map = new Map<number, any>();
 
-  items.forEach(item => {
-    const id = item[idKey];
-    const name = item[nameKey];
+    items.forEach((item) => {
+      const id = item[idKey];
+      const name = item[nameKey];
 
-    if (id && !map.has(id)) {
-      map.set(id, { id, name });
-    }
-  });
+      if (id && !map.has(id)) {
+        map.set(id, { id, name });
+      }
+    });
 
-  return Array.from(map.values());
-}
-buildServiceHierarchy(services: FeeServiceNode[]): void {
-  const categoriesMap = new Map<number, FeeHierarchyGroup>();
+    return Array.from(map.values());
+  }
+  buildServiceHierarchy(services: FeeServiceNode[]): void {
+    const categoriesMap = new Map<number, FeeHierarchyGroup>();
 
-  services.forEach(service => {
-    const categoryId = service.categoryId ?? 0;
-    const categoryName = service.categoryName || 'Uncategorized';
+    services.forEach((service) => {
+      const categoryId = service.categoryId ?? 0;
+      const categoryName = service.categoryName || 'Uncategorized';
 
-    const typeId = service.categoryTypeId ?? 0;
-    const typeName = service.categoryTypeName || 'No Type';
+      const typeId = service.categoryTypeId ?? 0;
+      const typeName = service.categoryTypeName || 'No Type';
 
-    const structureId = service.structureId ?? 0;
-    const structureName = service.structureName || 'No Structure';
+      const structureId = service.structureId ?? 0;
+      const structureName = service.structureName || 'No Structure';
 
-    if (!categoriesMap.has(categoryId)) {
-      categoriesMap.set(categoryId, {
-        categoryId,
-        categoryName,
-        types: []
-      });
-    }
-
-    const category = categoriesMap.get(categoryId)!;
-
-    let type = category.types.find(t => t.categoryTypeId === typeId);
-    if (!type) {
-      type = {
-        categoryTypeId: typeId,
-        categoryTypeName: typeName,
-        structures: []
-      };
-      category.types.push(type);
-    }
-
-    let structure = type.structures.find(s => s.structureId === structureId);
-    if (!structure) {
-      structure = {
-        structureId,
-        structureName,
-        parts: [],
-        services: []
-      };
-      type.structures.push(structure);
-    }
-
-    if (service.partOptionId) {
-      let part = structure.parts.find(p => p.partId === service.partId);
-
-      if (!part) {
-        part = {
-          partId: service.partId ?? 0,
-          partName: service.partName || 'No Part',
-          options: [],
-          services: []
-        };
-        structure.parts.push(part);
+      if (!categoriesMap.has(categoryId)) {
+        categoriesMap.set(categoryId, {
+          categoryId,
+          categoryName,
+          types: [],
+        });
       }
 
-      let option = part.options.find(o => o.partOptionId === service.partOptionId);
+      const category = categoriesMap.get(categoryId)!;
 
-      if (!option) {
-        option = {
-          partOptionId: service.partOptionId,
-          partOptionName: service.partOptionName || 'No Option',
-          services: []
+      let type = category.types.find((t) => t.categoryTypeId === typeId);
+      if (!type) {
+        type = {
+          categoryTypeId: typeId,
+          categoryTypeName: typeName,
+          structures: [],
         };
-        part.options.push(option);
+        category.types.push(type);
       }
 
-      option.services.push(service);
-    } 
-    else if (service.partId) {
-      let part = structure.parts.find(p => p.partId === service.partId);
-
-      if (!part) {
-        part = {
-          partId: service.partId,
-          partName: service.partName || 'No Part',
-          options: [],
-          services: []
+      let structure = type.structures.find(
+        (s) => s.structureId === structureId,
+      );
+      if (!structure) {
+        structure = {
+          structureId,
+          structureName,
+          parts: [],
+          services: [],
         };
-        structure.parts.push(part);
+        type.structures.push(structure);
       }
 
-      part.services.push(service);
-    } 
-    else {
-      structure.services.push(service);
-    }
-  });
+      if (service.partOptionId) {
+        let part = structure.parts.find((p) => p.partId === service.partId);
 
-  this.serviceHierarchy = Array.from(categoriesMap.values());
-}
+        if (!part) {
+          part = {
+            partId: service.partId ?? 0,
+            partName: service.partName || 'No Part',
+            options: [],
+            services: [],
+          };
+          structure.parts.push(part);
+        }
+
+        let option = part.options.find(
+          (o) => o.partOptionId === service.partOptionId,
+        );
+
+        if (!option) {
+          option = {
+            partOptionId: service.partOptionId,
+            partOptionName: service.partOptionName || 'No Option',
+            services: [],
+          };
+          part.options.push(option);
+        }
+
+        option.services.push(service);
+      } else if (service.partId) {
+        let part = structure.parts.find((p) => p.partId === service.partId);
+
+        if (!part) {
+          part = {
+            partId: service.partId,
+            partName: service.partName || 'No Part',
+            options: [],
+            services: [],
+          };
+          structure.parts.push(part);
+        }
+
+        part.services.push(service);
+      } else {
+        structure.services.push(service);
+      }
+    });
+
+    this.serviceHierarchy = Array.from(categoriesMap.values());
+  }
   toggleGlobal(): void {
     this.isGlobal = this.feeForm.value.isGlobal;
     if (this.isGlobal) {
       this.feeForm.patchValue({ serviceIds: [] });
     }
   }
+  toggleVisible(): void {
+    this.isVisible = this.feeForm.value.isVisible;
+    if (this.isVisible) {
+      this.feeForm.patchValue({ serviceIds: [] });
+    }
+  }
 
- filterServices(): void {
-  const term = this.serviceSearch.toLowerCase().trim();
+  filterServices(): void {
+    const term = this.serviceSearch.toLowerCase().trim();
 
-  this.filteredServices = this.services.filter(s =>
-    `${s.name} ${s.categoryName} ${s.categoryTypeName} ${s.structureName} ${s.partName} ${s.partOptionName}`
-      .toLowerCase()
-      .includes(term)
-  );
+    this.filteredServices = this.services.filter((s) =>
+      `${s.name} ${s.categoryName} ${s.categoryTypeName} ${s.structureName} ${s.partName} ${s.partOptionName}`
+        .toLowerCase()
+        .includes(term),
+    );
 
-  this.buildServiceHierarchy(this.filteredServices);
-}
+    this.buildServiceHierarchy(this.filteredServices);
+  }
 
   toggleServiceSelection(serviceId: number, event: Event): void {
     const checkbox = event.target as HTMLInputElement;
@@ -279,89 +290,109 @@ buildServiceHierarchy(services: FeeServiceNode[]): void {
         this.isSubmitting = false;
       },
       error: (err) => {
-        this.toast.show(err.error.message??'Failed to create fee.', 'error');
+        this.toast.show(err.error.message ?? 'Failed to create fee.', 'error');
         this.isSubmitting = false;
-      }
+      },
     });
   }
-onCategoryChange(): void {
-  this.selectedTypeId = null;
-  this.selectedStructureId = null;
-  this.selectedPartId = null;
-  this.selectedPartOptionId = null;
-  this.visibleServices = [];
+  onCategoryChange(): void {
+    this.selectedTypeId = null;
+    this.selectedStructureId = null;
+    this.selectedPartId = null;
+    this.selectedPartOptionId = null;
+    this.visibleServices = [];
 
-  const filtered = this.services.filter(s => s.categoryId == this.selectedCategoryId);
+    const filtered = this.services.filter(
+      (s) => s.categoryId == this.selectedCategoryId,
+    );
 
-  this.categoryTypes = this.getUnique(filtered, 'categoryTypeId', 'categoryTypeName');
-  this.structures = [];
-  this.parts = [];
-  this.partOptions = [];
+    this.categoryTypes = this.getUnique(
+      filtered,
+      'categoryTypeId',
+      'categoryTypeName',
+    );
+    this.structures = [];
+    this.parts = [];
+    this.partOptions = [];
 
-  this.updateVisibleServices();
-}
+    this.updateVisibleServices();
+  }
 
-onTypeChange(): void {
-  this.selectedStructureId = null;
-  this.selectedPartId = null;
-  this.selectedPartOptionId = null;
-  this.visibleServices = [];
+  onTypeChange(): void {
+    this.selectedStructureId = null;
+    this.selectedPartId = null;
+    this.selectedPartOptionId = null;
+    this.visibleServices = [];
 
-  const filtered = this.services.filter(s =>
-    s.categoryId == this.selectedCategoryId &&
-    s.categoryTypeId == this.selectedTypeId
-  );
+    const filtered = this.services.filter(
+      (s) =>
+        s.categoryId == this.selectedCategoryId &&
+        s.categoryTypeId == this.selectedTypeId,
+    );
 
-  this.structures = this.getUnique(filtered, 'structureId', 'structureName');
-  this.parts = [];
-  this.partOptions = [];
+    this.structures = this.getUnique(filtered, 'structureId', 'structureName');
+    this.parts = [];
+    this.partOptions = [];
 
-  this.updateVisibleServices();
-}
+    this.updateVisibleServices();
+  }
 
-onStructureChange(): void {
-  this.selectedPartId = null;
-  this.selectedPartOptionId = null;
-  this.visibleServices = [];
+  onStructureChange(): void {
+    this.selectedPartId = null;
+    this.selectedPartOptionId = null;
+    this.visibleServices = [];
 
-  const filtered = this.services.filter(s =>
-    s.categoryId == this.selectedCategoryId &&
-    s.categoryTypeId == this.selectedTypeId &&
-    s.structureId == this.selectedStructureId
-  );
+    const filtered = this.services.filter(
+      (s) =>
+        s.categoryId == this.selectedCategoryId &&
+        s.categoryTypeId == this.selectedTypeId &&
+        s.structureId == this.selectedStructureId,
+    );
 
-  this.parts = this.getUnique(filtered, 'partId', 'partName');
-  this.partOptions = [];
+    this.parts = this.getUnique(filtered, 'partId', 'partName');
+    this.partOptions = [];
 
-  this.updateVisibleServices();
-}
+    this.updateVisibleServices();
+  }
 
-onPartChange(): void {
-  this.selectedPartOptionId = null;
-  this.visibleServices = [];
+  onPartChange(): void {
+    this.selectedPartOptionId = null;
+    this.visibleServices = [];
 
-  const filtered = this.services.filter(s =>
-    s.structureId == this.selectedStructureId &&
-    s.partId == this.selectedPartId
-  );
+    const filtered = this.services.filter(
+      (s) =>
+        s.structureId == this.selectedStructureId &&
+        s.partId == this.selectedPartId,
+    );
 
-  this.partOptions = this.getUnique(filtered, 'partOptionId', 'partOptionName');
+    this.partOptions = this.getUnique(
+      filtered,
+      'partOptionId',
+      'partOptionName',
+    );
 
-  this.updateVisibleServices();
-}
+    this.updateVisibleServices();
+  }
 
-onPartOptionChange(): void {
-  this.updateVisibleServices();
-}
-updateVisibleServices(): void {
-  this.visibleServices = this.services.filter(s => {
-    if (this.selectedCategoryId && s.categoryId != this.selectedCategoryId) return false;
-    if (this.selectedTypeId && s.categoryTypeId != this.selectedTypeId) return false;
-    if (this.selectedStructureId && s.structureId != this.selectedStructureId) return false;
-    if (this.selectedPartId && s.partId != this.selectedPartId) return false;
-    if (this.selectedPartOptionId && s.partOptionId != this.selectedPartOptionId) return false;
+  onPartOptionChange(): void {
+    this.updateVisibleServices();
+  }
+  updateVisibleServices(): void {
+    this.visibleServices = this.services.filter((s) => {
+      if (this.selectedCategoryId && s.categoryId != this.selectedCategoryId)
+        return false;
+      if (this.selectedTypeId && s.categoryTypeId != this.selectedTypeId)
+        return false;
+      if (this.selectedStructureId && s.structureId != this.selectedStructureId)
+        return false;
+      if (this.selectedPartId && s.partId != this.selectedPartId) return false;
+      if (
+        this.selectedPartOptionId &&
+        s.partOptionId != this.selectedPartOptionId
+      )
+        return false;
 
-    return true;
-  });
-}
+      return true;
+    });
+  }
 }

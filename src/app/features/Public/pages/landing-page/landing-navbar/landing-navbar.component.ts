@@ -6,16 +6,18 @@ import {
 } from './Landing-navbar-section';
 import { WishlistService } from '../../../Services/wishlist.service';
 import { CategoryService } from '../../../../admin/Services/CategoryService';
+import { Category } from '../../../../Models/Category';
+import { CategoryType } from '../../../../Models/CategoryType';
 
-export interface Category {
-  id: number;
-  name: string;
-  types: any[];
-  count: number;
-  fileUrl?: string;
-  typesCount: number;
-  description: string;
-}
+// export interface Category {
+//   id: number;
+//   name: string;
+//   types: any[];
+//   count: number;
+//   fileUrl?: string;
+//   typesCount: number;
+//   description: string;
+// }
 
 @Component({
   selector: 'app-landing-navbar',
@@ -27,6 +29,7 @@ export class LandingNavbarComponent {
   categories: Category[] = [];
 
   mobileOpen = false;
+  openedMobileCategoryId: number | null = null;
 
   homeRoute = ['/public/FenestrationMaintainence/home'];
   cartRoute = ['/FenetrationMaintainence/Home/Wishlist'];
@@ -36,7 +39,7 @@ export class LandingNavbarComponent {
   constructor(
     private wishlist: WishlistService,
     private categoryService: CategoryService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -51,8 +54,13 @@ export class LandingNavbarComponent {
   loadCategories(): void {
     this.categoryService.getAllCategories().subscribe({
       next: (res: any) => {
-        this.categories = res?.data.categories ?? res ?? [];
-        console.log(res)
+        console.log(res);
+        const list = res?.data?.categories ?? res?.data ?? res ?? [];
+
+        this.categories = list.map((c: any) => ({
+          ...c,
+          types: c.types ?? c.Types ?? c.categoryTypes ?? c.CategoryTypes ?? [],
+        }));
       },
       error: () => {
         this.categories = [];
@@ -63,21 +71,43 @@ export class LandingNavbarComponent {
   openCategory(category: Category): void {
     this.closeMenu();
 
-    this.router.navigate(
-      ['/FenetrationMaintainence/Home/serviceexplorer'],
-      {
-        queryParams: {
-          categoryId: category.id,
-        },
-      }
-    );
+    this.router.navigate(['/FenetrationMaintainence/Home/serviceexplorer'], {
+      queryParams: {
+        categoryId: category.id,
+      },
+    });
+  }
+  // openCategory(category: Category): void {
+  //     this.closeMenu();
+
+  //     this.router.navigate(['/FenetrationMaintainence/Home/serviceexplorer'], {
+  //       queryParams: {
+  //         categoryId: category.id,
+  //       },
+  //     });
+  //   }
+
+  openCategoryType(category: Category, type: CategoryType): void {
+    this.closeMenu();
+
+    this.router.navigate(['/FenetrationMaintainence/Home/serviceexplorer'], {
+      queryParams: {
+        categoryId: category.id,
+        categoryTypeId: type.id,
+      },
+    });
   }
 
-  toggleMenu(): void {
-    this.mobileOpen = !this.mobileOpen;
+  toggleMobileCategory(categoryId: number): void {
+    this.openedMobileCategoryId =
+      this.openedMobileCategoryId === categoryId ? null : categoryId;
   }
 
   closeMenu(): void {
     this.mobileOpen = false;
+    this.openedMobileCategoryId = null;
+  }
+  toggleMenu(): void {
+    this.mobileOpen = !this.mobileOpen;
   }
 }

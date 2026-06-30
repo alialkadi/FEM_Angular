@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import { ServiceService } from '../../../Services/service-service.service';
 import { InputDefinitionService } from '../../../Services/input-definition.service';
 import { InputValueService } from '../../../Services/input-value.service';
 import { ToastService } from '../../../../../shared/Services/toast.service';
+
 import {
   PricingInputBehavior,
   ServiceResponse,
@@ -11,21 +13,26 @@ import {
 } from '../../../../Models/service.Model';
 import { PricingInputUI } from '../../../../Models/InputValueDto.model';
 import { MetadataDataType } from '../../../../Models/MetadataTargetType';
-import { __values } from 'tslib';
 
 interface PricingRateRowUI {
   amount: number;
-  dependsOnValueId?: number;
+  dependsOnInputValueId?: number;
   dependsOnInputDefinitionId?: number;
 }
 
 export interface PricingValueUI {
   id: number;
   value: string;
-  amount?: number;
   displayName?: string;
   rates: PricingRateRowUI[];
 }
+
+type PricingInputEditUI = PricingInputUI & {
+  dependsOnInputValueId?: number;
+  dependsOnInputDefinitionId?: number;
+  min?: number | null;
+  max?: number | null;
+};
 
 interface PricingInputSaveRow {
   inputDefinitionId: number;
@@ -44,7 +51,7 @@ interface PricingRulePreview {
   pricingBehavior: PricingInputBehavior;
   amount: number;
   priority: number;
-  dependsOnValueId?: number;
+  dependsOnInputValueId?: number;
   previewNumericValue?: number;
 }
 
@@ -55,11 +62,11 @@ interface PricingRulePreview {
 })
 export class EditServiceInputsComponent implements OnInit {
   serviceId!: number;
-  serviceName? = '';
+  serviceName: string | undefined = '';
   pricingMode: 'Static' | 'Dynamic' = 'Static';
   saving = false;
 
-  pricingInputs: PricingInputUI[] = [];
+  pricingInputs: PricingInputEditUI[] = [];
   inputDefinitions: InputDefinitionDto[] = [];
   inputValuesMap: Record<number, PricingValueUI[]> = {};
 
@@ -99,7 +106,6 @@ export class EditServiceInputsComponent implements OnInit {
           this.inputValuesMap = {};
           this.previewBaseCost = 0;
         }
-        console.log(res.data);
       },
       error: (err) => {
         this.toast.show(
@@ -128,7 +134,7 @@ export class EditServiceInputsComponent implements OnInit {
     this.inputValuesMap = {};
     this.previewBaseCost = 0;
 
-    const inputMap = new Map<number, PricingInputUI>();
+    const inputMap = new Map<number, PricingInputEditUI>();
 
     requiredInputs.forEach((rule: any) => {
       let input = inputMap.get(rule.inputDefinitionId);
@@ -146,6 +152,14 @@ export class EditServiceInputsComponent implements OnInit {
           priority: rule.priority,
           previewNumericValue: undefined,
           previewSelectedValueId: undefined,
+          dependsOnInputValueId:
+            rule.dataType !== MetadataDataType.Select
+              ? (rule.dependsOnInputValueId ?? undefined)
+              : undefined,
+          dependsOnInputDefinitionId:
+            rule.dataType !== MetadataDataType.Select
+              ? (rule.dependsOnInputDefinitionId ?? undefined)
+              : undefined,
           min:
             rule.dataType === MetadataDataType.Number
               ? (rule.min ?? null)
@@ -179,34 +193,46 @@ export class EditServiceInputsComponent implements OnInit {
             value: rule.inputValueCode,
             displayName: rule.inputValueLabel,
             rates: [],
-            amount: rule.amount,
           };
 
           this.inputValuesMap[rule.inputDefinitionId].push(value);
         }
 
-        if (rule.pricingBehavior === PricingInputBehavior.Fixed) {
-          value.amount = rule.amount ?? 0;
-        } else if (rule.pricingBehavior === PricingInputBehavior.Rate) {
+        if (
+          rule.pricingBehavior === PricingInputBehavior.None ||
+          rule.pricingBehavior === PricingInputBehavior.Fixed ||
+          rule.pricingBehavior === PricingInputBehavior.Rate
+        ) {
           value.rates.push({
-            amount: rule.amount ?? 0,
-            dependsOnValueId: rule.dependsOnInputValueId ?? undefined,
+            amount:
+              rule.pricingBehavior === PricingInputBehavior.None
+                ? 0
+                : (rule.amount ?? 0),
+            dependsOnInputValueId: rule.dependsOnInputValueId ?? undefined,
             dependsOnInputDefinitionId:
               rule.dependsOnInputDefinitionId ?? undefined,
           });
         }
-        console.log(value);
       }
     });
 
-    // Always merge full value list for all Select inputs
     this.pricingInputs
-      .filter((x) => x.dataType === MetadataDataType.Select)
-      .forEach((x) => {
-        this.loadInputValues(x.inputDefinitionId, true);
-      });
+      .filter((input) => input.dataType === MetadataDataType.Select)
+      .forEach((input) => this.loadInputValues(input.inputDefinitionId, true));
 
+    this.reorderPriorities();
+    this.cleanupOrphanDependencies();
     this.calculatePreview();
+  }
+
+  addInputFromSelect(value: string): void {
+    if (!value) return;
+
+    const definitionId = Number(value);
+    const definition = this.inputDefinitions.find((d) => d.id === definitionId);
+    if (!definition) return;
+
+    this.addPricingInput(definition);
   }
 
   addPricingInput(def: InputDefinitionDto): void {
@@ -219,7 +245,7 @@ export class EditServiceInputsComponent implements OnInit {
       return;
     }
 
-    const input: PricingInputUI = {
+    const input: PricingInputEditUI = {
       inputDefinitionId: def.id,
       label: def.label,
       code: def.code,
@@ -230,6 +256,8 @@ export class EditServiceInputsComponent implements OnInit {
       priority: this.pricingInputs.length + 1,
       previewNumericValue: undefined,
       previewSelectedValueId: undefined,
+      dependsOnInputValueId: undefined,
+      dependsOnInputDefinitionId: undefined,
       min: def.dataType === MetadataDataType.Number ? null : null,
       max: def.dataType === MetadataDataType.Number ? null : null,
     };
@@ -243,6 +271,179 @@ export class EditServiceInputsComponent implements OnInit {
     this.reorderPriorities();
     this.calculatePreview();
   }
+
+  private loadInputValues(
+    definitionId: number,
+    mergeExistingRates = false,
+  ): void {
+    const existingValues = this.inputValuesMap[definitionId] ?? [];
+
+    if (existingValues.length > 0 && !mergeExistingRates) return;
+
+    this.inputValueService.getByInputDefinition(definitionId).subscribe({
+      next: (res) => {
+        if (!(res.success && res.data)) return;
+
+        const fetchedValues = (res.data as any[]).map(
+          (value: any): PricingValueUI => {
+            const existing = existingValues.find((x) => x.id === value.id);
+
+            return {
+              id: value.id,
+              value: value.code ?? value.value,
+              displayName: value.displayName,
+              rates: existing?.rates?.length
+                ? existing.rates
+                : [
+                    {
+                      amount: 0,
+                      dependsOnInputValueId: undefined,
+                      dependsOnInputDefinitionId: undefined,
+                    },
+                  ],
+            };
+          },
+        );
+
+        const missingOldValues = existingValues.filter(
+          (oldValue) =>
+            !fetchedValues.some((newValue) => newValue.id === oldValue.id),
+        );
+
+        this.inputValuesMap[definitionId] = [
+          ...fetchedValues,
+          ...missingOldValues,
+        ];
+        this.cleanupOrphanDependencies();
+        this.calculatePreview();
+      },
+      error: () => {
+        this.toast.show('Failed to load input values', 'error');
+      },
+    });
+  }
+
+  addRateRow(value: PricingValueUI): void {
+    value.rates.push({
+      amount: 0,
+      dependsOnInputValueId: undefined,
+      dependsOnInputDefinitionId: undefined,
+    });
+  }
+
+  removeRateRow(value: PricingValueUI, index: number): void {
+    value.rates.splice(index, 1);
+
+    if (value.rates.length === 0) {
+      this.addRateRow(value);
+    }
+
+    this.calculatePreview();
+  }
+
+  removePricingInput(index: number): void {
+    const removed = this.pricingInputs[index];
+    if (!removed) return;
+
+    this.pricingInputs.splice(index, 1);
+    delete this.inputValuesMap[removed.inputDefinitionId];
+
+    this.reorderPriorities();
+    this.cleanupOrphanDependencies();
+    this.calculatePreview();
+  }
+
+  private reorderPriorities(): void {
+    this.pricingInputs.forEach((input, index) => {
+      input.priority = index + 1;
+    });
+  }
+
+  canShowInputDependency(input: PricingInputEditUI): boolean {
+    if (input.pricingBehavior === PricingInputBehavior.Dimensional)
+      return false;
+    return this.getDependencyOptions(input).length > 0;
+  }
+
+  getDependencyOptions(currentInput: PricingInputEditUI): {
+    parent: PricingInputEditUI;
+    value: PricingValueUI;
+  }[] {
+    const options: { parent: PricingInputEditUI; value: PricingValueUI }[] = [];
+
+    this.pricingInputs.forEach((parent) => {
+      if (parent.inputDefinitionId === currentInput.inputDefinitionId) return;
+      if (parent.dataType !== MetadataDataType.Select) return;
+
+      const values = this.inputValuesMap[parent.inputDefinitionId] ?? [];
+      values.forEach((value) => options.push({ parent, value }));
+    });
+
+    return options;
+  }
+
+  onDependencyValueChange(
+    model: PricingRateRowUI | PricingInputEditUI,
+    valueId?: number,
+  ): void {
+    const numericValueId = valueId ? Number(valueId) : undefined;
+
+    model.dependsOnInputValueId = numericValueId;
+
+    if (!numericValueId) {
+      model.dependsOnInputDefinitionId = undefined;
+      this.calculatePreview();
+      return;
+    }
+
+    const parent = this.findParentByValue(numericValueId);
+    model.dependsOnInputDefinitionId = parent?.inputDefinitionId;
+
+    this.calculatePreview();
+  }
+
+  private findParentByValue(valueId?: number): PricingInputEditUI | undefined {
+    if (!valueId) return undefined;
+
+    return this.pricingInputs.find((input) =>
+      (this.inputValuesMap[input.inputDefinitionId] ?? []).some(
+        (value) => value.id === Number(valueId),
+      ),
+    );
+  }
+
+  private cleanupOrphanDependencies(): void {
+    const allAvailableValueIds = new Set<number>();
+
+    Object.values(this.inputValuesMap).forEach((values) => {
+      values.forEach((value) => allAvailableValueIds.add(value.id));
+    });
+
+    this.pricingInputs.forEach((input) => {
+      if (
+        input.dependsOnInputValueId &&
+        !allAvailableValueIds.has(input.dependsOnInputValueId)
+      ) {
+        input.dependsOnInputValueId = undefined;
+        input.dependsOnInputDefinitionId = undefined;
+      }
+    });
+
+    Object.values(this.inputValuesMap).forEach((values) => {
+      values.forEach((value) => {
+        value.rates.forEach((rate) => {
+          if (
+            rate.dependsOnInputValueId &&
+            !allAvailableValueIds.has(rate.dependsOnInputValueId)
+          ) {
+            rate.dependsOnInputValueId = undefined;
+            rate.dependsOnInputDefinitionId = undefined;
+          }
+        });
+      });
+    });
+  }
+
   private validateNumericMinMax(): boolean {
     for (const input of this.pricingInputs) {
       if (input.dataType !== MetadataDataType.Number) {
@@ -266,184 +467,6 @@ export class EditServiceInputsComponent implements OnInit {
 
     return true;
   }
-  addInputFromSelect(value: string): void {
-    if (!value) return;
-
-    const definitionId = Number(value);
-    const def = this.inputDefinitions.find((d) => d.id === definitionId);
-
-    if (!def) return;
-
-    this.addPricingInput(def);
-  }
-
-  private loadInputValues(
-    definitionId: number,
-    mergeExistingRates = false,
-  ): void {
-    const existingValues = this.inputValuesMap[definitionId] ?? [];
-
-    if (existingValues.length > 0 && !mergeExistingRates) {
-      return;
-    }
-
-    this.inputValueService.getByInputDefinition(definitionId).subscribe({
-      next: (res) => {
-        if (!(res.success && res.data)) return;
-
-        const fetchedValues = (res.data as any[]).map(
-          (v: any): PricingValueUI => {
-            const existing = existingValues.find((x) => x.id === v.id);
-
-            return {
-              id: v.id,
-              value: v.code ?? v.value,
-              amount: existing?.amount ?? 0,
-              displayName: v.displayName,
-              rates: existing?.rates ?? [],
-            };
-          },
-        );
-
-        // keep saved values even if backend API no longer returned them
-        const missingOldValues = existingValues.filter(
-          (old) => !fetchedValues.some((f) => f.id === old.id),
-        );
-
-        this.inputValuesMap[definitionId] = [
-          ...fetchedValues,
-          ...missingOldValues,
-        ];
-
-        this.calculatePreview();
-      },
-      error: () => {
-        this.toast.show('Failed to load input values', 'error');
-      },
-    });
-  }
-
-  addRateRow(value: PricingValueUI): void {
-    value.rates.push({
-      amount: 0,
-      dependsOnValueId: undefined,
-      dependsOnInputDefinitionId: undefined,
-    });
-  }
-
-  removeRateRow(value: PricingValueUI, index: number): void {
-    value.rates.splice(index, 1);
-    this.calculatePreview();
-  }
-
-  removePricingInput(index: number): void {
-    const removed = this.pricingInputs[index];
-    if (!removed) return;
-
-    this.pricingInputs.splice(index, 1);
-    delete this.inputValuesMap[removed.inputDefinitionId];
-
-    this.reorderPriorities();
-    this.cleanupOrphanDependencies();
-    this.calculatePreview();
-  }
-
-  private reorderPriorities(): void {
-    this.pricingInputs.forEach((input, index) => {
-      input.priority = index + 1;
-    });
-  }
-
-  private cleanupOrphanDependencies(): void {
-    const allAvailableValueIds = new Set<number>();
-
-    Object.values(this.inputValuesMap).forEach((values) => {
-      values.forEach((v) => allAvailableValueIds.add(v.id));
-    });
-
-    Object.values(this.inputValuesMap).forEach((values) => {
-      values.forEach((v) => {
-        v.rates.forEach((rate) => {
-          if (
-            rate.dependsOnValueId &&
-            !allAvailableValueIds.has(rate.dependsOnValueId)
-          ) {
-            rate.dependsOnValueId = undefined;
-            rate.dependsOnInputDefinitionId = undefined;
-          }
-        });
-      });
-    });
-  }
-  shouldShowAnyDependencyOptions(input: any): boolean {
-    return this.getDependencyOptions(input).length > 0;
-  }
-  onDependencyValueChange(rateRow: PricingRateRowUI, valueId: number): void {
-    const numericValueId = valueId ? +valueId : undefined;
-
-    rateRow.dependsOnValueId = numericValueId;
-
-    if (!numericValueId) {
-      rateRow.dependsOnInputDefinitionId = undefined;
-      this.calculatePreview();
-      return;
-    }
-
-    const parent = this.findParentByValue(numericValueId);
-    rateRow.dependsOnInputDefinitionId = parent?.inputDefinitionId;
-
-    this.calculatePreview();
-  }
-
-  private findParentByValue(valueId: number): PricingInputUI | undefined {
-    return this.pricingInputs.find((p) =>
-      this.inputValuesMap[p.inputDefinitionId]?.some((v) => v.id === valueId),
-    );
-  }
-
-  shouldShowDependency(
-    input: PricingInputUI,
-    value: PricingValueUI,
-    rateRow: PricingRateRowUI,
-  ): boolean {
-    if (input.pricingBehavior !== PricingInputBehavior.Rate) return false;
-    if (!rateRow.amount || rateRow.amount <= 0) return false;
-
-    return this.pricingInputs.some(
-      (p) =>
-        p.inputDefinitionId !== input.inputDefinitionId &&
-        p.dataType === MetadataDataType.Select &&
-        (this.inputValuesMap[p.inputDefinitionId]?.length ?? 0) > 0,
-    );
-  }
-
-  getDependencyOptions(currentInput: PricingInputUI): {
-    parent: PricingInputUI;
-    value: PricingValueUI;
-  }[] {
-    const options: { parent: PricingInputUI; value: PricingValueUI }[] = [];
-
-    this.pricingInputs.forEach((parent) => {
-      if (parent.inputDefinitionId === currentInput.inputDefinitionId) return;
-      if (parent.dataType !== MetadataDataType.Select) return;
-
-      const values = this.inputValuesMap[parent.inputDefinitionId] || [];
-
-      if (parent.previewSelectedValueId) {
-        const matched = values.find(
-          (v) => v.id === parent.previewSelectedValueId,
-        );
-        if (matched) {
-          options.push({ parent, value: matched });
-        }
-        return;
-      }
-
-      values.forEach((v) => options.push({ parent, value: v }));
-    });
-
-    return options;
-  }
 
   calculatePreview(): void {
     let dimension = 1;
@@ -451,106 +474,111 @@ export class EditServiceInputsComponent implements OnInit {
     let fixedCost = 0;
     let hasDimension = false;
 
-    const selectedValues: number[] = [];
-
-    this.pricingInputs.forEach((input) => {
-      if (input.previewSelectedValueId) {
-        selectedValues.push(input.previewSelectedValueId);
-      }
-    });
+    const selectedValues = this.pricingInputs
+      .map((input) => input.previewSelectedValueId)
+      .filter((id): id is number => !!id);
 
     const rules: PricingRulePreview[] = [];
 
     this.pricingInputs.forEach((input) => {
-      if (input.pricingBehavior === PricingInputBehavior.Fixed) {
-        if ((input.amount ?? 0) > 0) {
-          rules.push({
-            pricingBehavior: input.pricingBehavior,
-            amount: input.amount ?? 0,
-            priority: input.priority,
-          });
-        }
-        return;
-      }
+      const isSelect = input.dataType === MetadataDataType.Select;
+
+      if (input.pricingBehavior === PricingInputBehavior.None) return;
 
       if (input.pricingBehavior === PricingInputBehavior.Dimensional) {
         rules.push({
           pricingBehavior: input.pricingBehavior,
-          amount: input.amount ?? 0,
+          amount: 0,
           priority: input.priority,
           previewNumericValue: input.previewNumericValue,
         });
         return;
       }
 
-      if (input.pricingBehavior === PricingInputBehavior.Rate) {
-        const values = this.inputValuesMap[input.inputDefinitionId] || [];
+      if (!isSelect) {
+        rules.push({
+          pricingBehavior: input.pricingBehavior,
+          amount: input.amount ?? 0,
+          priority: input.priority,
+          dependsOnInputValueId: input.dependsOnInputValueId,
+        });
+        return;
+      }
 
-        values.forEach((v) => {
-          v.rates.forEach((rateRow) => {
-            if (!rateRow.amount || rateRow.amount <= 0) return;
-
-            rules.push({
-              pricingBehavior: input.pricingBehavior,
-              amount: rateRow.amount,
-              dependsOnValueId: rateRow.dependsOnValueId,
-              priority: input.priority,
-            });
+      const values = this.inputValuesMap[input.inputDefinitionId] ?? [];
+      values.forEach((value) => {
+        value.rates.forEach((rate) => {
+          rules.push({
+            pricingBehavior: input.pricingBehavior,
+            amount: rate.amount ?? 0,
+            priority: input.priority,
+            dependsOnInputValueId: rate.dependsOnInputValueId,
           });
         });
-      }
+      });
     });
 
     rules.sort((a, b) => a.priority - b.priority);
 
     for (const rule of rules) {
       if (
-        rule.dependsOnValueId &&
-        !selectedValues.includes(rule.dependsOnValueId)
+        rule.dependsOnInputValueId &&
+        !selectedValues.includes(rule.dependsOnInputValueId)
       ) {
         continue;
       }
 
       switch (rule.pricingBehavior) {
         case PricingInputBehavior.Dimensional:
-          if (
-            rule.previewNumericValue == null ||
-            rule.previewNumericValue <= 0
-          ) {
+          if (rule.previewNumericValue == null || rule.previewNumericValue <= 0)
             continue;
-          }
           dimension *= rule.previewNumericValue;
           hasDimension = true;
           break;
 
         case PricingInputBehavior.Rate:
-          rateSum += rule.amount;
+          if (rule.amount > 0) rateSum += rule.amount;
           break;
 
         case PricingInputBehavior.Fixed:
-          fixedCost += rule.amount;
+          if (rule.amount > 0) fixedCost += rule.amount;
           break;
       }
     }
 
-    if (rateSum > 0 && !hasDimension) {
-      this.previewBaseCost = fixedCost;
-      return;
-    }
-
-    this.previewBaseCost = dimension * rateSum + fixedCost;
+    this.previewBaseCost =
+      rateSum > 0 && hasDimension ? dimension * rateSum + fixedCost : fixedCost;
   }
 
-  getPricingTypeLabel(input: PricingInputUI): string {
+  getPricingTypeLabel(
+    input: Pick<PricingInputEditUI, 'pricingBehavior'>,
+  ): string {
     switch (input.pricingBehavior) {
-      case PricingInputBehavior.Rate:
-        return 'Rate';
+      case PricingInputBehavior.None:
+        return 'None';
       case PricingInputBehavior.Fixed:
         return 'Fixed';
+      case PricingInputBehavior.Rate:
+        return 'Rate';
       case PricingInputBehavior.Dimensional:
         return 'Dimensional';
       default:
-        return '';
+        return 'Unknown';
+    }
+  }
+
+  getDataTypeLabel(dataType: MetadataDataType): string {
+    switch (dataType) {
+      case MetadataDataType.Select:
+        return 'Select';
+      case MetadataDataType.Number:
+        return 'Number';
+      case MetadataDataType.Text:
+        return 'Text';
+      case MetadataDataType.Boolean:
+        return 'Boolean';
+      default:
+        return 'Unknown';
     }
   }
 
@@ -562,48 +590,24 @@ export class EditServiceInputsComponent implements OnInit {
       const isText = input.dataType === MetadataDataType.Text;
       const isNumber = input.dataType === MetadataDataType.Number;
       const isBoolean = input.dataType === MetadataDataType.Boolean;
+      const values = this.inputValuesMap[input.inputDefinitionId] ?? [];
 
-      const values = this.inputValuesMap[input.inputDefinitionId] || [];
-
-      // =========================
-      // TEXT + NONE
-      // =========================
-      if (isText && input.pricingBehavior === PricingInputBehavior.None) {
-        result.push({
-          inputDefinitionId: input.inputDefinitionId,
-          inputValueId: null,
-          pricingBehavior: input.pricingBehavior,
-          amount: 0,
-          isRequired: input.isRequired,
-          priority: input.priority,
-          dependsOnInputDefinitionId: null,
-          dependsOnInputValueId: null,
-        });
+      if (isText) {
+        this.pushSingleInputRow(result, input, 0, null, null);
         return;
       }
 
-      // =========================
-      // NUMBER + NONE
-      // =========================
       if (isNumber && input.pricingBehavior === PricingInputBehavior.None) {
-        result.push({
-          inputDefinitionId: input.inputDefinitionId,
-          inputValueId: null,
-          pricingBehavior: input.pricingBehavior,
-          amount: 0,
-          isRequired: input.isRequired,
-          priority: input.priority,
-          dependsOnInputDefinitionId: null,
-          dependsOnInputValueId: null,
-          min: input.min ?? null,
-          max: input.max ?? null,
-        });
+        this.pushSingleInputRow(
+          result,
+          input,
+          0,
+          input.min ?? null,
+          input.max ?? null,
+        );
         return;
       }
 
-      // =========================
-      // NUMBER + DIMENSIONAL
-      // =========================
       if (
         isNumber &&
         input.pricingBehavior === PricingInputBehavior.Dimensional
@@ -623,89 +627,88 @@ export class EditServiceInputsComponent implements OnInit {
         return;
       }
 
-      // =========================
-      // NUMBER + FIXED / RATE
-      // BOOLEAN + FIXED / RATE
-      // =========================
       if (
         (isNumber || isBoolean) &&
         (input.pricingBehavior === PricingInputBehavior.Fixed ||
+          input.pricingBehavior === PricingInputBehavior.Rate ||
+          input.pricingBehavior === PricingInputBehavior.None)
+      ) {
+        this.pushSingleInputRow(
+          result,
+          input,
+          input.pricingBehavior === PricingInputBehavior.None
+            ? 0
+            : (input.amount ?? 0),
+          isNumber ? (input.min ?? null) : null,
+          isNumber ? (input.max ?? null) : null,
+        );
+        return;
+      }
+
+      if (
+        isSelect &&
+        (input.pricingBehavior === PricingInputBehavior.None ||
+          input.pricingBehavior === PricingInputBehavior.Fixed ||
           input.pricingBehavior === PricingInputBehavior.Rate)
       ) {
-        if (input.amount == null || input.amount < 0) return;
+        values.forEach((value) => {
+          const rows = value.rates?.length
+            ? value.rates
+            : [{ amount: 0 } as PricingRateRowUI];
 
-        result.push({
-          inputDefinitionId: input.inputDefinitionId,
-          inputValueId: null,
-          pricingBehavior: input.pricingBehavior,
-          amount: input.amount ?? 0,
-          isRequired: input.isRequired,
-          priority: input.priority,
-          dependsOnInputDefinitionId: null,
-          dependsOnInputValueId: null,
-          min: isNumber ? (input.min ?? null) : null,
-          max: isNumber ? (input.max ?? null) : null,
-        });
-        return;
-      }
-
-      // =========================
-      // SELECT + FIXED
-      // =========================
-      if (isSelect && input.pricingBehavior === PricingInputBehavior.Fixed) {
-        values.forEach((v) => {
-          if (v.amount == null || v.amount < 0) return;
-
-          result.push({
-            inputDefinitionId: input.inputDefinitionId,
-            inputValueId: v.id,
-            pricingBehavior: input.pricingBehavior,
-            amount: v.amount ?? 0,
-            isRequired: input.isRequired,
-            priority: input.priority,
-            dependsOnInputDefinitionId: null,
-            dependsOnInputValueId: null,
-          });
-        });
-
-        return;
-      }
-
-      // =========================
-      // SELECT + RATE
-      // =========================
-      if (isSelect && input.pricingBehavior === PricingInputBehavior.Rate) {
-        values.forEach((v) => {
-          (v.rates || []).forEach((rate: any) => {
+          rows.forEach((rate) => {
             if (rate.amount == null || rate.amount < 0) return;
 
-            const parent =
-              rate.dependsOnValueId != null
-                ? this.findParentByValue(rate.dependsOnValueId)
-                : null;
+            const parent = this.findParentByValue(rate.dependsOnInputValueId);
 
             result.push({
               inputDefinitionId: input.inputDefinitionId,
-              inputValueId: v.id,
+              inputValueId: value.id,
               pricingBehavior: input.pricingBehavior,
-              amount: rate.amount ?? 0,
+              amount:
+                input.pricingBehavior === PricingInputBehavior.None
+                  ? 0
+                  : (rate.amount ?? 0),
               isRequired: input.isRequired,
               priority: input.priority,
               dependsOnInputDefinitionId:
                 rate.dependsOnInputDefinitionId ??
                 parent?.inputDefinitionId ??
                 null,
-              dependsOnInputValueId: rate.dependsOnValueId ?? null,
+              dependsOnInputValueId: rate.dependsOnInputValueId ?? null,
             });
           });
         });
-
-        return;
       }
     });
 
     return result;
   }
+
+  private pushSingleInputRow(
+    result: PricingInputSaveRow[],
+    input: PricingInputEditUI,
+    amount: number,
+    min: number | null,
+    max: number | null,
+  ): void {
+    const parent = this.findParentByValue(input.dependsOnInputValueId);
+
+    result.push({
+      inputDefinitionId: input.inputDefinitionId,
+      inputValueId: null,
+      pricingBehavior: input.pricingBehavior,
+      amount,
+      isRequired: input.isRequired,
+      priority: input.priority,
+      dependsOnInputDefinitionId:
+        input.dependsOnInputDefinitionId ?? parent?.inputDefinitionId ?? null,
+      dependsOnInputValueId: input.dependsOnInputValueId ?? null,
+      min,
+      max,
+    });
+  }
+
   onSubmit(): void {
     if (this.pricingMode !== 'Dynamic') {
       this.toast.show(
@@ -715,12 +718,12 @@ export class EditServiceInputsComponent implements OnInit {
       return;
     }
 
+    if (!this.validateNumericMinMax()) return;
+
     const pricingInputs = this.buildPayload();
 
     this.saving = true;
-    if (!this.validateNumericMinMax()) {
-      return;
-    }
+
     this.serviceService
       .updateServiceInputs(this.serviceId, { pricingInputs })
       .subscribe({

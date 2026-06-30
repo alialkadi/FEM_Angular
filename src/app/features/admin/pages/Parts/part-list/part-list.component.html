@@ -25,7 +25,7 @@
                 </select>
             </div>
             <div class="fe-field">
-                <label>Structure</label>
+                <label>Component</label>
                 <select (change)="onStructureChange($event)">
                     <option value="">All Components</option>
                     <option *ngFor="let s of Structures" [value]="s.id">{{ s.name }}</option>
@@ -62,14 +62,14 @@
                         <tr>
                             <th>Part Name</th>
                             <th>Description</th>
-                            <th>Structure</th>
+                            <th>Component</th>
                             <th>Type</th>
                             <th class="fe-col-image">Image</th>
                             <th class="fe-col-actions">Actions</th>
                         </tr>
                     </thead>
-                    <tbody *ngIf="Parts.length; else feEmpty">
-                        <tr *ngFor="let item of Parts">
+                    <tbody *ngIf="Parts.length; else feEmpty;">
+                        <tr *ngFor="let item of Parts; let i = index">
                             <td class="fe-strong">{{ item.name }}</td>
                             <td class="fe-strong">{{ item.description }}</td>
                             <td class="fe-muted">{{ item.strucutreName }}</td>
@@ -79,6 +79,18 @@
                                 <span *ngIf="!item.fileUrl" class="fe-muted">No Image</span>
                             </td>
                             <td class="fe-actions">
+                                <button class="fe-icon" type="button" (click)="moveUp(item, i)"
+                                    [disabled]="!canSortParts() || isFirstPart(i) || sortingPartId === item.id"
+                                    title="Move Up">
+                                    <i class="fa-solid"
+                                        [ngClass]="sortingPartId === item.id ? 'fa-spinner fa-spin' : 'fa-arrow-up'"></i>
+                                </button>
+                                <button class="fe-icon" type="button" (click)="moveDown(item, i)"
+                                    [disabled]="!canSortParts() || isLastPart(i) || sortingPartId === item.id"
+                                    title="Move Down">
+                                    <i class="fa-solid"
+                                        [ngClass]="sortingPartId === item.id ? 'fa-spinner fa-spin' : 'fa-arrow-down'"></i>
+                                </button>
                                 <button class="fe-icon fe-icon--edit" (click)="onEdit(item)" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>

@@ -124,6 +124,8 @@
                             </td>
                             <td class="td-actions">
                                 <div class="action-group">
+                                    <button type="button" class="secondary" (click)="openAssociatedServices(d)">
+                                        Services </button>
                                     <button type="button" class="secondary" (click)="openEdit(d)"> Edit </button>
                                     <button type="button" class="danger" (click)="delete(d)"> Delete </button>
                                 </div>
@@ -325,6 +327,72 @@
                         Input' }} </button>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="modal-overlay" *ngIf="showAssociatedServices">
+        <div class="modal-card modal-card--large">
+            <div class="modal-header">
+                <div class="title">
+                    <h3>Associated Services</h3>
+                    <span class="subtitle"> {{ selectedServicesDefinition?.label }} <span class="mono"
+                            *ngIf="selectedServicesDefinition?.code"> ({{ selectedServicesDefinition?.code }}) </span>
+                    </span>
+                </div>
+                <button type="button" class="close-btn" (click)="closeAssociatedServices()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div *ngIf="loadingAssociatedServices" class="muted center state-message"> Loading associated services…
+                </div>
+                <div class="table-wrap" *ngIf="!loadingAssociatedServices && associatedServices.length">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Linked To</th>
+                                <th>Values / Rules</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let s of associatedServices">
+                                <td>
+                                    <div class="cell-main">
+                                        <div class="cell-title">{{ s.serviceName }}</div>
+                                        <div class="cell-sub mono">#{{ s.serviceId }}</div>
+                                    </div>
+                                </td>
+                                <td> {{ getAssociatedLinkedTo(s) }} </td>
+                                <td>
+                                    <div *ngIf="s.values?.length; else noServiceValues">
+                                        <div class="value-rule-card" *ngFor="let v of s.values">
+                                            <div class="cell-title"> {{ getValueLabel(v) }} </div>
+                                            <div class="cell-sub">
+                                                <span class="table-badge table-badge--soft"> {{
+                                                    PricingInputBehavior[v.pricingBehavior] }} </span>
+                                                <span class="status" [class.active]="v.isRequired"> {{ v.isRequired ?
+                                                    'Required' : 'Optional' }} </span>
+                                            </div>
+                                            <div class="cell-sub"> {{ getPricingAmountLabel(v) }} </div>
+                                            <div class="cell-sub" *ngIf="v.min != null || v.max != null"> Range: {{
+                                                v.min != null ? v.min : '-' }} - {{ v.max != null ? v.max : '-' }}
+                                            </div>
+                                            <div class="cell-sub" *ngIf="v.dependsOnInputValueDisplayName"> Depends on:
+                                                {{ v.dependsOnInputValueDisplayName }} </div>
+                                        </div>
+                                    </div>
+                                    <ng-template #noServiceValues>
+                                        <span class="muted">No pricing values</span>
+                                    </ng-template>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div *ngIf="!loadingAssociatedServices && !associatedServices.length"
+                    class="empty-state empty-state--sm">
+                    <h4>No associated services</h4>
+                    <p class="muted">This input definition is not used by any service yet.</p>
+                </div>
+            </div>
         </div>
     </div>
 </section>

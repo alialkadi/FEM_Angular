@@ -25,6 +25,15 @@
         <p>Loading requests...</p>
     </div>
     <div class="filters">
+        <div class="filter-item search-filter">
+            <label>Search</label>
+            <div class="search-box">
+                <input type="text" placeholder="Request No., User Name, or Email" [(ngModel)]="searchTerm"
+                    (keyup.enter)="searchRequests()" />
+                <button type="button" class="search-btn" (click)="searchRequests()">
+                    <i class="fa-solid fa-magnifying-glass"></i> Search </button>
+            </div>
+        </div>
         <!-- Status -->
         <div class="filter-item">
             <label>Status</label>
@@ -67,30 +76,38 @@
                     <td>{{ r.userFullName }}</td>
                     <td>{{ r.email }}</td>
                     <td class="request-status-td">
-                        <mat-form-field appearance="outline" class="request-status-select-field">
-                            <mat-select class="request-status-select" [value]="r.statusId || null"
-                                panelClass="request-status-select-panel" (selectionChange)="
-                openStatusReasonPopup(
-                    r.id,
-                    $event.value,
-                    getSelectedStatusName(r.id, $event.value)
-                )
-            ">
-                                <mat-select-trigger>
-                                    <span class="request-status-selected-chip"
-                                        [ngClass]="getStatusClass(r.statusName || 'Pending')"> {{ r.statusName ||
-                                        'Select Status' }} </span>
-                                </mat-select-trigger>
-                                <!-- Hidden current value so trigger always renders -->
-                                <mat-option *ngIf="r.statusId" class="request-status-option-hidden"
-                                    [value]="r.statusId"> {{ r.statusName || 'Current Status' }} </mat-option>
-                                <mat-option class="request-status-option"
-                                    *ngFor="let s of allowedStatusesByRequestId[r.id]" [value]="s.id">
-                                    <span class="request-status-option-chip" [ngClass]="getStatusClass(s.name)"> {{
-                                        s.name }} </span>
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
+                        <ng-container *ngIf="isCanceledStatus(r.statusName); else editableStatus">
+                            <span class="request-status-selected-chip request-status-locked-chip"
+                                [ngClass]="getStatusClass(r.statusName || 'Canceled')"> {{ r.statusName || 'Canceled' }}
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                        </ng-container>
+                        <ng-template #editableStatus>
+                            <mat-form-field appearance="outline" class="request-status-select-field">
+                                <mat-select class="request-status-select" [value]="r.statusId || null"
+                                    panelClass="request-status-select-panel" (selectionChange)="
+    openStatusReasonPopup(
+      r.id,
+      $event.value,
+      getSelectedStatusName(r.id, $event.value)
+    )
+  ">
+                                    <mat-select-trigger>
+                                        <span class="request-status-selected-chip"
+                                            [ngClass]="getStatusClass(r.statusName || 'Pending')"> {{ r.statusName ||
+                                            'Select Status' }} </span>
+                                    </mat-select-trigger>
+                                    <!-- keep current status available for display -->
+                                    <mat-option *ngIf="r.statusId" class="request-status-option-hidden"
+                                        [value]="r.statusId"> {{ r.statusName || 'Current Status' }} </mat-option>
+                                    <mat-option class="request-status-option"
+                                        *ngFor="let s of allowedStatusesByRequestId[r.id]" [value]="s.id">
+                                        <span class="request-status-option-chip" [ngClass]="getStatusClass(s.name)"> {{
+                                            s.name }} </span>
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </ng-template>
                     </td>
                     <td>{{ r.requestedDate | date: 'short' }}</td>
                     <td>{{ r.totalCost | currency }}</td>

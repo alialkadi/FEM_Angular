@@ -8,7 +8,7 @@ import { FeeResponse } from '../../../features/Models/FeeResponse.Model';
 @Component({
   selector: 'app-edit-fee-dialog',
   templateUrl: './edit-fee-dialog.component.html',
-  styleUrl: './edit-fee-dialog.component.scss'
+  styleUrl: './edit-fee-dialog.component.scss',
 })
 export class EditFeeDialogComponent {
   editForm!: FormGroup;
@@ -22,7 +22,8 @@ export class EditFeeDialogComponent {
     private feeService: FeeService,
     private serviceService: ServiceService,
     private dialogRef: MatDialogRef<EditFeeDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { fee: FeeResponse; mode: 'name' | 'services' | 'full' }
+    @Inject(MAT_DIALOG_DATA)
+    public data: { fee: FeeResponse; mode: 'name' | 'services' | 'full' },
   ) {}
 
   ngOnInit(): void {
@@ -30,17 +31,27 @@ export class EditFeeDialogComponent {
     this.title = this.getTitleByMode(this.mode);
 
     this.editForm = this.fb.group({
-      name: [this.data.fee.name, [Validators.required, Validators.minLength(2)]],
+      name: [
+        this.data.fee.name,
+        [Validators.required, Validators.minLength(2)],
+      ],
       amount: [this.data.fee.amount, [Validators.required, Validators.min(0)]],
       description: [this.data.fee.description],
       isGlobal: [this.data.fee.isGlobal],
-      serviceIds: [this.data.fee.services.map(s => s.id)]
+      isVisible: [this.data.fee.isVisible],
+      serviceIds: [this.data.fee.services.map((s) => s.id)],
     });
 
     if (this.mode === 'name') {
       this.disableFields(['amount', 'description', 'isGlobal', 'serviceIds']);
     } else if (this.mode === 'services') {
-      this.disableFields(['name', 'amount', 'description', 'isGlobal']);
+      this.disableFields([
+        'name',
+        'amount',
+        'description',
+        'isGlobal',
+        'isVisible',
+      ]);
     }
 
     if (this.mode !== 'name') {
@@ -48,7 +59,7 @@ export class EditFeeDialogComponent {
     }
 
     // handle global toggle changes
-    this.editForm.get('isGlobal')?.valueChanges.subscribe(isGlobal => {
+    this.editForm.get('isGlobal')?.valueChanges.subscribe((isGlobal) => {
       const serviceIdsControl = this.editForm.get('serviceIds');
       if (isGlobal) {
         serviceIdsControl?.disable();
@@ -58,55 +69,69 @@ export class EditFeeDialogComponent {
       }
     });
   }
-onServiceToggle(serviceId: number, event: Event): void {
-  const checked = (event.target as HTMLInputElement).checked;
-  const serviceIds = this.editForm.get('serviceIds')?.value || [];
+  onServiceToggle(serviceId: number, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const serviceIds = this.editForm.get('serviceIds')?.value || [];
 
-  if (checked && !serviceIds.includes(serviceId)) {
-    serviceIds.push(serviceId);
-  } else if (!checked) {
-    const index = serviceIds.indexOf(serviceId);
-    if (index > -1) serviceIds.splice(index, 1);
+    if (checked && !serviceIds.includes(serviceId)) {
+      serviceIds.push(serviceId);
+    } else if (!checked) {
+      const index = serviceIds.indexOf(serviceId);
+      if (index > -1) serviceIds.splice(index, 1);
+    }
+
+    this.editForm.get('serviceIds')?.setValue(serviceIds);
   }
-
-  this.editForm.get('serviceIds')?.setValue(serviceIds);
-}
-
 
   getTitleByMode(mode: string): string {
     return mode === 'name'
       ? 'Rename Fee'
       : mode === 'services'
-      ? 'Reassign Services'
-      : 'Edit Fee Details';
+        ? 'Reassign Services'
+        : 'Edit Fee Details';
   }
 
   disableFields(fields: string[]): void {
-    fields.forEach(f => this.editForm.get(f)?.disable());
+    fields.forEach((f) => this.editForm.get(f)?.disable());
   }
 
   loadServices(): void {
     this.serviceService.getAllServices().subscribe({
-      next: res => {
+      next: (res) => {
         this.availableServices = res.data.services || [];
-        const selectedIds = this.data.fee.services.map(s => s.id);
+        const selectedIds = this.data.fee.services.map((s) => s.id);
         this.editForm.get('serviceIds')?.setValue(selectedIds);
       },
-      error: () => (this.availableServices = [])
+      error: () => (this.availableServices = []),
     });
   }
 
   submit(): void {
     if (this.editForm.invalid) return;
+
     this.loading = true;
-    const dto = this.editForm.getRawValue();
+
+    const form = this.editForm.getRawValue();
+
+    const dto = {
+      name: form.name,
+      amount: form.amount,
+      description: form.description,
+      isGlobal: form.isGlobal,
+      isVisible: form.isVisible === true,
+      serviceIds: form.isGlobal ? [] : form.serviceIds,
+    };
+
+    console.log('Update Fee DTO:', dto);
 
     this.feeService.updateFee(this.data.fee.id, dto).subscribe({
-      next: res => {
+      next: (res) => {
         this.loading = false;
-        this.dialogRef.close(res);
+        this.dialogRef.close(res.data);
       },
-      error: () => (this.loading = false)
+      error: () => {
+        this.loading = false;
+      },
     });
   }
 

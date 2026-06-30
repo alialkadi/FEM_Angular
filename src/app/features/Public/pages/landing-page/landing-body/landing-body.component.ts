@@ -1,11 +1,5 @@
-import { WishlistService } from './../../../Services/wishlist.service';
-import { Router } from '@angular/router';
-import { ServiceService } from './../../../../admin/Services/service-service.service';
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { AdvertisedServiceListItemDto } from '../../../../Models/Advertised.model';
-import { AdvertiseService } from './../../../Services/advertise.service';
-import { CategoryService } from '../../../../admin/Services/CategoryService';
-import { Category } from '../../../../Models/Category';
+import { Router } from '@angular/router';
 import {
   AbstractControl,
   FormBuilder,
@@ -14,12 +8,21 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+
+import * as L from 'leaflet';
+
+import { ServiceService } from './../../../../admin/Services/service-service.service';
+import { CategoryService } from '../../../../admin/Services/CategoryService';
+import { AppSettingService } from '../../../../admin/Services/app-setting.service';
+
+import { WishlistService } from './../../../Services/wishlist.service';
+import { AdvertiseService } from './../../../Services/advertise.service';
 import { TechnicalConsultationService } from './../../../Services/technical-consultation.service';
 import { MapGeocodingService } from './../../../Services/map-geocoding.service';
 
-import * as L from 'leaflet';
+import { Category } from '../../../../Models/Category';
+import { AdvertisedServiceListItemDto } from '../../../../Models/Advertised.model';
 import { CreateTechnicalConsultationRequest } from '../../../Models/Consultation.model';
-import { AppSettingService } from '../../../../admin/Services/app-setting.service';
 
 @Component({
   selector: 'app-landing-body',
@@ -27,55 +30,34 @@ import { AppSettingService } from '../../../../admin/Services/app-setting.servic
   styleUrls: ['./landing-body.component.scss'],
 })
 export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
-  services = [
-    {
-      title: 'Repair',
-      description:
-        'Window & Door Hardware Replacement Sealed Unit Replacement Screen Replacement Weatherproofing Renewal Frame Repair.',
-      imageUrl: './assets/landing-page/maintenance.jpg',
-    },
-    {
-      title: 'Installation',
-      description:
-        'Windows & Doors Installation Patio Sliding & French Doors installation Custom & Retrofit Installation New Construction Installation Finishing, Sealing & Detail Work.',
-      imageUrl: './assets/landing-page/installation.jpg',
-    },
-    {
-      title: 'Inspection',
-      description:
-        '"Three Distinctive InspectionTiers" Comprehensive tiers of draft detection and risk assessment to optimize efficiency and prevent structural moisture damage.',
-      imageUrl: './assets/landing-page/replacement.jpg',
-    },
-    {
-      title: 'Maintenance',
-      description:
-        '"Three Distinctive InspectionTiers" Scheduled preventative care including hardware lubrication and alignment to enhance the functional lifespan of systems.',
-      imageUrl: './assets/landing-page/maintenance.jpg',
-    },
-  ];
-
-  data: AdvertisedServiceListItemDto[] = [];
-  currentSlide = 0;
-  cardsPerView = 3;
   categories: Category[] = [];
   categoriesLoading = false;
+
+  advertisedServices: AdvertisedServiceListItemDto[] = [];
+  // featuredIndex = 0;
+  // featuredItemsPerView = 3;
+  // private featuredTimer: ReturnType<typeof setInterval> | null = null;
 
   consultationForm!: FormGroup;
   consultationSubmitting = false;
   consultationSuccessMessage = '';
   consultationErrorMessage = '';
+  consultationPrice = 0;
 
   portfolioOptions = ['Residential', 'Commercial'];
   serviceScopeOptions = ['Repair', 'Installation', 'Inspection', 'Maintenance'];
 
-  private map!: L.Map;
-  private marker!: L.Marker;
-  private readonly defaultLat = 43.6532; // Toronto, Canada
+  private map?: L.Map;
+  private marker?: L.Marker;
+
+  private readonly defaultLat = 43.6532;
   private readonly defaultLng = -79.3832;
   private readonly defaultZoom = 10;
 
+  private readonly resizeHandler = () => this.handleFeaturedResize();
+
   constructor(
-    private _advertiseService: AdvertiseService,
+    private advertiseService: AdvertiseService,
     private serviceService: ServiceService,
     private router: Router,
     private wishlist: WishlistService,
@@ -88,71 +70,310 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.buildConsultationForm();
-    this.updateCardsPerView();
-    this.getAll();
+    this.setFeaturedItemsPerView();
+
+    this.loadAdvertisedServices();
     this.loadCategories();
     this.getConsultationPrice();
-    window.addEventListener('resize', this.updateCardsPerViewBound, true);
+
+    window.addEventListener('resize', this.resizeHandler, { passive: true });
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+    // Enable only when the map HTML is visible.
+    // this.initMap();
+  }
 
   ngOnDestroy(): void {
-    window.removeEventListener('resize', this.updateCardsPerViewBound, true);
+    this.pauseFeaturedCarousel();
+    window.removeEventListener('resize', this.resizeHandler);
 
     if (this.map) {
       this.map.remove();
     }
   }
-  consultationPrice: number = 0;
-  getConsultationPrice() {
-    this.appSettingService.getConsultationPrice().subscribe({
+
+  // =========================
+  // Featured services carousel
+  // =========================
+
+  featuredIndex = 0;
+  // featuredItemsPerView = 3;
+  disableFeaturedAnimation = false;
+  private featuredTimer: any;
+
+  featuredItemsPerView = 3;
+
+  featuredRows: {
+    categoryName: string;
+    services: AdvertisedServiceListItemDto[];
+    index: number;
+    disableAnimation: boolean;
+    timer: any;
+  }[] = [];
+
+  get hasFeaturedRows(): boolean {
+    return this.featuredRows.some((row) => row.services.length > 0);
+  }
+
+  getFeaturedDots(row: { services: AdvertisedServiceListItemDto[] }): number[] {
+    return Array.from({ length: row.services.length }, (_, index) => index);
+  }
+
+  getDisplayedFeaturedServices(row: {
+    services: AdvertisedServiceListItemDto[];
+  }): AdvertisedServiceListItemDto[] {
+    if (!row.services.length) return [];
+
+    if (row.services.length <= this.featuredItemsPerView) {
+      return row.services;
+    }
+
+    return [
+      ...row.services,
+      ...row.services.slice(0, this.featuredItemsPerView),
+    ];
+  }
+
+  getFeaturedTranslate(row: { index: number }): string {
+    return `translateX(-${row.index * (100 / this.featuredItemsPerView)}%)`;
+  }
+
+  private setFeaturedItemsPerView(): void {
+    const width = window.innerWidth;
+
+    if (width < 768) {
+      this.featuredItemsPerView = 1;
+    } else if (width < 1100) {
+      this.featuredItemsPerView = 2;
+    } else {
+      this.featuredItemsPerView = 3;
+    }
+  }
+
+  private handleFeaturedResize(): void {
+    this.setFeaturedItemsPerView();
+
+    this.featuredRows.forEach((row) => {
+      if (row.index >= row.services.length) {
+        row.index = 0;
+      }
+    });
+  }
+
+  private buildFeaturedRows(): void {
+    const map = new Map<string, Map<number, AdvertisedServiceListItemDto>>();
+
+    this.advertisedServices.forEach((service) => {
+      const categoryName =
+        (service as any).categoryName ||
+        (service as any).CategoryName ||
+        'Other Services';
+
+      if (!map.has(categoryName)) {
+        map.set(categoryName, new Map<number, AdvertisedServiceListItemDto>());
+      }
+
+      map.get(categoryName)!.set(service.id, service);
+    });
+
+    this.featuredRows = Array.from(map.entries()).map(
+      ([categoryName, servicesMap]) => ({
+        categoryName,
+        services: Array.from(servicesMap.values()).sort(
+          (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+        ),
+        index: 0,
+        disableAnimation: false,
+        timer: null,
+      }),
+    );
+  }
+
+  startFeaturedCarousel(row?: any): void {
+    if (row) {
+      this.startFeaturedRowCarousel(row);
+      return;
+    }
+
+    this.featuredRows.forEach((featuredRow) => {
+      this.startFeaturedRowCarousel(featuredRow);
+    });
+  }
+
+  private startFeaturedRowCarousel(row: any): void {
+    this.pauseFeaturedCarousel(row);
+
+    if (row.services.length <= this.featuredItemsPerView) return;
+
+    row.timer = setInterval(() => {
+      this.nextFeatured(row);
+    }, 3500);
+  }
+
+  pauseFeaturedCarousel(row?: any): void {
+    if (row) {
+      if (!row.timer) return;
+
+      clearInterval(row.timer);
+      row.timer = null;
+      return;
+    }
+
+    this.featuredRows.forEach((featuredRow) => {
+      if (featuredRow.timer) {
+        clearInterval(featuredRow.timer);
+        featuredRow.timer = null;
+      }
+    });
+  }
+
+  nextFeatured(row: any): void {
+    if (row.services.length <= this.featuredItemsPerView) return;
+
+    row.disableAnimation = false;
+    row.index++;
+
+    if (row.index >= row.services.length) {
+      setTimeout(() => {
+        row.disableAnimation = true;
+        row.index = 0;
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            row.disableAnimation = false;
+          });
+        });
+      }, 500);
+    }
+  }
+
+  prevFeatured(row: any): void {
+    if (row.services.length <= this.featuredItemsPerView) return;
+
+    if (row.index === 0) {
+      row.disableAnimation = true;
+      row.index = row.services.length;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          row.disableAnimation = false;
+          row.index--;
+        });
+      });
+
+      return;
+    }
+
+    row.disableAnimation = false;
+    row.index--;
+  }
+
+  goToFeatured(row: any, index: number): void {
+    row.disableAnimation = false;
+    row.index = index;
+  }
+
+  trackByFeaturedRow(index: number, row: any): string {
+    return row.categoryName;
+  }
+
+  // =========================
+  // Data loading
+  // =========================
+
+  loadAdvertisedServices(): void {
+    this.advertiseService.getAll().subscribe({
       next: (res) => {
-        console.log(res);
-        this.consultationPrice = res.data;
+        this.advertisedServices = (res?.data ?? []).sort(
+          (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+        );
+
+        this.setFeaturedItemsPerView();
+        this.buildFeaturedRows();
+        this.startFeaturedCarousel();
+      },
+      error: (err) => {
+        console.error('Failed to load advertised services', err);
+        this.advertisedServices = [];
+        this.featuredRows = [];
+        this.pauseFeaturedCarousel();
       },
     });
   }
+
+  loadCategories(): void {
+    this.categoriesLoading = true;
+
+    this.categoryService.getAllCategories(true).subscribe({
+      next: (res) => {
+        this.categories = res?.data?.categories ?? [];
+        this.categoriesLoading = false;
+      },
+      error: () => {
+        this.categories = [];
+        this.categoriesLoading = false;
+      },
+    });
+  }
+
+  getConsultationPrice(): void {
+    this.appSettingService.getConsultationPrice().subscribe({
+      next: (res) => {
+        this.consultationPrice = res?.data ?? 0;
+      },
+      error: () => {
+        this.consultationPrice = 0;
+      },
+    });
+  }
+
   // =========================
-  // VALIDATORS
+  // Navigation / actions
   // =========================
-  private noWhitespaceValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = (control.value ?? '').toString();
-      return value.trim().length === 0 ? { whitespace: true } : null;
-    };
+
+  openCategory(category: Category): void {
+    if (!category?.id) return;
+
+    this.router.navigate(['/FenetrationMaintainence/Home/serviceexplorer'], {
+      queryParams: { categoryId: category.id },
+    });
   }
 
-  private nameValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = (control.value ?? '').toString().trim();
-      if (!value) return null;
+  requestAdvertisedService(item: AdvertisedServiceListItemDto): void {
+    this.serviceService.getServiceExplorerItem(item.id).subscribe({
+      next: (res) => {
+        console.log(res);
+        const fullService = res.response;
 
-      // letters + spaces + apostrophe + hyphen
-      const valid = /^[a-zA-ZÀ-ÿ\s'-]+$/.test(value);
-      return valid ? null : { invalidName: true };
-    };
+        this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
+          state: { selectedServices: [fullService] },
+        });
+      },
+    });
   }
 
-  private phoneValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = (control.value ?? '').toString().trim();
-      if (!value) return null;
-
-      // allows international numbers, spaces, +, -, ()
-      const valid = /^\+?[0-9\s\-()]{7,20}$/.test(value);
-      return valid ? null : { invalidPhone: true };
-    };
+  isWishlisted(serviceId: number): boolean {
+    return this.wishlist.isWishlisted(serviceId);
   }
 
-  private arrayRequiredValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value;
-      return Array.isArray(value) && value.length > 0
-        ? null
-        : { required: true };
-    };
+  toggleWishlist(item: AdvertisedServiceListItemDto): void {
+    if (this.isWishlisted(item.id)) {
+      this.wishlist.remove(item.id);
+      return;
+    }
+
+    this.wishlist.add({
+      serviceId: item.id,
+      name: item.name,
+      description: item.description,
+      fileUrl: item.fileUrl,
+    });
   }
+
+  // =========================
+  // Consultation form
+  // =========================
 
   private buildConsultationForm(): void {
     this.consultationForm = this.fb.group({
@@ -214,6 +435,7 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
       ],
       placeId: [null, [Validators.maxLength(200)]],
       portfolioType: ['', [Validators.required]],
+      serviceScopes: [[], [this.arrayRequiredValidator()]],
       message: [
         '',
         [
@@ -223,217 +445,13 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
           Validators.maxLength(2000),
         ],
       ],
-      serviceScopes: [[], [this.arrayRequiredValidator()]],
     });
-  }
-
-  private initMap(): void {
-    const mapContainer = document.getElementById('consultation-map');
-    if (!mapContainer) return;
-
-    if (this.map) {
-      this.map.remove();
-    }
-
-    this.map = L.map('consultation-map', {
-      center: [this.defaultLat, this.defaultLng],
-      zoom: this.defaultZoom,
-      scrollWheelZoom: true,
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(this.map);
-
-    this.marker = L.marker([this.defaultLat, this.defaultLng], {
-      draggable: true,
-    }).addTo(this.map);
-
-    this.consultationForm.patchValue({
-      latitude: this.defaultLat,
-      longitude: this.defaultLng,
-    });
-
-    this.marker.on('dragend', () => {
-      const position = this.marker.getLatLng();
-      this.handleMapSelection(position.lat, position.lng);
-    });
-
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      this.handleMapSelection(e.latlng.lat, e.latlng.lng);
-    });
-  }
-
-  private handleMapSelection(lat: number, lng: number): void {
-    if (this.marker) {
-      this.marker.setLatLng([lat, lng]);
-    }
-
-    this.consultationForm.patchValue({
-      latitude: lat,
-      longitude: lng,
-    });
-
-    this.consultationForm.get('latitude')?.markAsTouched();
-    this.consultationForm.get('longitude')?.markAsTouched();
-
-    this.reverseGeocode(lat, lng);
-  }
-
-  private reverseGeocode(lat: number, lng: number): void {
-    this.mapGeocodingService.reverseGeocode(lat, lng).subscribe({
-      next: (res) => {
-        this.consultationForm.patchValue({
-          address: res?.display_name ?? '',
-        });
-        this.consultationForm.get('address')?.markAsTouched();
-        this.consultationForm.get('address')?.updateValueAndValidity();
-      },
-      error: (err) => {
-        console.error('Reverse geocoding failed', err);
-      },
-    });
-  }
-
-  loadCategories(): void {
-    this.categoriesLoading = true;
-
-    this.categoryService.getAllCategories(true).subscribe({
-      next: (res) => {
-        this.categories = res?.data?.categories ?? [];
-        this.categoriesLoading = false;
-      },
-      error: () => {
-        this.categories = [];
-        this.categoriesLoading = false;
-      },
-    });
-  }
-
-  openCategory(category: Category): void {
-    if (!category?.id) return;
-
-    this.router.navigate(['/FenetrationMaintainence/Home/serviceexplorer'], {
-      queryParams: { categoryId: category.id },
-    });
-  }
-
-  private updateCardsPerViewBound = () => this.updateCardsPerView();
-
-  updateCardsPerView(): void {
-    const width = window.innerWidth;
-
-    if (width < 768) {
-      this.cardsPerView = 1;
-    } else if (width < 1100) {
-      this.cardsPerView = 2;
-    } else {
-      this.cardsPerView = 3;
-    }
-
-    const max = this.maxSlideIndex;
-    if (this.currentSlide > max) {
-      this.currentSlide = max;
-    }
-  }
-
-  get maxSlideIndex(): number {
-    if (!this.data.length) return 0;
-    return Math.max(0, this.data.length - this.cardsPerView);
-  }
-
-  get trackTranslate(): string {
-    const cardWidth = 100 / this.cardsPerView;
-    return `translateX(-${this.currentSlide * cardWidth}%)`;
-  }
-
-  getAll() {
-    this._advertiseService.getAll().subscribe({
-      next: (res) => {
-        this.data = (res.data || []).sort((a, b) => a.sortOrder - b.sortOrder);
-      },
-      error: (err) => {
-        console.error('Failed to load advertised services', err);
-      },
-    });
-  }
-
-  nextSlide(): void {
-    if (this.currentSlide >= this.maxSlideIndex) {
-      this.currentSlide = 0;
-      return;
-    }
-    this.currentSlide++;
-  }
-
-  prevSlide(): void {
-    if (this.currentSlide <= 0) {
-      this.currentSlide = this.maxSlideIndex;
-      return;
-    }
-    this.currentSlide--;
-  }
-
-  goToSlide(index: number): void {
-    this.currentSlide = index;
-  }
-
-  get visibleDots(): number[] {
-    return Array.from({ length: this.maxSlideIndex + 1 }, (_, i) => i);
-  }
-
-  requestAdvertisedService(item: AdvertisedServiceListItemDto) {
-    this.serviceService.getServicesById(item.id).subscribe({
-      next: (res) => {
-        const fullService = res.data;
-        this.router.navigate(['/FenetrationMaintainence/Home/service-review'], {
-          state: { selectedServices: [fullService] },
-        });
-      },
-    });
-  }
-
-  addAdvertisedToWishlist(item: AdvertisedServiceListItemDto) {
-    this.wishlist.add({
-      serviceId: item.id,
-      name: item.name,
-      description: item.description,
-      fileUrl: item.fileUrl,
-      metadata: [],
-    });
-  }
-
-  isWishlisted(serviceId: number): boolean {
-    return this.wishlist.isWishlisted(serviceId);
-  }
-
-  toggleWishlist(item: AdvertisedServiceListItemDto) {
-    const s = item;
-
-    if (this.isWishlisted(s.id)) {
-      this.wishlist.remove(s.id);
-    } else {
-      this.wishlist.add({
-        serviceId: s.id,
-        name: s.name,
-        description: s.description,
-        fileUrl: s.fileUrl,
-      });
-    }
-  }
-
-  removeFromReview(item: AdvertisedServiceListItemDto) {
-    this.data = this.data.filter((r) => r.id !== item.id);
-    this.wishlist.remove(item.id);
-  }
-
-  trackByAdvertised(index: number, item: AdvertisedServiceListItemDto): number {
-    return item.id;
   }
 
   isScopeSelected(scope: string): boolean {
     const current: string[] =
       this.consultationForm.get('serviceScopes')?.value ?? [];
+
     return current.includes(scope);
   }
 
@@ -441,11 +459,11 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
     const control = this.consultationForm.get('serviceScopes');
     const current: string[] = control?.value ?? [];
 
-    if (current.includes(scope)) {
-      control?.setValue(current.filter((x) => x !== scope));
-    } else {
-      control?.setValue([...current, scope]);
-    }
+    control?.setValue(
+      current.includes(scope)
+        ? current.filter((item) => item !== scope)
+        : [...current, scope],
+    );
 
     control?.markAsTouched();
     control?.updateValueAndValidity();
@@ -479,35 +497,12 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
     this.consultationSubmitting = true;
 
     this.technicalConsultationService.submit(payload).subscribe({
-      next: (res) => {
+      next: () => {
         this.consultationSubmitting = false;
         this.consultationSuccessMessage =
           'Service Call request submitted successfully.';
 
-        this.consultationForm.reset({
-          firstName: '',
-          lastName: '',
-          phoneNumber: '',
-          email: '',
-          address: '',
-          latitude: this.defaultLat,
-          longitude: this.defaultLng,
-          placeId: null,
-          portfolioType: '',
-          message: '',
-          serviceScopes: [],
-        });
-
-        this.consultationForm.markAsPristine();
-        this.consultationForm.markAsUntouched();
-
-        if (this.marker) {
-          this.marker.setLatLng([this.defaultLat, this.defaultLng]);
-          this.map.setView(
-            [this.defaultLat, this.defaultLng],
-            this.defaultZoom,
-          );
-        }
+        this.resetConsultationForm();
       },
       error: (err) => {
         this.consultationSubmitting = false;
@@ -515,6 +510,30 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
           err?.error?.message || 'Failed to submit consultation request.';
       },
     });
+  }
+
+  private resetConsultationForm(): void {
+    this.consultationForm.reset({
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      email: '',
+      address: '',
+      latitude: this.defaultLat,
+      longitude: this.defaultLng,
+      placeId: null,
+      portfolioType: '',
+      serviceScopes: [],
+      message: '',
+    });
+
+    this.consultationForm.markAsPristine();
+    this.consultationForm.markAsUntouched();
+
+    if (this.marker && this.map) {
+      this.marker.setLatLng([this.defaultLat, this.defaultLng]);
+      this.map.setView([this.defaultLat, this.defaultLng], this.defaultZoom);
+    }
   }
 
   get f() {
@@ -525,10 +544,117 @@ export class LandingBodyComponent implements OnInit, AfterViewInit, OnDestroy {
     const control = this.consultationForm.get(controlName);
     if (!control) return false;
 
-    if (errorName) {
-      return !!(control.touched && control.hasError(errorName));
+    return errorName
+      ? !!(control.touched && control.hasError(errorName))
+      : !!(control.touched && control.invalid);
+  }
+
+  // =========================
+  // Validators
+  // =========================
+
+  private noWhitespaceValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = (control.value ?? '').toString();
+      return value.trim().length === 0 ? { whitespace: true } : null;
+    };
+  }
+
+  private nameValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = (control.value ?? '').toString().trim();
+      if (!value) return null;
+
+      return /^[a-zA-ZÀ-ÿ\s'-]+$/.test(value) ? null : { invalidName: true };
+    };
+  }
+
+  private phoneValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = (control.value ?? '').toString().trim();
+      if (!value) return null;
+
+      return /^\+?[0-9\s\-()]{7,20}$/.test(value)
+        ? null
+        : { invalidPhone: true };
+    };
+  }
+
+  private arrayRequiredValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+
+      return Array.isArray(value) && value.length > 0
+        ? null
+        : { required: true };
+    };
+  }
+
+  // =========================
+  // Optional map support
+  // =========================
+
+  private initMap(): void {
+    const mapContainer = document.getElementById('consultation-map');
+    if (!mapContainer) return;
+
+    if (this.map) {
+      this.map.remove();
     }
 
-    return !!(control.touched && control.invalid);
+    this.map = L.map('consultation-map', {
+      center: [this.defaultLat, this.defaultLng],
+      zoom: this.defaultZoom,
+      scrollWheelZoom: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(this.map);
+
+    this.marker = L.marker([this.defaultLat, this.defaultLng], {
+      draggable: true,
+    }).addTo(this.map);
+
+    this.marker.on('dragend', () => {
+      const position = this.marker?.getLatLng();
+      if (!position) return;
+
+      this.handleMapSelection(position.lat, position.lng);
+    });
+
+    this.map.on('click', (event: L.LeafletMouseEvent) => {
+      this.handleMapSelection(event.latlng.lat, event.latlng.lng);
+    });
+  }
+
+  private handleMapSelection(lat: number, lng: number): void {
+    this.marker?.setLatLng([lat, lng]);
+
+    this.consultationForm.patchValue({
+      latitude: lat,
+      longitude: lng,
+    });
+
+    this.consultationForm.get('latitude')?.markAsTouched();
+    this.consultationForm.get('longitude')?.markAsTouched();
+
+    this.reverseGeocode(lat, lng);
+  }
+
+  private reverseGeocode(lat: number, lng: number): void {
+    this.mapGeocodingService.reverseGeocode(lat, lng).subscribe({
+      next: (res) => {
+        this.consultationForm.patchValue({
+          address: res?.display_name ?? '',
+        });
+
+        this.consultationForm.get('address')?.markAsTouched();
+        this.consultationForm.get('address')?.updateValueAndValidity();
+      },
+      error: (err) => {
+        console.error('Reverse geocoding failed', err);
+      },
+    });
   }
 }

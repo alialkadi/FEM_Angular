@@ -977,3 +977,28 @@
     padding: 9px 13px;
   }
 }
+.section-subtitle {
+  margin-top: 12px;
+  max-width: 850px;
+
+  padding: 12px 16px;
+
+  border-left: 4px solid var(--link-hover);
+  border-radius: 0 12px 12px 0;
+
+  background: rgba(181, 144, 96, 0.08);
+
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.7;
+
+  position: relative;
+}
+
+.section-subtitle::before {
+  content: "ⓘ";
+  margin-right: 8px;
+  color: var(--link-hover);
+  font-weight: 700;
+}

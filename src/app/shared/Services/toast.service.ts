@@ -3,6 +3,15 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
+  warning(arg0: string) {
+    throw new Error('Method not implemented.');
+  }
+  success(arg0: any) {
+    throw new Error('Method not implemented.');
+  }
+  error(arg0: any) {
+    throw new Error('Method not implemented.');
+  }
   constructor(private snackBar: MatSnackBar) {}
 
   show(

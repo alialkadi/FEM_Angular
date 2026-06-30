@@ -100,8 +100,13 @@ export class CreateServiceComponent implements OnInit {
       pointNumber: [''],
       baseCost: [0, [Validators.required, Validators.min(0)]],
       baseRate: [0, [Validators.required, Validators.min(0)]],
-      warrantyDuration: [0, [Validators.required, Validators.min(0)]],
-      warrantyUnit: ['Months', Validators.required],
+      materialWarrantyDuration: [0, [Validators.required, Validators.min(0)]],
+      materialWarrantyUnit: ['Years', Validators.required],
+      workmanshipWarrantyDuration: [
+        0,
+        [Validators.required, Validators.min(0)],
+      ],
+      workmanshipWarrantyUnit: ['Years', Validators.required],
       deliveryDays: [0, [Validators.required, Validators.min(0)]],
       labors: [0, [Validators.min(0)]],
       applyGlobalFees: [true],
@@ -274,10 +279,24 @@ export class CreateServiceComponent implements OnInit {
     formData.append('ApplyGlobalFees', String(!!formValue.applyGlobalFees));
     formData.append('ApplyLogistics', String(!!formValue.applyLogistics));
     formData.append(
-      'WarrantyDuration',
-      String(formValue.warrantyDuration ?? 0),
+      'MaterialWarrantyDuration',
+      String(formValue.materialWarrantyDuration ?? 0),
     );
-    formData.append('WarrantyUnit', formValue.warrantyUnit ?? 'Days');
+
+    formData.append(
+      'MaterialWarrantyUnit',
+      formValue.materialWarrantyUnit ?? 'Years',
+    );
+
+    formData.append(
+      'WorkmanshipWarrantyDuration',
+      String(formValue.workmanshipWarrantyDuration ?? 0),
+    );
+
+    formData.append(
+      'WorkmanshipWarrantyUnit',
+      formValue.workmanshipWarrantyUnit ?? 'Years',
+    );
     formData.append('DeliveryDays', String(formValue.deliveryDays ?? 0));
 
     // =========================
@@ -330,41 +349,28 @@ export class CreateServiceComponent implements OnInit {
         const behavior = input.pricingBehavior;
         const values = this.inputValuesMap[input.inputDefinitionId] || [];
 
-        // -------------------------
-        // TEXT + NONE
-        // -------------------------
-        if (isText && behavior === this.PricingInputBehavior.None) {
-          this.appendPricingInput(formData, index, {
+        // TEXT / NUMBER NONE / BOOLEAN NONE
+        if (
+          (isText || isNumber || isBoolean) &&
+          behavior === this.PricingInputBehavior.None
+        ) {
+          const payload: any = {
             inputDefinitionId: input.inputDefinitionId,
             pricingBehavior: behavior,
             amount: 0,
             isRequired: !!input.isRequired,
             priority: input.priority ?? 0,
-          });
+            min: isNumber ? (input.min ?? null) : null,
+            max: isNumber ? (input.max ?? null) : null,
+          };
+
+          this.applyDependencyToPayload(payload, input.dependsOnInputValueId);
+          this.appendPricingInput(formData, index, payload);
           index++;
           continue;
         }
 
-        // -------------------------
-        // NUMBER + NONE
-        // -------------------------
-        if (isNumber && behavior === this.PricingInputBehavior.None) {
-          this.appendPricingInput(formData, index, {
-            inputDefinitionId: input.inputDefinitionId,
-            pricingBehavior: behavior,
-            amount: 0,
-            isRequired: !!input.isRequired,
-            priority: input.priority ?? 0,
-            min: input.min ?? null,
-            max: input.max ?? null,
-          });
-          index++;
-          continue;
-        }
-
-        // -------------------------
-        // NUMBER + DIMENSIONAL
-        // -------------------------
+        // NUMBER DIMENSIONAL - NO DEPENDENCY
         if (isNumber && behavior === this.PricingInputBehavior.Dimensional) {
           this.appendPricingInput(formData, index, {
             inputDefinitionId: input.inputDefinitionId,
@@ -375,89 +381,52 @@ export class CreateServiceComponent implements OnInit {
             min: input.min ?? null,
             max: input.max ?? null,
           });
+
           index++;
           continue;
         }
 
-        // -------------------------
-        // NUMBER + FIXED / RATE
-        // BOOLEAN + FIXED / RATE
-        // -------------------------
+        // NUMBER / BOOLEAN FIXED OR RATE
         if (
           (isNumber || isBoolean) &&
           (behavior === this.PricingInputBehavior.Fixed ||
             behavior === this.PricingInputBehavior.Rate)
         ) {
-          if (input.amount == null || Number(input.amount) < 0) {
-            continue;
-          }
-
-          this.appendPricingInput(formData, index, {
+          const payload: any = {
             inputDefinitionId: input.inputDefinitionId,
             pricingBehavior: behavior,
-            amount: Number(input.amount),
+            amount: Number(input.amount ?? 0),
             isRequired: !!input.isRequired,
             priority: input.priority ?? 0,
             min: isNumber ? (input.min ?? null) : null,
             max: isNumber ? (input.max ?? null) : null,
-          });
+          };
+
+          this.applyDependencyToPayload(payload, input.dependsOnInputValueId);
+          this.appendPricingInput(formData, index, payload);
           index++;
           continue;
         }
 
-        // -------------------------
-        // SELECT + FIXED
-        // one amount per value
-        // -------------------------
-        if (isSelect && behavior === this.PricingInputBehavior.Fixed) {
-          for (const v of values) {
-            if (v.value == null || v.value === '' || Number(v.value) < 0) {
-              continue;
-            }
-
-            this.appendPricingInput(formData, index, {
-              inputDefinitionId: input.inputDefinitionId,
-              inputValueId: v.id,
-              pricingBehavior: behavior,
-              amount: Number(v.value),
-              isRequired: !!input.isRequired,
-              priority: input.priority ?? 0,
-            });
-            index++;
-          }
-
-          continue;
-        }
-
-        // -------------------------
-        // SELECT + RATE
-        // multiple rows per value
-        // -------------------------
-        if (isSelect && behavior === this.PricingInputBehavior.Rate) {
+        // SELECT + NONE / FIXED / RATE
+        if (isSelect && behavior !== this.PricingInputBehavior.Dimensional) {
           for (const v of values) {
             const rows = Array.isArray(v.rates) ? v.rates : [];
 
             for (const row of rows) {
-              if (row.amount == null || Number(row.amount) < 0) {
-                continue;
-              }
-
               const payload: any = {
                 inputDefinitionId: input.inputDefinitionId,
                 inputValueId: v.id,
                 pricingBehavior: behavior,
-                amount: Number(row.amount),
+                amount:
+                  behavior === this.PricingInputBehavior.None
+                    ? 0
+                    : Number(row.amount ?? 0),
                 isRequired: !!input.isRequired,
                 priority: input.priority ?? 0,
               };
 
-              if (row.dependsOnValueId) {
-                const parent = this.findParentByValue(row.dependsOnValueId);
-                if (parent) {
-                  payload.dependsOnInputDefinitionId = parent.inputDefinitionId;
-                  payload.dependsOnInputValueId = row.dependsOnValueId;
-                }
-              }
+              this.applyDependencyToPayload(payload, row.dependsOnInputValueId);
 
               this.appendPricingInput(formData, index, payload);
               index++;
@@ -759,17 +728,28 @@ export class CreateServiceComponent implements OnInit {
   //     this.inputValuesMap[p.inputDefinitionId]?.some((v) => v.id === valueId),
   //   )!;
   // }
-  private findParentByValue(valueId: number): any | null {
-    for (const input of this.pricingInputs) {
-      const values = this.inputValuesMap[input.inputDefinitionId] || [];
-      const found = values.find((v: any) => v.id === valueId);
-      if (found) {
-        return input;
-      }
-    }
-    return null;
-  }
+  private findParentByValue(valueId?: number): PricingInputUI | undefined {
+    if (!valueId) return undefined;
 
+    return this.pricingInputs.find((input) =>
+      (this.inputValuesMap[input.inputDefinitionId] ?? []).some(
+        (value) => value.id === Number(valueId),
+      ),
+    );
+  }
+  private applyDependencyToPayload(
+    payload: any,
+    dependsOnValueId?: number,
+  ): void {
+    if (!dependsOnValueId) return;
+
+    const parent = this.findParentByValue(dependsOnValueId);
+
+    if (!parent) return;
+
+    payload.dependsOnInputDefinitionId = parent.inputDefinitionId;
+    payload.dependsOnInputValueId = dependsOnValueId;
+  }
   private reset(): void {
     this.serviceForm.reset();
     this.selectedFile = null;
@@ -846,13 +826,14 @@ export class CreateServiceComponent implements OnInit {
 
     this.addPricingInput(def);
   }
-  addRateRow(value: any): void {
+  addRateRow(value: PricingValueUI): void {
     value.rates.push({
-      dependsOnValueId: undefined,
+      dependsOnInputDefinitionId: undefined,
+      dependsOnInputValueId: undefined,
       amount: 0,
     });
   }
-  removeRateRow(value: any, index: number): void {
+  removeRateRow(value: PricingValueUI, index: number): void {
     value.rates.splice(index, 1);
     this.calculatePreview();
   }
@@ -875,11 +856,14 @@ export class CreateServiceComponent implements OnInit {
 
         this.inputValuesMap[definitionId] = raw.map((v: PricingValueUI) => ({
           ...v,
-          rates:
-            behavior === PricingInputBehavior.Rate ||
-            behavior === PricingInputBehavior.Fixed
-              ? [{ dependsOnValueId: undefined, amount: 0 }]
-              : [],
+          amount: 0,
+          rates: [
+            {
+              dependsOnInputDefinitionId: undefined,
+              dependsOnInputValueId: undefined,
+              amount: 0,
+            },
+          ],
         }));
       },
     });
@@ -911,7 +895,7 @@ export class CreateServiceComponent implements OnInit {
           rules.push({
             pricingBehavior: input.pricingBehavior,
             amount: rateRow.amount,
-            dependsOnValueId: rateRow.dependsOnValueId,
+            dependsOnValueId: rateRow.dependsOnInputValueId,
             priority: input.priority,
             previewNumericValue: input.previewNumericValue,
           });
@@ -1005,39 +989,37 @@ export class CreateServiceComponent implements OnInit {
         (this.inputValuesMap[p.inputDefinitionId]?.length ?? 0) > 0,
     );
   }
-  getDependencyOptions(currentInput: PricingInputUI): {
-    parent: PricingInputUI;
-    value: any;
-  }[] {
-    const options: { parent: PricingInputUI; value: any }[] = [];
+  canShowInputDependency(input: PricingInputUI): boolean {
+    if (input.pricingBehavior === PricingInputBehavior.Dimensional) {
+      return false;
+    }
 
-    this.pricingInputs.forEach((parent) => {
-      // Cannot depend on itself
-      if (parent.inputDefinitionId === currentInput.inputDefinitionId) return;
+    return this.getDependencyOptions(input).length > 0;
+  }
+  getDependencyOptions(
+    currentInput: PricingInputUI,
+  ): PricingDependencyOption[] {
+    const options: PricingDependencyOption[] = [];
 
-      // Only Select inputs
-      if (parent.dataType !== MetadataDataType.Select) return;
+    for (const parent of this.pricingInputs) {
+      if (parent.inputDefinitionId === currentInput.inputDefinitionId) continue;
+      if (parent.dataType !== MetadataDataType.Select) continue;
 
-      const values = this.inputValuesMap[parent.inputDefinitionId] || [];
+      const values = this.inputValuesMap[parent.inputDefinitionId] ?? [];
 
-      // 🔑 If admin selected a preview value → only show that value
-      if (parent.previewSelectedValueId) {
-        const matched = values.find(
-          (v) => v.id === parent.previewSelectedValueId,
-        );
-        if (matched) {
-          options.push({ parent, value: matched });
-        }
-        return;
+      for (const value of values) {
+        options.push({ parent, value });
       }
-
-      // Otherwise show all values
-      values.forEach((v) => options.push({ parent, value: v }));
-    });
+    }
 
     return options;
   }
 }
+interface PricingDependencyOption {
+  parent: PricingInputUI;
+  value: PricingValueUI;
+}
+
 interface PricingRulePreview {
   pricingBehavior: PricingInputBehavior;
   amount: number;
@@ -1045,18 +1027,20 @@ interface PricingRulePreview {
   dependsOnValueId?: number;
   previewNumericValue?: number;
 }
-interface ValuePricingRuleUI {
-  rate: number;
-  dependsOnValueId?: number; // Pane.Double / Pane.Triple / undefined
+
+interface PricingValueRateUI {
+  amount: number;
+  dependsOnInputDefinitionId?: number;
+  dependsOnInputValueId?: number;
 }
+
 export interface PricingValueUI {
   id: number;
   value: string;
   displayName?: string;
 
-  // UI-only
-  rates: {
-    dependsOnValueId?: number;
-    amount: number;
-  }[];
+  amount?: number;
+  dependsOnValueId?: number;
+
+  rates: PricingValueRateUI[];
 }

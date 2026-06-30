@@ -51,13 +51,14 @@
             </div>
             <div class="form-group">
                 <label for="city">City</label>
-                <input id="city" type="text" formControlName="city" placeholder="calgory" />
-                <small *ngIf="f.city.invalid && f.city.touched">Enter a valid phone number.</small>
+                <input id="city" type="text" formControlName="city" placeholder="calgary" />
+                <small *ngIf="f.city.invalid && f.city.touched">City is required.</small>
             </div>
             <!-- Address -->
             <div class="form-group full">
                 <label for="address">Address</label>
-                <textarea id="address" formControlName="address" placeholder="Your full address"></textarea>
+                <textarea id="address" formControlName="address"
+                    placeholder="Please enter your full address"></textarea>
                 <small *ngIf="f.address.invalid && f.address.touched">Address is required.</small>
             </div>
             <!-- Preferred Contact -->
@@ -78,8 +79,7 @@
                     <span>{{ item.calculation?.total | currency }}</span>
                 </li>
             </ul>
-            <div class="summary-total"> Total: <strong *ngFor="let item of requestedServices">
-                    {{item.service.calculatedTotal}} </strong>
+            <div class="summary-total"> Total: <strong> {{this.grandTotal | currency}} </strong>
             </div>
         </section>
         <!-- Buttons -->
@@ -91,4 +91,46 @@
             </button>
         </footer>
     </form>
+</div>
+<div class="success-overlay" *ngIf="showSuccessPanel">
+    <div class="success-panel">
+        <div class="success-icon">✓</div>
+        <h2>Request Submitted Successfully</h2>
+        <p class="success-lead"> Thank you. Your service request has been received and is currently under review. </p>
+        <div class="success-info">
+            <div>
+                <span>Status</span>
+                <strong>Under Review</strong>
+            </div>
+            <div>
+                <span>Contact Method</span>
+                <strong>{{ submittedContactMethod }}</strong>
+            </div>
+        </div>
+        <div class="login-note">
+            <h4>You can login to follow your request</h4>
+            <p> Use your email address as the username: <strong>{{ submittedEmail }}</strong>
+            </p>
+            <p> Your phone number is your temporary password: <strong>{{ submittedPhone }}</strong>
+            </p>
+        </div>
+        <p class="review-note"> Our team will review your request and contact you through your chosen contact method.
+        </p>
+        <div class="success-actions">
+            <button type="button" class="login-btn" (click)="goToLogin()">
+                <span class="icon">🔐</span>
+                <span>
+                    <strong>Login Now</strong>
+                    <small>Track your request status</small>
+                </span>
+            </button>
+            <button type="button" class="home-btn" (click)="goHome()">
+                <span class="icon">🏠</span>
+                <span>
+                    <strong>Back to Home</strong>
+                    <small>Continue browsing services</small>
+                </span>
+            </button>
+        </div>
+    </div>
 </div>

@@ -13,6 +13,8 @@ import {
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../../Models/ApiResponse';
 import { MetadataAssignmentItemRequest } from '../../Models/MetadataTargetType';
+import { ExplorerResponse } from './MetadataExplorerService.service';
+import { GeneralResponse } from '../../Models/general-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -232,6 +234,25 @@ export class ServiceService {
     return this._http.put<ApiResponse<boolean>>(
       `${this.baseurl}/Service/${id}/inputs`,
       payload,
+    );
+  }
+  moveServiceUp(id: number) {
+    return this._http.patch<ApiResponse<boolean>>(
+      `${this.baseurl}/Service/${id}/move-up`,
+      {},
+    );
+  }
+
+  moveServiceDown(id: number) {
+    return this._http.patch<ApiResponse<boolean>>(
+      `${this.baseurl}/Service/${id}/move-down`,
+      {},
+    );
+  }
+
+  getServiceExplorerItem(serviceId: number) {
+    return this._http.get<GeneralResponse<ExplorerResponse>>(
+      `${this.baseurl}/MetadataExplorer/service/${serviceId}`,
     );
   }
 }

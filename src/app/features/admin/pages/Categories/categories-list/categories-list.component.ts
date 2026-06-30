@@ -1,3 +1,4 @@
+import { isPlatformBrowser } from '@angular/common';
 import { Component } from '@angular/core';
 import { CategoryService } from '../../../Services/CategoryService';
 import { Category, CreateCategory } from '../../../../Models/Category';
@@ -19,7 +20,7 @@ export class CategoriesListComponent {
   pageSizes = [15, 25, 50, 100];
   categories: Category[] = [];
   newCategory: CreateCategory = { name: '' };
-
+  sortingCategoryId: number | null = null;
   get totalPages(): number {
     return Math.ceil(this.totalCount / this.pageSize) || 1;
   }
@@ -172,6 +173,59 @@ export class CategoriesListComponent {
           this.toast.show('Failed to update category.', 'error');
         },
       });
+    });
+  }
+
+  isFirstCategory(index: number): boolean {
+    return this.pageIndex === 1 && index === 0;
+  }
+
+  isLastCategory(index: number): boolean {
+    return (
+      this.pageIndex === this.totalPages && index === this.categories.length - 1
+    );
+  }
+
+  moveUp(category: Category, index: number): void {
+    if (this.isFirstCategory(index)) return;
+
+    this.sortingCategoryId = category.id;
+
+    this.categoryService.moveUp(category.id).subscribe({
+      next: (res) => {
+        console.log(res);
+        this.sortingCategoryId = null;
+        if (res.success) {
+          this.loadCategories();
+        } else {
+          this.toast.show(res.message, 'error');
+        }
+      },
+      error: () => {
+        this.sortingCategoryId = null;
+        this.toast.show('Failed to move category up.', 'error');
+      },
+    });
+  }
+  moveDown(category: Category, index: number): void {
+    if (this.isLastCategory(index)) return;
+
+    this.sortingCategoryId = category.id;
+
+    this.categoryService.moveDown(category.id).subscribe({
+      next: (res) => {
+        this.sortingCategoryId = null;
+
+        if (res.success) {
+          this.loadCategories();
+        } else {
+          this.toast.show(res.message, 'error');
+        }
+      },
+      error: () => {
+        this.sortingCategoryId = null;
+        this.toast.show('Failed to move category down.', 'error');
+      },
     });
   }
 }

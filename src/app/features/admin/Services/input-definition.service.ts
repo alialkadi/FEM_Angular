@@ -31,7 +31,9 @@ export class InputDefinitionService {
       payload,
     );
   }
-
+  getAssociatedServices(inputDefinitionId: number) {
+    return this.http.get<any>(`${this.baseUrl}/${inputDefinitionId}/services`);
+  }
   delete(id: number) {
     return this.http.delete<ApiResponse<boolean>>(`${this.baseUrl}/${id}`);
   }

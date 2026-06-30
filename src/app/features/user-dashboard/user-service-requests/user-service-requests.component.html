@@ -43,8 +43,16 @@
                 </div>
             </div>
             <div class="request-actions">
-                <button type="button" class="primary-btn" (click)="openRequest(req); $event.stopPropagation()"> View
-                    Details </button>
+                <div class="row"><button type="button" class="primary-btn"
+                        (click)="openRequest(req); $event.stopPropagation()"> View Details </button></div>
+                <div class="row justify-content-between">
+                    <button *ngIf="canUserUpdateStatus(req.statusName)" type="button" class="approve-card-btn col-5"
+                        [disabled]="updatingStatusRequestId === req.requestId" (click)="openApprovePopup(req, $event)">
+                        Approve Quote </button>
+                    <button *ngIf="canUserUpdateStatus(req.statusName)" type="button" class="cancel-card-btn col-5"
+                        [disabled]="updatingStatusRequestId === req.requestId" (click)="openCancelPopup(req, $event)">
+                        Cancel Request </button>
+                </div>
                 <button *ngIf="req.statusName === 'Approved' || req.statusName === 'Completed'" type="button"
                     class="secondary-btn" [disabled]="downloadingPdf"
                     (click)="downloadReceipt(req); $event.stopPropagation()"> Download Receipt </button>
@@ -111,7 +119,7 @@
                 </div>
             </div>
             <div class="client-card">
-                <h4>Your Information</h4>
+                <h4>Client Information</h4>
                 <div class="info-grid">
                     <div>
                         <span>Name</span>
@@ -185,99 +193,137 @@
         </section>
     </aside>
 </div>
+<!-- APPROVE POPUP -->
+<div class="confirm-backdrop" *ngIf="approvePopupVisible" (click)="closeApprovePopup()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon success">✓</div>
+        <h3>Approve this quote?</h3>
+        <p> You are about to approve Request <strong>#{{ requestToApprove?.requestId }}</strong>. By continuing, you
+            confirm that you have reviewed and accepted the service quote and authorize the work to move forward. </p>
+        <div class="quote-summary" *ngIf="requestToApprove">
+            <div>
+                <span>Request</span>
+                <strong>#{{ requestToApprove.requestId }}</strong>
+            </div>
+            <div>
+                <span>Total Quote</span>
+                <strong>{{ getServiceTotal(requestToApprove.requestedServices) | currency }}</strong>
+            </div>
+            <div>
+                <span>Services</span>
+                <strong>{{ requestToApprove.requestedServices?.length || 0 }}</strong>
+            </div>
+        </div>
+        <div class="confirm-actions">
+            <button type="button" class="cancel-confirm-btn" (click)="closeApprovePopup()"> No, Go Back </button>
+            <button type="button" class="approve-confirm-btn"
+                [disabled]="updatingStatusRequestId === requestToApprove?.requestId" (click)="confirmApproveRequest()">
+                {{ updatingStatusRequestId === requestToApprove?.requestId ? 'Approving...' : 'Yes, Approve Quote' }}
+            </button>
+        </div>
+    </div>
+</div>
+<!-- CANCEL POPUP -->
+<div class="confirm-backdrop" *ngIf="cancelPopupVisible" (click)="closeCancelPopup()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon danger">!</div>
+        <h3>Cancel this request?</h3>
+        <p> You are about to cancel Request <strong>#{{ requestToCancel?.requestId }}</strong>. This action will stop
+            the request from continuing. </p>
+        <div class="quote-summary" *ngIf="requestToCancel">
+            <div>
+                <span>Request</span>
+                <strong>#{{ requestToCancel.requestId }}</strong>
+            </div>
+            <div>
+                <span>Total Quote</span>
+                <strong>{{ getServiceTotal(requestToCancel.requestedServices) | currency }}</strong>
+            </div>
+            <div>
+                <span>Services</span>
+                <strong>{{ requestToCancel.requestedServices?.length || 0 }}</strong>
+            </div>
+        </div>
+        <div class="reason-field">
+            <label>Cancellation Reason <span>*</span></label>
+            <textarea [(ngModel)]="cancelReason" rows="4" maxlength="500"
+                placeholder="Please explain why you want to cancel this request..." (input)="cancelReasonError = ''">
+      </textarea>
+            <small *ngIf="cancelReasonError" class="reason-error"> {{ cancelReasonError }} </small>
+        </div>
+        <div class="confirm-actions">
+            <button type="button" class="cancel-confirm-btn" (click)="closeCancelPopup()"> No, Keep Request </button>
+            <button type="button" class="danger-confirm-btn"
+                [disabled]="updatingStatusRequestId === requestToCancel?.requestId" (click)="confirmCancelRequest()"> {{
+                updatingStatusRequestId === requestToCancel?.requestId ? 'Canceling...' : 'Yes, Cancel Request' }}
+            </button>
+        </div>
+    </div>
+</div>
 <div class="pdf-render-area">
     <div #receiptContent class="receipt-sheet" *ngIf="printableRequest as r">
-        <div class="receipt-top">
-            <div>
-                <h1>Service Receipt</h1>
-                <p class="muted">Fenestration Express Maintenance</p>
+        <div class="receipt-header">
+            <div class="company-info">
+                <h1>Payment Receipt</h1>
+                <h2>Fenestration Services</h2>
+                <p>Fenestration Services.</p>
             </div>
-            <div class="receipt-meta">
-                <p><strong>Receipt #:</strong> {{ r.requestId }}</p>
+            <div class="receipt-qr">
+                <img *ngIf="qrCodeDataUrl" [src]="qrCodeDataUrl" alt="Login QR Code" />
+                <span>Customer Portal</span>
+            </div>
+        </div>
+        <h3 class="receipt-title">Received From</h3>
+        <div class="receipt-info">
+            <div>
+                <p><strong>Name:</strong> {{ r.fullName }}</p>
+                <p><strong>Email:</strong> {{ r.email }}</p>
+                <p><strong>Phone:</strong> {{ r.phoneNumber }}</p>
+                <p><strong>Address:</strong> {{ r.address || 'N/A' }}</p>
+            </div>
+            <div>
                 <p><strong>Date:</strong> {{ r.requestedDate | date:'mediumDate' }}</p>
+                <p><strong>Receipt #:</strong> {{ getReceiptNumber(r) }}</p>
+                <p><strong>Order #:</strong> {{ getOrderNumber(r) }}</p>
                 <p><strong>Status:</strong> {{ r.statusName }}</p>
             </div>
         </div>
-        <div class="receipt-section">
-            <h3>Client Information</h3>
-            <div class="receipt-grid">
-                <div><strong>Name:</strong> {{ r.fullName }}</div>
-                <div><strong>Email:</strong> {{ r.email }}</div>
-                <div><strong>Phone:</strong> {{ r.phoneNumber }}</div>
-                <div><strong>Address:</strong> {{ r.address || 'N/A' }}</div>
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Net Price</th>
+                    <th>GST</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let d of r.requestedServices">
+                    <td>{{ d.serviceName || 'Selected Service' }}</td>
+                    <td> {{ d.baseCost > 0 ? (d.baseCost | currency) : 'To be confirmed' }} </td>
+                    <td> {{ d.baseCost > 0 ? (getServiceGst(d) | currency) : '—' }} </td>
+                    <td> {{ d.baseCost > 0 ? (getServiceTotalWithGst(d) | currency) : 'To be confirmed' }} </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="receipt-summary">
+            <div>
+                <span>Net Amount</span>
+                <strong>{{ getNetTotal(r.requestedServices) | currency }}</strong>
+            </div>
+            <div>
+                <span>GST (5%)</span>
+                <strong>{{ getGstTotal(r.requestedServices) | currency }}</strong>
+            </div>
+            <div>
+                <span>Total Amount</span>
+                <strong>{{ getGrandTotalWithGst(r.requestedServices) | currency }}</strong>
             </div>
         </div>
-        <div class="receipt-section">
-            <h3>Requested Services</h3>
-            <div class="receipt-service" *ngFor="let d of r.requestedServices; let i = index">
-                <div class="receipt-service-head">
-                    <h4>{{ i + 1 }}. {{ d.serviceName }}</h4>
-                </div>
-                <div class="receipt-grid service-prices">
-                    <div><strong>Base Cost:</strong> {{ d.baseCost | currency }}</div>
-                    <div><strong>Fees Total:</strong> {{ getFeesTotal(d.fees) | currency }}</div>
-                    <div><strong>Calculated Total:</strong> {{ d.calculatedTotal | currency }}</div>
-                </div>
-                <div class="receipt-subsection" *ngIf="d.steps?.length">
-                    <h5>Steps</h5>
-                    <ul>
-                        <li *ngFor="let st of d.steps"> {{ st.stepOrder }}. {{ st.description }} </li>
-                    </ul>
-                </div>
-                <div class="receipt-subsection" *ngIf="d.fees?.length">
-                    <h5>Fees</h5>
-                    <table class="receipt-table">
-                        <thead>
-                            <tr>
-                                <th>Fee</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let f of d.fees">
-                                <td>{{ f.name }}</td>
-                                <td>{{ f.isGlobal ? 'Global' : 'Service' }}</td>
-                                <td>{{ f.amount | currency }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="receipt-total">
-            <span>Grand Total</span>
-            <strong>{{ getServiceTotal(r.requestedServices) | currency }}</strong>
-        </div>
-        <div class="receipt-footer"> Thank you for choosing Fenestration Express Maintenance. </div>
-    </div>
-    <div class="confirm-backdrop" *ngIf="approvePopupVisible">
-        <div class="confirm-modal" (click)="$event.stopPropagation()">
-            <div class="confirm-icon success">✓</div>
-            <h3>Approve this quote?</h3>
-            <p> You are about to approve Request <strong>#{{ requestToApprove?.requestId }}</strong>. This means you
-                accept the service quote and want the team to continue. </p>
-            <div class="quote-summary" *ngIf="requestToApprove">
-                <div>
-                    <span>Request</span>
-                    <strong>#{{ requestToApprove.requestId }}</strong>
-                </div>
-                <div>
-                    <span>Total Quote</span>
-                    <strong>{{ getServiceTotal(requestToApprove.requestedServices) | currency }}</strong>
-                </div>
-                <div>
-                    <span>Services</span>
-                    <strong>{{ requestToApprove.requestedServices?.length || 0 }}</strong>
-                </div>
-            </div>
-            <div class="confirm-actions">
-                <button type="button" class="cancel-confirm-btn" (click)="closeApprovePopup()"> No, Go Back </button>
-                <button type="button" class="approve-confirm-btn"
-                    [disabled]="updatingStatusRequestId === requestToApprove?.requestId"
-                    (click)="confirmApproveRequest()"> {{ updatingStatusRequestId === requestToApprove?.requestId ?
-                    'Approving...' : 'Yes, Approve Quote' }} </button>
-            </div>
+        <div class="receipt-note ">
+            <p>Thank you for choosing Fenestration Services.</p>
+            <p>This receipt is generated automatically and doesn’t need any signatures.</p>
+            <!-- <p class="login-url">{{ websiteLoginUrl }}</p> -->
         </div>
     </div>
 </div>
