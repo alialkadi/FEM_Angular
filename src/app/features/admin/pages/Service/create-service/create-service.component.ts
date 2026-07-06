@@ -24,9 +24,19 @@ import { InputDefinitionService } from '../../../Services/input-definition.servi
 import { InputValueService } from '../../../Services/input-value.service';
 import { PricingInputUI } from '../../../../Models/InputValueDto.model';
 import {
+  CalculationRuleFactorConditionUI,
+  CalculationRuleFactorUI,
+  CalculationRuleUI,
+  DecisionRuleUI,
   InputDefinitionDto,
   PricingInputBehavior,
+  ServiceCalculationRuleType,
+  ServiceDecisionRuleType,
 } from '../../../../Models/service.Model';
+
+type PricingInputViewModel = PricingInputUI & {
+  selectedInputValueId?: number | null;
+};
 
 @Component({
   selector: 'app-create-service',
@@ -61,15 +71,24 @@ export class CreateServiceComponent implements OnInit {
   // ================= PRICING =================
   pricingMode: 'Static' | 'Dynamic' = 'Static';
 
-  pricingInputs: PricingInputUI[] = [];
+  pricingInputs: PricingInputViewModel[] = [];
 
   inputDefinitions: any[] = [];
+  // All backend values for each select input. Used only by the add-value dropdown.
+  availableInputValuesMap: Record<number, PricingValueUI[]> = {};
+
+  // Only values the admin explicitly added to this service.
   inputValuesMap: Record<number, PricingValueUI[]> = {};
 
   previewBaseCost = 0;
   PricingInputBehavior = PricingInputBehavior;
   MetadataDataType = MetadataDataType;
+  // ================= CALCULATION / DECISION RULES =================
+  calculationRules: CalculationRuleUI[] = [];
+  decisionRules: DecisionRuleUI[] = [];
 
+  ServiceCalculationRuleType = ServiceCalculationRuleType;
+  ServiceDecisionRuleType = ServiceDecisionRuleType;
   constructor(
     private fb: FormBuilder,
     private serviceService: ServiceService,
@@ -264,6 +283,10 @@ export class CreateServiceComponent implements OnInit {
       this.isSubmitting = false;
       return;
     }
+    if (!this.validateCalculationRules()) {
+      this.isSubmitting = false;
+      return;
+    }
     const formValue = this.serviceForm.getRawValue();
     const formData = new FormData();
 
@@ -437,7 +460,10 @@ export class CreateServiceComponent implements OnInit {
         }
       }
     }
-
+    if (this.pricingMode === 'Dynamic') {
+      this.appendCalculationRules(formData);
+      this.appendDecisionRules(formData);
+    }
     // =========================
     // SEND
     // =========================
@@ -450,9 +476,12 @@ export class CreateServiceComponent implements OnInit {
           this.toast?.show?.(res.message || 'Service created successfully.');
           this.serviceForm.reset();
           this.pricingInputs = [];
+          this.availableInputValuesMap = {};
           this.inputValuesMap = {};
           this.previewUrl = null;
           this.selectedFile = null;
+          this.calculationRules = [];
+          this.decisionRules = [];
           this.pricingMode = 'Static';
         } else {
           this.toast?.show?.(res.message || 'Failed to create service.');
@@ -774,7 +803,12 @@ export class CreateServiceComponent implements OnInit {
     });
   }
   addPricingInput(def: InputDefinitionDto): void {
-    const input: PricingInputUI = {
+    if (this.pricingInputs.some((x) => x.inputDefinitionId === def.id)) {
+      this.toast.show('This input is already added.', 'error');
+      return;
+    }
+
+    const input: PricingInputViewModel = {
       inputDefinitionId: def.id,
       label: def.label,
       code: def.code,
@@ -787,9 +821,14 @@ export class CreateServiceComponent implements OnInit {
       max: def.dataType === MetadataDataType.Number ? null : undefined,
     };
 
+    if (def.dataType === MetadataDataType.Select) {
+      input.selectedInputValueId = null;
+    }
+
     this.pricingInputs.push(input);
 
     if (def.dataType === MetadataDataType.Select) {
+      this.inputValuesMap[def.id] = this.inputValuesMap[def.id] ?? [];
       this.loadInputValues(def.id, def.pricingBehavior);
     }
   }
@@ -839,14 +878,30 @@ export class CreateServiceComponent implements OnInit {
   }
 
   removePricingInput(index: number): void {
+    const removed = this.pricingInputs[index];
+
+    if (removed) {
+      const removedValueIds = (
+        this.inputValuesMap[removed.inputDefinitionId] ?? []
+      ).map((x) => x.id);
+
+      delete this.inputValuesMap[removed.inputDefinitionId];
+      this.cleanupDependencyReferences(removedValueIds);
+    }
+
     this.pricingInputs.splice(index, 1);
+
+    this.pricingInputs.forEach((input, i) => {
+      input.priority = i + 1;
+    });
+
     this.calculatePreview();
   }
   private loadInputValues(
     definitionId: number,
     behavior: PricingInputBehavior,
   ): void {
-    if (this.inputValuesMap[definitionId]) return;
+    if (this.availableInputValuesMap[definitionId]) return;
 
     this.inputValueService.getByInputDefinition(definitionId).subscribe({
       next: (res) => {
@@ -854,19 +909,157 @@ export class CreateServiceComponent implements OnInit {
           ? res.data
           : (res.data?.values ?? res.data?.inputValues ?? []);
 
-        this.inputValuesMap[definitionId] = raw.map((v: PricingValueUI) => ({
-          ...v,
-          amount: 0,
-          rates: [
-            {
-              dependsOnInputDefinitionId: undefined,
-              dependsOnInputValueId: undefined,
-              amount: 0,
-            },
-          ],
-        }));
+        this.availableInputValuesMap[definitionId] = raw.map(
+          (v: PricingValueUI) => this.createPricingValueRow(v),
+        );
+
+        // Keep selected values empty until the admin adds values manually.
+        this.inputValuesMap[definitionId] =
+          this.inputValuesMap[definitionId] ?? [];
+      },
+      error: () => {
+        this.toast.show('Failed to load input values', 'error');
       },
     });
+  }
+
+  private createPricingValueRow(value: PricingValueUI): PricingValueUI {
+    return {
+      ...value,
+      amount: 0,
+      dependsOnValueId: undefined,
+      rates: [
+        {
+          dependsOnInputDefinitionId: undefined,
+          dependsOnInputValueId: undefined,
+          amount: 0,
+        },
+      ],
+    };
+  }
+
+  getSelectedValuesForInput(input: PricingInputViewModel): PricingValueUI[] {
+    return this.inputValuesMap[input.inputDefinitionId] ?? [];
+  }
+
+  getAvailableValuesToAdd(input: PricingInputViewModel): PricingValueUI[] {
+    const availableValues =
+      this.availableInputValuesMap[input.inputDefinitionId] ?? [];
+
+    const selectedValueIds = new Set(
+      this.getSelectedValuesForInput(input).map((x) => x.id),
+    );
+
+    return availableValues.filter((value) => !selectedValueIds.has(value.id));
+  }
+
+  addSelectedValueToInput(input: PricingInputViewModel): void {
+    const selectedValueId = Number(input.selectedInputValueId);
+
+    if (!selectedValueId) return;
+
+    const value = (
+      this.availableInputValuesMap[input.inputDefinitionId] ?? []
+    ).find((x) => x.id === selectedValueId);
+
+    if (!value) {
+      this.toast.show('Selected value was not found.', 'error');
+      return;
+    }
+
+    const selectedValues = (this.inputValuesMap[input.inputDefinitionId] =
+      this.inputValuesMap[input.inputDefinitionId] ?? []);
+
+    if (selectedValues.some((x) => x.id === selectedValueId)) {
+      input.selectedInputValueId = null;
+      return;
+    }
+
+    selectedValues.push(this.createPricingValueRow(value));
+    input.selectedInputValueId = null;
+
+    this.calculatePreview();
+  }
+
+  removeSelectedInputValue(
+    input: PricingInputViewModel,
+    valueIndex: number,
+  ): void {
+    const selectedValues = this.inputValuesMap[input.inputDefinitionId] ?? [];
+    const removed = selectedValues[valueIndex];
+
+    selectedValues.splice(valueIndex, 1);
+
+    if (removed) {
+      this.cleanupDependencyReferences([removed.id]);
+    }
+
+    this.calculatePreview();
+  }
+
+  onInputDependencyChange(
+    model: any,
+    valueId: number | null | undefined,
+  ): void {
+    if (!valueId) {
+      model.dependsOnInputDefinitionId = undefined;
+      model.dependsOnInputValueId = undefined;
+      return;
+    }
+
+    const parent = this.findParentByValue(valueId);
+
+    model.dependsOnInputDefinitionId = parent?.inputDefinitionId;
+    model.dependsOnInputValueId = valueId;
+  }
+
+  private cleanupDependencyReferences(removedValueIds: number[]): void {
+    if (!removedValueIds.length) return;
+
+    const removedSet = new Set(removedValueIds.map((x) => Number(x)));
+
+    for (const input of this.pricingInputs) {
+      if (
+        input.dependsOnInputValueId != null &&
+        removedSet.has(Number(input.dependsOnInputValueId))
+      ) {
+        input.dependsOnInputDefinitionId = undefined;
+        input.dependsOnInputValueId = undefined;
+      }
+
+      for (const value of this.inputValuesMap[input.inputDefinitionId] ?? []) {
+        for (const rate of value.rates ?? []) {
+          if (
+            rate.dependsOnInputValueId != null &&
+            removedSet.has(Number(rate.dependsOnInputValueId))
+          ) {
+            rate.dependsOnInputDefinitionId = undefined;
+            rate.dependsOnInputValueId = undefined;
+          }
+        }
+      }
+    }
+
+    for (const rule of this.calculationRules) {
+      for (const factor of rule.factors ?? []) {
+        if (
+          factor.dependsOnInputValueId != null &&
+          removedSet.has(Number(factor.dependsOnInputValueId))
+        ) {
+          factor.dependsOnInputDefinitionId = null;
+          factor.dependsOnInputValueId = null;
+        }
+
+        for (const condition of factor.conditions ?? []) {
+          if (
+            condition.inputValueId != null &&
+            removedSet.has(Number(condition.inputValueId))
+          ) {
+            condition.inputValueId = null;
+          }
+        }
+      }
+    }
   }
 
   calculatePreview(): void {
@@ -1013,6 +1206,758 @@ export class CreateServiceComponent implements OnInit {
     }
 
     return options;
+  }
+
+  // ================= CALCULATION RULE HELPERS =================
+  getNumberPricingInputs(): PricingInputUI[] {
+    return this.pricingInputs.filter(
+      (x) => x.dataType === this.MetadataDataType.Number,
+    );
+  }
+
+  getSelectPricingInputs(): PricingInputUI[] {
+    return this.pricingInputs.filter(
+      (x) => x.dataType === this.MetadataDataType.Select,
+    );
+  }
+
+  getValuesForInputDefinition(
+    inputDefinitionId: number | null | undefined,
+  ): PricingValueUI[] {
+    if (!inputDefinitionId) return [];
+    return this.inputValuesMap[inputDefinitionId] ?? [];
+  }
+
+  addCalculationRule(): void {
+    const numberInputs = this.getNumberPricingInputs();
+
+    if (numberInputs.length < 2) {
+      this.toast.show(
+        'At least two number inputs are required before adding a calculation rule.',
+        'error',
+      );
+      return;
+    }
+
+    this.calculationRules.push({
+      ruleName: 'Estimated Weight',
+      outputCode: 'estimated_weight_kg',
+      outputLabel: 'Estimated Weight',
+      unitLabel: 'kg',
+
+      ruleType: ServiceCalculationRuleType.MultiplyTwoNumbersBySelectedFactor,
+
+      firstNumberInputDefinitionId: numberInputs[0].inputDefinitionId,
+      secondNumberInputDefinitionId: numberInputs[1].inputDefinitionId,
+
+      displayToUser: true,
+      displayToAdmin: true,
+
+      factors: [],
+    });
+  }
+
+  removeCalculationRule(index: number): void {
+    const removed = this.calculationRules[index];
+    this.calculationRules.splice(index, 1);
+
+    if (removed?.outputCode) {
+      this.decisionRules = this.decisionRules.filter(
+        (x) => x.sourceOutputCode !== removed.outputCode,
+      );
+    }
+  }
+
+  addCalculationFactorRow(rule: CalculationRuleUI): void {
+    const sortOrder = rule.factors.length + 1;
+
+    rule.factors.push({
+      factor: null,
+      sortOrder,
+      dependsOnInputDefinitionId: null,
+      dependsOnInputValueId: null,
+      conditions: [
+        {
+          inputDefinitionId: null,
+          inputValueId: null,
+        },
+      ],
+    });
+  }
+  canShowFactorDependency(factor: CalculationRuleFactorUI): boolean {
+    return this.getFactorDependencyOptions(factor).length > 0;
+  }
+
+  removeCalculationFactorRow(
+    rule: CalculationRuleUI,
+    factorIndex: number,
+  ): void {
+    rule.factors.splice(factorIndex, 1);
+
+    rule.factors.forEach((factor, index) => {
+      factor.sortOrder = index + 1;
+    });
+  }
+
+  getFactorDependencyOptions(
+    factor: CalculationRuleFactorUI,
+  ): PricingDependencyOption[] {
+    const options: PricingDependencyOption[] = [];
+
+    const usedConditionInputIds = new Set(
+      (factor.conditions ?? [])
+        .map((x) => x.inputDefinitionId)
+        .filter((x): x is number => x != null),
+    );
+
+    const usedConditionValueIds = new Set(
+      (factor.conditions ?? [])
+        .map((x) => x.inputValueId)
+        .filter((x): x is number => x != null),
+    );
+
+    for (const parent of this.pricingInputs) {
+      if (parent.dataType !== MetadataDataType.Select) continue;
+
+      const values = this.inputValuesMap[parent.inputDefinitionId] ?? [];
+
+      for (const value of values) {
+        const isCurrent =
+          Number(factor.dependsOnInputValueId) === Number(value.id);
+
+        const alreadyUsedInCondition =
+          usedConditionInputIds.has(Number(parent.inputDefinitionId)) ||
+          usedConditionValueIds.has(Number(value.id));
+
+        if (!isCurrent && alreadyUsedInCondition) continue;
+
+        options.push({ parent, value });
+      }
+    }
+
+    return options;
+  }
+
+  onFactorDependencyChange(
+    factor: CalculationRuleFactorUI,
+    valueId: number | null,
+  ): void {
+    if (!valueId) {
+      factor.dependsOnInputDefinitionId = null;
+      factor.dependsOnInputValueId = null;
+      return;
+    }
+
+    const parent = this.findParentByValue(valueId);
+
+    factor.dependsOnInputDefinitionId = parent?.inputDefinitionId ?? null;
+    factor.dependsOnInputValueId = valueId;
+
+    this.clearConflictingFactorConditions(factor);
+  }
+
+  getAvailableFactorConditionInputs(
+    factor: CalculationRuleFactorUI,
+    currentCondition: CalculationRuleFactorConditionUI,
+  ): PricingInputUI[] {
+    const blockedInputIds = new Set<number>();
+
+    if (
+      factor.dependsOnInputDefinitionId != null &&
+      Number(factor.dependsOnInputDefinitionId) !==
+        Number(currentCondition.inputDefinitionId)
+    ) {
+      blockedInputIds.add(Number(factor.dependsOnInputDefinitionId));
+    }
+
+    for (const condition of factor.conditions ?? []) {
+      if (condition === currentCondition) continue;
+
+      if (condition.inputDefinitionId != null) {
+        blockedInputIds.add(Number(condition.inputDefinitionId));
+      }
+    }
+
+    return this.getSelectPricingInputs().filter((input) => {
+      const inputId = Number(input.inputDefinitionId);
+
+      return (
+        inputId === Number(currentCondition.inputDefinitionId) ||
+        !blockedInputIds.has(inputId)
+      );
+    });
+  }
+
+  getAvailableFactorConditionValues(
+    factor: CalculationRuleFactorUI,
+    currentCondition: CalculationRuleFactorConditionUI,
+  ): PricingValueUI[] {
+    if (!currentCondition.inputDefinitionId) return [];
+
+    const blockedValueIds = new Set<number>();
+
+    if (
+      factor.dependsOnInputValueId != null &&
+      Number(factor.dependsOnInputValueId) !==
+        Number(currentCondition.inputValueId)
+    ) {
+      blockedValueIds.add(Number(factor.dependsOnInputValueId));
+    }
+
+    for (const condition of factor.conditions ?? []) {
+      if (condition === currentCondition) continue;
+
+      if (condition.inputValueId != null) {
+        blockedValueIds.add(Number(condition.inputValueId));
+      }
+    }
+
+    return this.getValuesForInputDefinition(
+      currentCondition.inputDefinitionId,
+    ).filter((value) => {
+      const valueId = Number(value.id);
+
+      return (
+        valueId === Number(currentCondition.inputValueId) ||
+        !blockedValueIds.has(valueId)
+      );
+    });
+  }
+
+  addFactorCondition(factor: CalculationRuleFactorUI): void {
+    const newCondition: CalculationRuleFactorConditionUI = {
+      inputDefinitionId: null,
+      inputValueId: null,
+    };
+
+    if (!this.getAvailableFactorConditionInputs(factor, newCondition).length) {
+      this.toast.show(
+        'No more available select inputs for this factor row.',
+        'error',
+      );
+      return;
+    }
+
+    factor.conditions.push(newCondition);
+  }
+
+  removeFactorCondition(
+    factor: CalculationRuleFactorUI,
+    conditionIndex: number,
+  ): void {
+    factor.conditions.splice(conditionIndex, 1);
+  }
+
+  onFactorConditionInputChange(
+    factor: CalculationRuleFactorUI,
+    condition: CalculationRuleFactorConditionUI,
+  ): void {
+    condition.inputValueId = null;
+    this.clearConflictingFactorConditions(factor);
+  }
+
+  onFactorConditionValueChange(
+    factor: CalculationRuleFactorUI,
+    condition: CalculationRuleFactorConditionUI,
+    valueId: number | null,
+  ): void {
+    condition.inputValueId = valueId;
+    this.clearConflictingFactorConditions(factor);
+  }
+
+  private clearConflictingFactorConditions(
+    factor: CalculationRuleFactorUI,
+  ): void {
+    const usedInputIds = new Set<number>();
+    const usedValueIds = new Set<number>();
+
+    if (factor.dependsOnInputDefinitionId != null) {
+      usedInputIds.add(Number(factor.dependsOnInputDefinitionId));
+    }
+
+    if (factor.dependsOnInputValueId != null) {
+      usedValueIds.add(Number(factor.dependsOnInputValueId));
+    }
+
+    for (const condition of factor.conditions ?? []) {
+      const inputId =
+        condition.inputDefinitionId != null
+          ? Number(condition.inputDefinitionId)
+          : null;
+
+      const valueId =
+        condition.inputValueId != null ? Number(condition.inputValueId) : null;
+
+      const hasConflict =
+        (inputId != null && usedInputIds.has(inputId)) ||
+        (valueId != null && usedValueIds.has(valueId));
+
+      if (hasConflict) {
+        condition.inputDefinitionId = null;
+        condition.inputValueId = null;
+        continue;
+      }
+
+      if (inputId != null) usedInputIds.add(inputId);
+      if (valueId != null) usedValueIds.add(valueId);
+    }
+  }
+
+  addDecisionRule(): void {
+    if (!this.calculationRules.length) {
+      this.toast.show(
+        'Add at least one calculation rule before adding a decision rule.',
+        'error',
+      );
+      return;
+    }
+
+    const numberInputs = this.getNumberPricingInputs();
+
+    const firstCalculationRule = this.calculationRules[0];
+
+    this.decisionRules.push({
+      ruleName: 'Labour Decision',
+      outputCode: 'labour_count',
+      outputLabel: 'Labour Count',
+
+      ruleType: ServiceDecisionRuleType.CalculatedValueRange,
+
+      sourceOutputCode: firstCalculationRule.outputCode,
+
+      maxCalculatedValue: null,
+
+      firstNumberInputDefinitionId: numberInputs[0]?.inputDefinitionId ?? null,
+      maxFirstNumberValue: null,
+
+      secondNumberInputDefinitionId: numberInputs[1]?.inputDefinitionId ?? null,
+      maxSecondNumberValue: null,
+
+      successValue: null,
+      failureValue: null,
+
+      displayToUser: true,
+      displayToAdmin: true,
+
+      ranges: [
+        {
+          minValue: 0,
+          maxValue: 10,
+          resultValue: 1,
+          sortOrder: 1,
+        },
+      ],
+    });
+  }
+  addDecisionRange(rule: DecisionRuleUI): void {
+    const sortOrder = rule.ranges.length + 1;
+
+    rule.ranges.push({
+      minValue: null,
+      maxValue: null,
+      resultValue: null,
+      sortOrder,
+    });
+  }
+
+  removeDecisionRange(rule: DecisionRuleUI, index: number): void {
+    rule.ranges.splice(index, 1);
+
+    rule.ranges.forEach((range, i) => {
+      range.sortOrder = i + 1;
+    });
+  }
+
+  onDecisionRuleTypeChange(rule: DecisionRuleUI): void {
+    if (rule.ruleType === ServiceDecisionRuleType.CalculatedValueRange) {
+      rule.maxCalculatedValue = null;
+      rule.maxFirstNumberValue = null;
+      rule.maxSecondNumberValue = null;
+      rule.successValue = null;
+      rule.failureValue = null;
+
+      if (!rule.ranges.length) {
+        this.addDecisionRange(rule);
+      }
+    }
+
+    if (
+      rule.ruleType ===
+      ServiceDecisionRuleType.CalculatedValueAndTwoNumberLimits
+    ) {
+      rule.ranges = [];
+
+      rule.maxCalculatedValue = 15;
+      rule.maxFirstNumberValue = 36;
+      rule.maxSecondNumberValue = 36;
+      rule.successValue = 1;
+      rule.failureValue = 2;
+    }
+  }
+  removeDecisionRule(index: number): void {
+    this.decisionRules.splice(index, 1);
+  }
+
+  private validateCalculationRules(): boolean {
+    if (this.pricingMode !== 'Dynamic') {
+      this.calculationRules = [];
+      this.decisionRules = [];
+      return true;
+    }
+
+    for (const rule of this.calculationRules) {
+      if (!rule.ruleName?.trim()) {
+        this.toast.show('Calculation rule name is required.', 'error');
+        return false;
+      }
+
+      if (!rule.outputCode?.trim()) {
+        this.toast.show('Calculation rule output code is required.', 'error');
+        return false;
+      }
+
+      if (!rule.outputLabel?.trim()) {
+        this.toast.show('Calculation rule output label is required.', 'error');
+        return false;
+      }
+
+      if (
+        !rule.firstNumberInputDefinitionId ||
+        !rule.secondNumberInputDefinitionId
+      ) {
+        this.toast.show(
+          'Calculation rule number inputs are required.',
+          'error',
+        );
+        return false;
+      }
+
+      if (
+        rule.firstNumberInputDefinitionId === rule.secondNumberInputDefinitionId
+      ) {
+        this.toast.show(
+          'Calculation rule must use two different number inputs.',
+          'error',
+        );
+        return false;
+      }
+
+      if (!rule.factors.length) {
+        this.toast.show(
+          'Calculation rule requires at least one factor row.',
+          'error',
+        );
+        return false;
+      }
+
+      for (const factor of rule.factors) {
+        if (factor.factor == null || Number(factor.factor) <= 0) {
+          this.toast.show(
+            'Each factor row must have a valid factor value.',
+            'error',
+          );
+          return false;
+        }
+
+        if (!factor.conditions.length) {
+          this.toast.show(
+            'Each factor row must have at least one condition.',
+            'error',
+          );
+          return false;
+        }
+      }
+    }
+
+    for (const rule of this.decisionRules) {
+      if (!rule.ruleName?.trim()) {
+        this.toast.show('Decision rule name is required.', 'error');
+        return false;
+      }
+
+      if (!rule.outputCode?.trim()) {
+        this.toast.show('Decision rule output code is required.', 'error');
+        return false;
+      }
+
+      if (!rule.outputLabel?.trim()) {
+        this.toast.show('Decision rule output label is required.', 'error');
+        return false;
+      }
+
+      if (!rule.sourceOutputCode) {
+        this.toast.show('Decision rule source output is required.', 'error');
+        return false;
+      }
+
+      if (rule.ruleType === ServiceDecisionRuleType.CalculatedValueRange) {
+        if (!rule.ranges.length) {
+          this.toast.show(
+            'Decision range rule requires at least one range.',
+            'error',
+          );
+          return false;
+        }
+
+        const orderedRanges = [...rule.ranges].sort(
+          (a, b) => Number(a.minValue) - Number(b.minValue),
+        );
+
+        for (const range of orderedRanges) {
+          if (
+            range.minValue == null ||
+            range.maxValue == null ||
+            range.resultValue == null
+          ) {
+            this.toast.show(
+              'Each range must have From, To, and Result values.',
+              'error',
+            );
+            return false;
+          }
+
+          if (Number(range.minValue) > Number(range.maxValue)) {
+            this.toast.show(
+              'Range From cannot be greater than Range To.',
+              'error',
+            );
+            return false;
+          }
+
+          if (Number(range.resultValue) <= 0) {
+            this.toast.show(
+              'Range result value must be greater than zero.',
+              'error',
+            );
+            return false;
+          }
+        }
+
+        for (let i = 1; i < orderedRanges.length; i++) {
+          const previous = orderedRanges[i - 1];
+          const current = orderedRanges[i];
+
+          if (Number(current.minValue) <= Number(previous.maxValue)) {
+            this.toast.show('Decision ranges cannot overlap.', 'error');
+            return false;
+          }
+        }
+      }
+
+      if (
+        rule.ruleType ===
+        ServiceDecisionRuleType.CalculatedValueAndTwoNumberLimits
+      ) {
+        if (
+          rule.maxCalculatedValue == null ||
+          !rule.firstNumberInputDefinitionId ||
+          rule.maxFirstNumberValue == null ||
+          !rule.secondNumberInputDefinitionId ||
+          rule.maxSecondNumberValue == null
+        ) {
+          this.toast.show('Decision rule input limits are required.', 'error');
+          return false;
+        }
+
+        if (rule.successValue == null || rule.failureValue == null) {
+          this.toast.show(
+            'Decision rule success/failure values are required.',
+            'error',
+          );
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private appendCalculationRules(formData: FormData): void {
+    this.calculationRules.forEach((rule, i) => {
+      formData.append(`CalculationRules[${i}].RuleName`, rule.ruleName.trim());
+
+      formData.append(
+        `CalculationRules[${i}].OutputCode`,
+        rule.outputCode.trim().toLowerCase(),
+      );
+
+      formData.append(
+        `CalculationRules[${i}].OutputLabel`,
+        rule.outputLabel.trim(),
+      );
+
+      if (rule.unitLabel) {
+        formData.append(`CalculationRules[${i}].UnitLabel`, rule.unitLabel);
+      }
+
+      formData.append(`CalculationRules[${i}].RuleType`, String(rule.ruleType));
+
+      formData.append(
+        `CalculationRules[${i}].FirstNumberInputDefinitionId`,
+        String(rule.firstNumberInputDefinitionId),
+      );
+
+      formData.append(
+        `CalculationRules[${i}].SecondNumberInputDefinitionId`,
+        String(rule.secondNumberInputDefinitionId),
+      );
+
+      formData.append(
+        `CalculationRules[${i}].DisplayToUser`,
+        String(rule.displayToUser),
+      );
+
+      formData.append(
+        `CalculationRules[${i}].DisplayToAdmin`,
+        String(rule.displayToAdmin),
+      );
+
+      rule.factors.forEach((factor, fi) => {
+        formData.append(
+          `CalculationRules[${i}].Factors[${fi}].Factor`,
+          String(factor.factor),
+        );
+
+        formData.append(
+          `CalculationRules[${i}].Factors[${fi}].SortOrder`,
+          String(factor.sortOrder),
+        );
+        if (factor.dependsOnInputDefinitionId != null) {
+          formData.append(
+            `CalculationRules[${i}].Factors[${fi}].DependsOnInputDefinitionId`,
+            String(factor.dependsOnInputDefinitionId),
+          );
+        }
+
+        if (factor.dependsOnInputValueId != null) {
+          formData.append(
+            `CalculationRules[${i}].Factors[${fi}].DependsOnInputValueId`,
+            String(factor.dependsOnInputValueId),
+          );
+        }
+        factor.conditions.forEach((condition, ci) => {
+          formData.append(
+            `CalculationRules[${i}].Factors[${fi}].Conditions[${ci}].InputDefinitionId`,
+            String(condition.inputDefinitionId),
+          );
+
+          formData.append(
+            `CalculationRules[${i}].Factors[${fi}].Conditions[${ci}].InputValueId`,
+            String(condition.inputValueId),
+          );
+        });
+      });
+    });
+  }
+  private appendDecisionRules(formData: FormData): void {
+    this.decisionRules.forEach((rule, i) => {
+      formData.append(`DecisionRules[${i}].RuleName`, rule.ruleName.trim());
+
+      formData.append(
+        `DecisionRules[${i}].OutputCode`,
+        rule.outputCode.trim().toLowerCase(),
+      );
+
+      formData.append(
+        `DecisionRules[${i}].OutputLabel`,
+        rule.outputLabel.trim(),
+      );
+
+      formData.append(`DecisionRules[${i}].RuleType`, String(rule.ruleType));
+
+      formData.append(
+        `DecisionRules[${i}].SourceOutputCode`,
+        String(rule.sourceOutputCode).trim().toLowerCase(),
+      );
+
+      formData.append(
+        `DecisionRules[${i}].DisplayToUser`,
+        String(rule.displayToUser),
+      );
+
+      formData.append(
+        `DecisionRules[${i}].DisplayToAdmin`,
+        String(rule.displayToAdmin),
+      );
+
+      if (
+        rule.ruleType ===
+        ServiceDecisionRuleType.CalculatedValueAndTwoNumberLimits
+      ) {
+        formData.append(
+          `DecisionRules[${i}].MaxCalculatedValue`,
+          String(rule.maxCalculatedValue),
+        );
+
+        formData.append(
+          `DecisionRules[${i}].FirstNumberInputDefinitionId`,
+          String(rule.firstNumberInputDefinitionId),
+        );
+
+        formData.append(
+          `DecisionRules[${i}].MaxFirstNumberValue`,
+          String(rule.maxFirstNumberValue),
+        );
+
+        formData.append(
+          `DecisionRules[${i}].SecondNumberInputDefinitionId`,
+          String(rule.secondNumberInputDefinitionId),
+        );
+
+        formData.append(
+          `DecisionRules[${i}].MaxSecondNumberValue`,
+          String(rule.maxSecondNumberValue),
+        );
+
+        formData.append(
+          `DecisionRules[${i}].SuccessValue`,
+          String(rule.successValue),
+        );
+
+        formData.append(
+          `DecisionRules[${i}].FailureValue`,
+          String(rule.failureValue),
+        );
+      }
+
+      if (rule.ruleType === ServiceDecisionRuleType.CalculatedValueRange) {
+        formData.append(`DecisionRules[${i}].MaxCalculatedValue`, '0');
+        formData.append(
+          `DecisionRules[${i}].FirstNumberInputDefinitionId`,
+          '0',
+        );
+        formData.append(`DecisionRules[${i}].MaxFirstNumberValue`, '0');
+        formData.append(
+          `DecisionRules[${i}].SecondNumberInputDefinitionId`,
+          '0',
+        );
+        formData.append(`DecisionRules[${i}].MaxSecondNumberValue`, '0');
+        formData.append(`DecisionRules[${i}].SuccessValue`, '0');
+        formData.append(`DecisionRules[${i}].FailureValue`, '0');
+
+        rule.ranges.forEach((range, ri) => {
+          formData.append(
+            `DecisionRules[${i}].Ranges[${ri}].MinValue`,
+            String(range.minValue),
+          );
+
+          formData.append(
+            `DecisionRules[${i}].Ranges[${ri}].MaxValue`,
+            String(range.maxValue),
+          );
+
+          formData.append(
+            `DecisionRules[${i}].Ranges[${ri}].ResultValue`,
+            String(range.resultValue),
+          );
+
+          formData.append(
+            `DecisionRules[${i}].Ranges[${ri}].SortOrder`,
+            String(range.sortOrder),
+          );
+        });
+      }
+    });
   }
 }
 interface PricingDependencyOption {

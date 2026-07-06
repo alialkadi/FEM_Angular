@@ -2,7 +2,8 @@
     <div class="pricing-page-header">
         <div>
             <h2>Edit Pricing Inputs</h2>
-            <p class="page-subtitle">Configure dynamic pricing rules for this service.</p>
+            <p class="page-subtitle">Configure dynamic pricing inputs, calculated outputs, and decision rules for this
+                service.</p>
         </div>
         <div class="service-badge" *ngIf="serviceName">
             <span class="label">Service</span>
@@ -20,7 +21,7 @@
         <div class="pricing-toolbar">
             <div>
                 <h3>Dynamic Pricing Rules</h3>
-                <p class="toolbar-subtitle">Add inputs and define how each value affects pricing.</p>
+                <p class="toolbar-subtitle">Add inputs and define how each selected value affects pricing.</p>
             </div>
             <div class="add-input-wrapper">
                 <select #inputSelect class="input-select">
@@ -44,7 +45,8 @@
                         <span class="input-index">#{{ i + 1 }}</span>
                         <div>
                             <h4>{{ input.label }}</h4>
-                            <p class="input-meta"> Type: <strong>{{ getDataTypeLabel(input.dataType) }}</strong>
+                            <p class="input-meta"> Type: <strong>{{ getDataTypeLabel(input.dataType) }}</strong> ·
+                                Behavior: <strong>{{ getPricingTypeLabel(input) }}</strong>
                             </p>
                         </div>
                     </div>
@@ -55,8 +57,7 @@
                         <input type="checkbox" [(ngModel)]="input.isRequired" />
                         <span>Required for pricing</span>
                     </label>
-                    <div class="setting-chip"> Behavior: <strong>{{ getPricingTypeLabel(input) }}</strong>
-                    </div>
+                    <div class="setting-chip">Priority: <strong>{{ input.priority }}</strong></div>
                 </div>
                 <div class="numeric-limits-block" *ngIf="input.dataType === MetadataDataType.Number">
                     <div class="numeric-limits-grid">
@@ -75,107 +76,108 @@
                 <div class="single-rule-block" *ngIf="input.dataType === MetadataDataType.Text">
                     <p class="input-hint">This is a text input for customer entry only. No pricing value is required.
                     </p>
-                    <ng-container *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }">
-                    </ng-container>
+                    <ng-container
+                        *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
                 </div>
                 <!-- NUMBER + NONE -->
-                <div class="single-rule-block" *ngIf="
-                    input.dataType === MetadataDataType.Number &&
-                    input.pricingBehavior === PricingInputBehavior.None
-                ">
+                <div class="single-rule-block"
+                    *ngIf="input.dataType === MetadataDataType.Number && input.pricingBehavior === PricingInputBehavior.None">
                     <p class="input-hint">This number input is collected at request time and does not affect pricing.
                     </p>
-                    <ng-container *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }">
-                    </ng-container>
+                    <ng-container
+                        *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
                 </div>
                 <!-- NUMBER + FIXED -->
-                <div class="single-rule-block" *ngIf="
-                    input.dataType === MetadataDataType.Number &&
-                    input.pricingBehavior === PricingInputBehavior.Fixed
-                ">
+                <div class="single-rule-block"
+                    *ngIf="input.dataType === MetadataDataType.Number && input.pricingBehavior === PricingInputBehavior.Fixed">
                     <div class="rate-row">
                         <div class="rate-cell">
                             <label>Fixed Amount</label>
                             <input type="number" [(ngModel)]="input.amount" placeholder="Enter fixed amount" />
                         </div>
-                        <ng-container *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }">
-                        </ng-container>
+                        <ng-container
+                            *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
                     </div>
                 </div>
                 <!-- NUMBER + RATE -->
-                <div class="single-rule-block" *ngIf="
-                    input.dataType === MetadataDataType.Number &&
-                    input.pricingBehavior === PricingInputBehavior.Rate
-                ">
+                <div class="single-rule-block"
+                    *ngIf="input.dataType === MetadataDataType.Number && input.pricingBehavior === PricingInputBehavior.Rate">
                     <div class="rate-row">
                         <div class="rate-cell">
                             <label>Rate</label>
                             <input type="number" [(ngModel)]="input.amount" placeholder="Enter rate" />
                         </div>
-                        <ng-container *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }">
-                        </ng-container>
+                        <ng-container
+                            *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
                     </div>
                 </div>
                 <!-- NUMBER + DIMENSIONAL -->
-                <div class="single-rule-block" *ngIf="
-                    input.dataType === MetadataDataType.Number &&
-                    input.pricingBehavior === PricingInputBehavior.Dimensional
-                ">
-                    <p class="input-hint"> This numeric input contributes to dimensional calculation at request time.
-                        Dependencies are not allowed. </p>
+                <div class="single-rule-block"
+                    *ngIf="input.dataType === MetadataDataType.Number && input.pricingBehavior === PricingInputBehavior.Dimensional">
+                    <p class="input-hint">This numeric input contributes to dimensional calculation. Dependencies are
+                        not allowed.</p>
                 </div>
                 <!-- BOOLEAN + NONE -->
-                <div class="single-rule-block" *ngIf="
-                    input.dataType === MetadataDataType.Boolean &&
-                    input.pricingBehavior === PricingInputBehavior.None
-                ">
+                <div class="single-rule-block"
+                    *ngIf="input.dataType === MetadataDataType.Boolean && input.pricingBehavior === PricingInputBehavior.None">
                     <p class="input-hint">This boolean input is collected at request time and does not affect pricing.
                     </p>
-                    <ng-container *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }">
-                    </ng-container>
+                    <ng-container
+                        *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
                 </div>
                 <!-- BOOLEAN + FIXED -->
-                <div class="single-rule-block" *ngIf="
-                    input.dataType === MetadataDataType.Boolean &&
-                    input.pricingBehavior === PricingInputBehavior.Fixed
-                ">
+                <div class="single-rule-block"
+                    *ngIf="input.dataType === MetadataDataType.Boolean && input.pricingBehavior === PricingInputBehavior.Fixed">
                     <div class="rate-row">
                         <div class="rate-cell">
                             <label>Amount when True</label>
                             <input type="number" [(ngModel)]="input.amount" placeholder="Enter amount" />
                         </div>
-                        <ng-container *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }">
-                        </ng-container>
+                        <ng-container
+                            *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
                     </div>
                 </div>
                 <!-- BOOLEAN + RATE -->
-                <div class="single-rule-block" *ngIf="
-                    input.dataType === MetadataDataType.Boolean &&
-                    input.pricingBehavior === PricingInputBehavior.Rate
-                ">
+                <div class="single-rule-block"
+                    *ngIf="input.dataType === MetadataDataType.Boolean && input.pricingBehavior === PricingInputBehavior.Rate">
                     <div class="rate-row">
                         <div class="rate-cell">
                             <label>Rate when True</label>
                             <input type="number" [(ngModel)]="input.amount" placeholder="Enter rate" />
                         </div>
-                        <ng-container *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }">
-                        </ng-container>
+                        <ng-container
+                            *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
                     </div>
                 </div>
                 <!-- SELECT -->
                 <div *ngIf="input.dataType === MetadataDataType.Select" class="values-block">
-                    <div class="value-card" *ngFor="let v of inputValuesMap[input.inputDefinitionId]">
+                    <div class="numeric-limits-grid">
+                        <div class="rate-cell">
+                            <label>Add Value</label>
+                            <select [(ngModel)]="input.selectedInputValueId">
+                                <option [ngValue]="null">Select value to add</option>
+                                <option *ngFor="let value of getAvailableValuesToAdd(input)" [ngValue]="value.id"> {{
+                                    value.displayName || value.value }} </option>
+                            </select>
+                        </div>
+                        <div class="rate-actions">
+                            <button type="button" class="btn-primary" [disabled]="!input.selectedInputValueId"
+                                (click)="addSelectedValueToInput(input)"> + Add Value </button>
+                        </div>
+                    </div>
+                    <p class="input-hint" *ngIf="!getSelectedValuesForInput(input).length"> No values added yet. Select
+                        a value from the dropdown above. </p>
+                    <div class="value-card" *ngFor="let v of getSelectedValuesForInput(input); let vi = index">
                         <div class="value-header">
                             <div class="value-title">
                                 <strong>{{ v.displayName || v.value }}</strong>
-                                <span class="value-sub">Option value</span>
+                                <span class="value-sub">Selected value</span>
                             </div>
+                            <button type="button" class="icon-btn danger"
+                                (click)="removeSelectedInputValue(input, vi)">✕</button>
                         </div>
-                        <div class="rate-table" *ngIf="
-                            input.pricingBehavior === PricingInputBehavior.None ||
-                            input.pricingBehavior === PricingInputBehavior.Fixed ||
-                            input.pricingBehavior === PricingInputBehavior.Rate
-                        ">
+                        <div class="rate-table"
+                            *ngIf="input.pricingBehavior === PricingInputBehavior.None || input.pricingBehavior === PricingInputBehavior.Fixed || input.pricingBehavior === PricingInputBehavior.Rate">
                             <div class="rate-table-head">
                                 <div> {{ input.pricingBehavior === PricingInputBehavior.None ? 'Condition' :
                                     input.pricingBehavior === PricingInputBehavior.Fixed ? 'Amount' : 'Rate' }} </div>
@@ -196,29 +198,332 @@
                                     <label>Rate</label>
                                     <input type="number" [(ngModel)]="r.amount" placeholder="Enter rate" />
                                 </div>
-                                <ng-container *ngTemplateOutlet="dependencyBlock; context: { input: input, model: r }">
-                                </ng-container>
+                                <ng-container
+                                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: r }"></ng-container>
                                 <div class="rate-actions">
                                     <button type="button" class="icon-btn danger" *ngIf="v.rates.length > 1"
-                                        (click)="removeRateRow(v, ri)"> ✕ </button>
+                                        (click)="removeRateRow(v, ri)">✕</button>
                                 </div>
                             </div>
-                            <button type="button" class="btn-link" (click)="addRateRow(v)"> + Add condition </button>
+                            <button type="button" class="btn-link" (click)="addRateRow(v)">+ Add condition</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- ================= CALCULATION RULES ================= -->
+        <section class="pricing-inputs rules-section">
+            <div class="pricing-toolbar section-toolbar">
+                <div>
+                    <h3>Calculated Outputs</h3>
+                    <p class="toolbar-subtitle">Define calculated outputs using two numeric inputs and factor rows.</p>
+                </div>
+                <button type="button" class="btn-primary" (click)="addCalculationRule()">+ Add Calculation Rule</button>
+            </div>
+            <div class="empty-state" *ngIf="!calculationRules.length">No calculation rules added yet.</div>
+            <div class="input-card" *ngFor="let rule of calculationRules; let ri = index">
+                <div class="input-card-header">
+                    <div class="title-group">
+                        <span class="input-index">#{{ ri + 1 }}</span>
+                        <div>
+                            <h4>{{ rule.ruleName || 'Calculation Rule' }}</h4>
+                            <p class="input-meta">Calculated Output</p>
+                        </div>
+                    </div>
+                    <button type="button" class="icon-btn danger" (click)="removeCalculationRule(ri)">✕</button>
+                </div>
+                <div class="numeric-limits-grid">
+                    <div class="rate-cell">
+                        <label>Rule Name</label>
+                        <input type="text" [(ngModel)]="rule.ruleName" placeholder="Estimated Weight" />
+                    </div>
+                    <div class="rate-cell">
+                        <label>Output Code</label>
+                        <input type="text" [(ngModel)]="rule.outputCode" placeholder="estimated_weight_kg" />
+                    </div>
+                    <div class="rate-cell">
+                        <label>Output Label</label>
+                        <input type="text" [(ngModel)]="rule.outputLabel" placeholder="Estimated Weight" />
+                    </div>
+                    <div class="rate-cell">
+                        <label>Unit</label>
+                        <input type="text" [(ngModel)]="rule.unitLabel" placeholder="kg" />
+                    </div>
+                </div>
+                <div class="numeric-limits-block">
+                    <h4>Formula Inputs</h4>
+                    <p class="input-hint">Formula: First Number × Second Number × matching factor.</p>
+                    <div class="numeric-limits-grid">
+                        <div class="rate-cell">
+                            <label>First Number Input</label>
+                            <select [(ngModel)]="rule.firstNumberInputDefinitionId">
+                                <option [ngValue]="null">Select input</option>
+                                <option *ngFor="let input of getNumberPricingInputs()"
+                                    [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                            </select>
+                        </div>
+                        <div class="rate-cell">
+                            <label>Second Number Input</label>
+                            <select [(ngModel)]="rule.secondNumberInputDefinitionId">
+                                <option [ngValue]="null">Select input</option>
+                                <option *ngFor="let input of getNumberPricingInputs()"
+                                    [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="values-block">
+                    <div class="sub-section-title">
+                        <div>
+                            <h4>Factor Rows</h4>
+                            <p class="input-hint">Add one row for each matching combination.</p>
+                        </div>
+                        <button type="button" class="btn-primary" (click)="addCalculationFactorRow(rule)">+ Add Factor
+                            Row</button>
+                    </div>
+                    <div class="value-card" *ngFor="let factor of rule.factors; let fi = index">
+                        <div class="input-card-header">
+                            <div class="title-group">
+                                <h4>Factor Row {{ fi + 1 }}</h4>
+                                <span class="setting-chip">Sort {{ factor.sortOrder }}</span>
+                            </div>
+                            <button type="button" class="icon-btn danger"
+                                (click)="removeCalculationFactorRow(rule, fi)">✕</button>
+                        </div>
+                        <div class="numeric-limits-grid">
+                            <div class="rate-cell">
+                                <label>Factor</label>
+                                <input type="number" step="0.00001" [(ngModel)]="factor.factor" placeholder="0.00968" />
+                            </div>
+                            <div class="rate-cell">
+                                <label>Sort Order</label>
+                                <input type="number" [(ngModel)]="factor.sortOrder" />
+                            </div>
+                            <div class="rate-cell" *ngIf="canShowFactorDependency(factor)">
+                                <label>Apply when</label>
+                                <select [(ngModel)]="factor.dependsOnInputValueId"
+                                    (ngModelChange)="onFactorDependencyChange(factor, $event)">
+                                    <option [ngValue]="null">Always</option>
+                                    <option *ngFor="let option of getFactorDependencyOptions(factor)"
+                                        [ngValue]="option.value.id"> {{ option.parent.label }} = {{
+                                        option.value.displayName || option.value.value }} </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="numeric-limits-block">
+                            <div class="sub-section-title">
+                                <div>
+                                    <h4>Conditions</h4>
+                                    <p class="input-hint">This factor applies only when all selected conditions match.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="numeric-limits-grid"
+                                *ngFor="let condition of factor.conditions; let ci = index">
+                                <div class="rate-cell">
+                                    <label>Input</label>
+                                    <select [(ngModel)]="condition.inputDefinitionId"
+                                        (ngModelChange)="onFactorConditionInputChange(factor, condition)">
+                                        <option [ngValue]="null">Select input</option>
+                                        <option
+                                            *ngFor="let input of getAvailableFactorConditionInputs(factor, condition)"
+                                            [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                                    </select>
+                                </div>
+                                <div class="rate-cell">
+                                    <label>Value</label>
+                                    <select [(ngModel)]="condition.inputValueId"
+                                        (ngModelChange)="onFactorConditionValueChange(factor, condition, $event)">
+                                        <option [ngValue]="null">Select value</option>
+                                        <option
+                                            *ngFor="let value of getAvailableFactorConditionValues(factor, condition)"
+                                            [ngValue]="value.id"> {{ value.displayName || value.value }} </option>
+                                    </select>
+                                </div>
+                                <div class="rate-actions">
+                                    <button type="button" class="icon-btn danger" *ngIf="factor.conditions.length > 1"
+                                        (click)="removeFactorCondition(factor, ci)">✕</button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-link" (click)="addFactorCondition(factor)">+ Add
+                                Condition</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="checkbox-grid">
+                    <label class="checkbox-card">
+                        <input type="checkbox" [(ngModel)]="rule.displayToUser" />
+                        <span>Display to User</span>
+                    </label>
+                    <label class="checkbox-card">
+                        <input type="checkbox" [(ngModel)]="rule.displayToAdmin" />
+                        <span>Display to Admin</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+        <!-- ================= DECISION RULES ================= -->
+        <section class="pricing-inputs rules-section">
+            <div class="pricing-toolbar section-toolbar">
+                <div>
+                    <h3>Decision Rules</h3>
+                    <p class="toolbar-subtitle">Decide operational outputs such as labor count.</p>
+                </div>
+                <button type="button" class="btn-primary" (click)="addDecisionRule()">+ Add Decision Rule</button>
+            </div>
+            <div class="empty-state" *ngIf="!decisionRules.length">No decision rules added yet.</div>
+            <div class="input-card" *ngFor="let rule of decisionRules; let di = index">
+                <div class="input-card-header">
+                    <div class="title-group">
+                        <span class="input-index">#{{ di + 1 }}</span>
+                        <div>
+                            <h4>{{ rule.ruleName || 'Decision Rule' }}</h4>
+                            <p class="input-meta">Decision Output</p>
+                        </div>
+                    </div>
+                    <button type="button" class="icon-btn danger" (click)="removeDecisionRule(di)">✕</button>
+                </div>
+                <div class="numeric-limits-grid">
+                    <div class="rate-cell">
+                        <label>Rule Name</label>
+                        <input type="text" [(ngModel)]="rule.ruleName" placeholder="Labour Decision" />
+                    </div>
+                    <div class="rate-cell">
+                        <label>Output Code</label>
+                        <input type="text" [(ngModel)]="rule.outputCode" placeholder="labour_count" />
+                    </div>
+                    <div class="rate-cell">
+                        <label>Output Label</label>
+                        <input type="text" [(ngModel)]="rule.outputLabel" placeholder="Labour Count" />
+                    </div>
+                    <div class="rate-cell">
+                        <label>Source Calculated Output</label>
+                        <select [(ngModel)]="rule.sourceOutputCode">
+                            <option [ngValue]="null">Select output</option>
+                            <option *ngFor="let calc of calculationRules" [ngValue]="calc.outputCode"> {{
+                                calc.outputLabel }} ({{ calc.outputCode }}) </option>
+                        </select>
+                    </div>
+                    <div class="rate-cell">
+                        <label>Decision Type</label>
+                        <select [(ngModel)]="rule.ruleType" (ngModelChange)="onDecisionRuleTypeChange(rule)">
+                            <option [ngValue]="ServiceDecisionRuleType.CalculatedValueAndTwoNumberLimits">Success /
+                                Failure</option>
+                            <option [ngValue]="ServiceDecisionRuleType.CalculatedValueRange">Ranges</option>
+                        </select>
+                    </div>
+                </div>
+                <ng-container *ngIf="rule.ruleType === ServiceDecisionRuleType.CalculatedValueAndTwoNumberLimits">
+                    <div class="numeric-limits-block">
+                        <h4>Decision Condition</h4>
+                        <p class="input-hint">If calculated value and both input limits pass, use success value.
+                            Otherwise use failure value.</p>
+                        <div class="numeric-limits-grid">
+                            <div class="rate-cell">
+                                <label>Max Calculated Value</label>
+                                <input type="number" [(ngModel)]="rule.maxCalculatedValue" placeholder="15" />
+                            </div>
+                            <div class="rate-cell">
+                                <label>First Input</label>
+                                <select [(ngModel)]="rule.firstNumberInputDefinitionId">
+                                    <option [ngValue]="null">Select input</option>
+                                    <option *ngFor="let input of getNumberPricingInputs()"
+                                        [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                                </select>
+                            </div>
+                            <div class="rate-cell">
+                                <label>Max First Input Value</label>
+                                <input type="number" [(ngModel)]="rule.maxFirstNumberValue" placeholder="36" />
+                            </div>
+                            <div class="rate-cell">
+                                <label>Second Input</label>
+                                <select [(ngModel)]="rule.secondNumberInputDefinitionId">
+                                    <option [ngValue]="null">Select input</option>
+                                    <option *ngFor="let input of getNumberPricingInputs()"
+                                        [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                                </select>
+                            </div>
+                            <div class="rate-cell">
+                                <label>Max Second Input Value</label>
+                                <input type="number" [(ngModel)]="rule.maxSecondNumberValue" placeholder="36" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="numeric-limits-block">
+                        <h4>Decision Result</h4>
+                        <div class="numeric-limits-grid">
+                            <div class="rate-cell">
+                                <label>Success Value</label>
+                                <input type="number" [(ngModel)]="rule.successValue" placeholder="1" />
+                            </div>
+                            <div class="rate-cell">
+                                <label>Failure Value</label>
+                                <input type="number" [(ngModel)]="rule.failureValue" placeholder="2" />
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+                <div class="numeric-limits-block"
+                    *ngIf="rule.ruleType === ServiceDecisionRuleType.CalculatedValueRange">
+                    <div class="sub-section-title">
+                        <div>
+                            <h4>Decision Ranges</h4>
+                            <p class="input-hint">Match the calculated output against ranges. Result value is the labor
+                                count.</p>
+                        </div>
+                        <button type="button" class="btn-link" (click)="addDecisionRange(rule)">+ Add Range</button>
+                    </div>
+                    <div class="value-card" *ngFor="let range of rule.ranges; let ri = index">
+                        <div class="input-card-header">
+                            <div class="title-group">
+                                <h4>Range {{ ri + 1 }}</h4>
+                                <span class="setting-chip">Sort {{ range.sortOrder }}</span>
+                            </div>
+                            <button type="button" class="icon-btn danger" *ngIf="rule.ranges.length > 1"
+                                (click)="removeDecisionRange(rule, ri)">✕</button>
+                        </div>
+                        <div class="numeric-limits-grid">
+                            <div class="rate-cell">
+                                <label>From</label>
+                                <input type="number" [(ngModel)]="range.minValue" placeholder="0" />
+                            </div>
+                            <div class="rate-cell">
+                                <label>To</label>
+                                <input type="number" [(ngModel)]="range.maxValue" placeholder="10" />
+                            </div>
+                            <div class="rate-cell">
+                                <label>Result Value</label>
+                                <input type="number" [(ngModel)]="range.resultValue" placeholder="1" />
+                            </div>
+                            <div class="rate-cell">
+                                <label>Sort Order</label>
+                                <input type="number" [(ngModel)]="range.sortOrder" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="checkbox-grid">
+                    <label class="checkbox-card">
+                        <input type="checkbox" [(ngModel)]="rule.displayToUser" />
+                        <span>Display to User</span>
+                    </label>
+                    <label class="checkbox-card">
+                        <input type="checkbox" [(ngModel)]="rule.displayToAdmin" />
+                        <span>Display to Admin</span>
+                    </label>
+                </div>
+            </div>
+        </section>
         <div class="actions">
             <button type="button" class="btn-save" [disabled]="saving" (click)="onSubmit()"> {{ saving ? 'Saving…' :
-                'Save Inputs' }} </button>
+                'Save Inputs, Calculations & Decisions' }} </button>
         </div>
         <ng-template #dependencyBlock let-input="input" let-model="model">
             <div class="rate-cell" *ngIf="canShowInputDependency(input)">
                 <label>Apply when</label>
-                <select [ngModel]="model.dependsOnInputValueId"
-                    (ngModelChange)="onDependencyValueChange(model, $event)">
-                    <option [ngValue]="undefined">Always</option>
+                <select [(ngModel)]="model.dependsOnInputValueId"
+                    (ngModelChange)="onInputDependencyChange(model, $event)">
+                    <option [ngValue]="null">Always</option>
                     <option *ngFor="let option of getDependencyOptions(input)" [ngValue]="option.value.id"> {{
                         option.parent.label }} = {{ option.value.displayName || option.value.value }} </option>
                 </select>

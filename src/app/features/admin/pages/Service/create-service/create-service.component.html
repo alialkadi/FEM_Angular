@@ -1,441 +1,799 @@
 <div class="create-service-container">
     <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()">
-        <div class="form-grid">
-            <!-- =========================================== -->
-            <!-- LEFT: SERVICE LINKAGE -->
-            <!-- =========================================== -->
-            <div class="linkage-card">
-                <h3>Service Linkage</h3>
-                <p>Select where this service applies in the hierarchy.</p>
-                <!-- Linkage Tabs -->
-                <div class="tab-buttons">
-                    <button type="button" [class.active]="activeLinkage === 'Structure'"
-                        (click)="setLinkage('Structure')"> Structure </button>
-                    <button type="button" [class.active]="activeLinkage === 'Part'" (click)="setLinkage('Part')"> Part
-                    </button>
-                    <button type="button" [class.active]="activeLinkage === 'PartOption'"
-                        (click)="setLinkage('PartOption')"> Part Option </button>
-                </div>
-                <!-- CATEGORY -->
-                <div class="select-group">
-                    <label>Category</label>
-                    <select formControlName="categoryId" (change)="onCategoryChange($event)">
-                        <option value="">Select Category</option>
-                        <option *ngFor="let c of categories" [value]="c.id"> {{ c.name }} </option>
-                    </select>
-                </div>
-                <!-- CATEGORY TYPE -->
-                <div class="select-group" *ngIf="categoryTypes.length">
-                    <label>Category Type</label>
-                    <select formControlName="categoryTypeId" (change)="onCategoryTypeChange($event)">
-                        <option value="">Select Category Type</option>
-                        <option *ngFor="let t of categoryTypes" [value]="t.id"> {{ t.name }} </option>
-                    </select>
-                </div>
-                <!-- STRUCTURE -->
-                <ng-container *ngIf="activeLinkage === 'Structure'">
-                    <div class="select-group" *ngIf="structures.length">
-                        <label>Structure</label>
-                        <select formControlName="structureId">
-                            <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
+        <div class="page-shell">
+            <div class="form-grid">
+                <!-- SERVICE LINKAGE -->
+                <section class="panel-card">
+                    <div class="card-head">
+                        <h3>Service Linkage</h3>
+                        <p>Select where this service applies in the hierarchy.</p>
+                    </div>
+                    <div class="tab-buttons">
+                        <button type="button" [class.active]="activeLinkage === 'Structure'"
+                            (click)="setLinkage('Structure')"> Structure </button>
+                        <button type="button" [class.active]="activeLinkage === 'Part'" (click)="setLinkage('Part')">
+                            Part </button>
+                        <button type="button" [class.active]="activeLinkage === 'PartOption'"
+                            (click)="setLinkage('PartOption')"> Part Option </button>
+                    </div>
+                    <div class="select-group">
+                        <label>Category</label>
+                        <select formControlName="categoryId" (change)="onCategoryChange($event)">
+                            <option value="">Select Category</option>
+                            <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
                         </select>
                     </div>
-                </ng-container>
-                <!-- PART -->
-                <ng-container *ngIf="activeLinkage === 'Part'">
-                    <div class="select-group" *ngIf="structures.length">
-                        <label>Structure</label>
-                        <select formControlName="structureId" (change)="onStructureChange($event)">
-                            <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
+                    <div class="select-group" *ngIf="categoryTypes.length">
+                        <label>Category Type</label>
+                        <select formControlName="categoryTypeId" (change)="onCategoryTypeChange($event)">
+                            <option value="">Select Category Type</option>
+                            <option *ngFor="let t of categoryTypes" [value]="t.id">{{ t.name }}</option>
                         </select>
                     </div>
-                    <div class="select-group" *ngIf="parts.length">
-                        <label>Part</label>
-                        <select formControlName="partId">
-                            <option value="">Select Part</option>
-                            <option *ngFor="let p of parts" [value]="p.id"> {{ p.name }} </option>
-                        </select>
-                    </div>
-                </ng-container>
-                <!-- PART OPTION -->
-                <ng-container *ngIf="activeLinkage === 'PartOption'">
-                    <div class="select-group" *ngIf="structures.length">
-                        <label>Structure</label>
-                        <select formControlName="structureId" (change)="onStructureChange($event)">
-                            <option value="">Select Structure</option>
-                            <option *ngFor="let s of structures" [value]="s.id"> {{ s.name }} </option>
-                        </select>
-                    </div>
-                    <div class="select-group" *ngIf="parts.length">
-                        <label>Part</label>
-                        <select formControlName="partId" (change)="onPartChange($event)">
-                            <option value="">Select Part</option>
-                            <option *ngFor="let p of parts" [value]="p.id"> {{ p.name }} </option>
-                        </select>
-                    </div>
-                    <div class="select-group" *ngIf="partOptions.length">
-                        <label>Part Option</label>
-                        <select formControlName="partOptionId">
-                            <option value="">Select Part Option</option>
-                            <option *ngFor="let o of partOptions" [value]="o.id"> {{ o.name }} </option>
-                        </select>
-                    </div>
-                </ng-container>
-            </div>
-            <!-- =========================================== -->
-            <!-- RIGHT: SERVICE DATA -->
-            <!-- =========================================== -->
-            <div class="service-card">
-                <h3>Service Data</h3>
-                <p>Enter service details below.</p>
-                <div class="form-group">
-                    <label>Brand Name <span class="required">*</span></label>
-                    <input formControlName="name" type="text" />
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea formControlName="description" rows="4" placeholder="e.g.,
-Line 1
-Line 2
-Line 3">
-    </textarea>
-                </div>
-                <div class="form-group d-none">
-                    <label>Series</label>
-                    <input formControlName="series" />
-                </div>
-                <div class="form-group d-none">
-                    <label>Locking Point</label>
-                    <input formControlName="lockingPoint" />
-                </div>
-                <div class="form-group d-none">
-                    <label>Point Number</label>
-                    <input formControlName="pointNumber" />
-                </div>
-                <div class="form-group">
-                    <label>Labors</label>
-                    <input type="number" formControlName="labors" />
-                </div>
-                <div class="form-group" style="
-                            width: 100%;
-                            display: inline-flex;
-                            flex-direction: row;
-                            align-items: center;
-                        ">
-                    <input type="checkbox" formControlName="applyGlobalFees" />
-                    <label>Apply Global Fees</label>
-                </div>
-                <div class="form-group" style="
-                            width: 100%;
-                            display: inline-flex;
-                            flex-direction: row;
-                            align-items: center;
-                        ">
-                    <input type="checkbox" formControlName="applyLogistics" />
-                    <label>Apply Logistics</label>
-                </div>
-                <!-- FILE -->
-                <div class="form-group">
-                    <input type="file" (change)="onFileSelected($event)" />
-                    <div *ngIf="previewUrl" class="preview">
-                        <img [src]="previewUrl" class="preview-img" />
-                    </div>
-                </div>
-                <!-- INLINE FIELDS -->
-                <div class="inline-fields">
-                    <!-- ================= PRICING MODE ================= -->
-                    <div class="pricing-mode-card">
-                        <h4>Pricing Mode</h4>
-                        <p class="hint"> Choose how the price of this service is calculated. </p>
-                        <div class="pricing-mode-options">
-                            <label class="mode-option">
-                                <input type="radio" name="pricingMode" [checked]="pricingMode === 'Static'"
-                                    (change)="pricingMode = 'Static'" />
-                                <div>
-                                    <strong>Static Pricing</strong>
-                                    <small>Fixed price, same for all customers</small>
-                                </div>
-                            </label>
-                            <label class="mode-option">
-                                <input type="radio" name="pricingMode" [checked]="pricingMode === 'Dynamic'"
-                                    (change)="pricingMode = 'Dynamic'" />
-                                <div>
-                                    <strong>Dynamic Pricing</strong>
-                                    <small>Price calculated from user inputs</small>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                    <!-- ================= STATIC PRICING ================= -->
-                    <div class="static-pricing" *ngIf="pricingMode === 'Static'">
-                        <h4>Base Price</h4>
-                        <p class="hint"> This amount will be used directly as the service base cost. </p>
-                        <input type="number" formControlName="baseCost" placeholder="Enter base cost" />
-                    </div>
-                    <!-- ================= DYNAMIC PRICING OVERVIEW ================= -->
-                    <div class="dynamic-pricing" *ngIf="pricingMode === 'Dynamic'">
-                        <h4>Base Rate</h4>
-                        <p class="hint"> This amount will be used directly as the service base rate. </p>
-                        <input type="number" formControlName="baseRate" placeholder="Enter base Rate" />
-                        <h4>Dynamic Pricing Rules</h4>
-                        <p class="hint"> The service price will be calculated based on the inputs below. </p>
-                        <ul class="pricing-explanation">
-                            <li>Dimensional inputs are multiplied together</li>
-                            <li>Rate inputs are summed and applied to dimensions</li>
-                            <li>BaseRate will be added to the sum of rate inputs</li>
-                            <li>Fixed inputs are added directly</li>
-                            <li>Dependencies control when a rule applies</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <div>
-                            <label>Material Warranty Duration</label>
-                            <input type="number" formControlName="materialWarrantyDuration" />
-                        </div>
-                        <div>
-                            <label>Warranty Unit</label>
-                            <select formControlName="materialWarrantyUnit">
-                                <option value="Days">Days</option>
-                                <option value="Weeks">Weeks</option>
-                                <option value="Months">Months</option>
-                                <option value="Years">Years</option>
+                    <ng-container *ngIf="activeLinkage === 'Structure'">
+                        <div class="select-group" *ngIf="structures.length">
+                            <label>Structure</label>
+                            <select formControlName="structureId">
+                                <option value="">Select Structure</option>
+                                <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
                             </select>
                         </div>
-                        <div>
-                            <label>Warranty Duration</label>
-                            <input type="number" formControlName="workmanshipWarrantyDuration" />
-                        </div>
-                        <div>
-                            <label>Workmanship Warranty Unit</label>
-                            <select formControlName="workmanshipWarrantyUnit">
-                                <option value="Days">Days</option>
-                                <option value="Weeks">Weeks</option>
-                                <option value="Months">Months</option>
-                                <option value="Years">Years</option>
+                    </ng-container>
+                    <ng-container *ngIf="activeLinkage === 'Part'">
+                        <div class="select-group" *ngIf="structures.length">
+                            <label>Structure</label>
+                            <select formControlName="structureId" (change)="onStructureChange($event)">
+                                <option value="">Select Structure</option>
+                                <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
                             </select>
                         </div>
+                        <div class="select-group" *ngIf="parts.length">
+                            <label>Part</label>
+                            <select formControlName="partId">
+                                <option value="">Select Part</option>
+                                <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+                            </select>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngIf="activeLinkage === 'PartOption'">
+                        <div class="select-group" *ngIf="structures.length">
+                            <label>Structure</label>
+                            <select formControlName="structureId" (change)="onStructureChange($event)">
+                                <option value="">Select Structure</option>
+                                <option *ngFor="let s of structures" [value]="s.id">{{ s.name }}</option>
+                            </select>
+                        </div>
+                        <div class="select-group" *ngIf="parts.length">
+                            <label>Part</label>
+                            <select formControlName="partId" (change)="onPartChange($event)">
+                                <option value="">Select Part</option>
+                                <option *ngFor="let p of parts" [value]="p.id">{{ p.name }}</option>
+                            </select>
+                        </div>
+                        <div class="select-group" *ngIf="partOptions.length">
+                            <label>Part Option</label>
+                            <select formControlName="partOptionId">
+                                <option value="">Select Part Option</option>
+                                <option *ngFor="let o of partOptions" [value]="o.id">{{ o.name }}</option>
+                            </select>
+                        </div>
+                    </ng-container>
+                </section>
+                <!-- SERVICE DATA -->
+                <section class="panel-card">
+                    <div class="card-head">
+                        <h3>Service Data</h3>
+                        <p>Enter service details below.</p>
                     </div>
-                    <div>
-                        <label>Delivery Days</label>
-                        <input type="number" formControlName="deliveryDays" />
+                    <div class="form-group">
+                        <label>Brand Name <span class="required">*</span></label>
+                        <input formControlName="name" type="text" />
                     </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea formControlName="description" rows="4"
+                            placeholder="e.g.&#10;Line 1&#10;Line 2&#10;Line 3"></textarea>
+                    </div>
+                    <div class="form-group d-none">
+                        <label>Series</label>
+                        <input formControlName="series" />
+                    </div>
+                    <div class="form-group d-none">
+                        <label>Locking Point</label>
+                        <input formControlName="lockingPoint" />
+                    </div>
+                    <div class="form-group d-none">
+                        <label>Point Number</label>
+                        <input formControlName="pointNumber" />
+                    </div>
+                    <div class="compact-grid">
+                        <div class="form-group">
+                            <label>Labors</label>
+                            <input type="number" formControlName="labors" />
+                        </div>
+                        <div class="form-group">
+                            <label>Delivery Days</label>
+                            <input type="number" formControlName="deliveryDays" />
+                        </div>
+                    </div>
+                    <div class="checkbox-row">
+                        <label>
+                            <input type="checkbox" formControlName="applyGlobalFees" />
+                            <span>Apply Global Fees</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" formControlName="applyLogistics" />
+                            <span>Apply Logistics</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Service Image</label>
+                        <input type="file" (change)="onFileSelected($event)" />
+                        <div *ngIf="previewUrl" class="preview">
+                            <img [src]="previewUrl" class="preview-img" />
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- PRICING + WARRANTY -->
+            <section class="panel-card full-card">
+                <div class="card-head">
+                    <h3>Pricing & Warranty</h3>
+                    <p>Choose pricing mode and define warranty information.</p>
                 </div>
-            </div>
-        </div>
-        <!-- =========================================== -->
-        <!-- METADATA (COLLAPSIBLE – SAME STYLE) -->
-        <!-- =========================================== -->
-        <div class="service-card metadata-card">
-            <div class="metadata-header" (click)="toggleMetadata()">
-                <h3>Metadata Attributes</h3>
-                <span class="arrow" [class.open]="showMetadata">▼</span>
-            </div>
-            <div class="metadata-body" *ngIf="showMetadata">
-                <app-attribute-assignment [targetType]="metadataTargetType" [targetId]="metadataTargetId"
-                    (metadataChange)="onMetadataChange($event)">
-                </app-attribute-assignment>
-            </div>
-        </div>
-        <!-- =========================================== -->
-        <!-- ACTIONS -->
-        <!-- =========================================== -->
-        <div class="actions">
-            <button type="submit" [disabled]="isSubmitting"> {{ isSubmitting ? 'Saving…' : 'Create Service' }} </button>
-        </div>
-    </form>
-</div>
-<!-- ================= DYNAMIC PRICING ================= -->
-<div class="pricing-manager" *ngIf="pricingMode === 'Dynamic'">
-    <!-- HEADER -->
-    <div class="pricing-header">
-        <div>
-            <h3>Dynamic Pricing Rules</h3>
-            <p class="hint"> Define pricing per input value. You can add multiple rates with optional conditions. </p>
-        </div>
-        <!-- ADD INPUT -->
-        <div class="add-input-wrapper">
-            <select #inputSelect class="input-select">
-                <option value="">Select input</option>
-                <option *ngFor="let def of inputDefinitions" [value]="def.id"> {{ def.label }} ({{
-                    getPricingTypeLabel(def) }}) </option>
-            </select>
-            <button type="button" class="btn-primary" (click)="addInputFromSelect(inputSelect.value)"> + Add Input
-            </button>
-        </div>
-    </div>
-    <!-- INPUTS -->
-    <div class="pricing-inputs">
-        <div class="input-card" *ngFor="let input of pricingInputs; let i = index">
-            <!-- INPUT HEADER -->
-            <div class="input-card-header">
-                <div class="title">
-                    <h4>{{ input.label }}</h4>
-                    <span class="chip">{{ getPricingTypeLabel(input) }}</span>
-                </div>
-                <div class="input-required-toggle">
-                    <label class="toggle-label">
-                        <input type="checkbox" [(ngModel)]="input.isRequired" [ngModelOptions]="{ standalone: true }" />
-                        <span>Required</span>
+                <div class="pricing-mode-options">
+                    <label class="mode-option">
+                        <input type="radio" name="pricingMode" [checked]="pricingMode === 'Static'"
+                            (change)="pricingMode = 'Static'" />
+                        <span>
+                            <strong>Static Pricing</strong>
+                            <small>Fixed price, same for all customers</small>
+                        </span>
+                    </label>
+                    <label class="mode-option">
+                        <input type="radio" name="pricingMode" [checked]="pricingMode === 'Dynamic'"
+                            (change)="pricingMode = 'Dynamic'" />
+                        <span>
+                            <strong>Dynamic Pricing</strong>
+                            <small>Price calculated from user inputs</small>
+                        </span>
                     </label>
                 </div>
-                <button class="icon-btn danger" type="button" (click)="removePricingInput(i)"> ✕ </button>
-            </div>
-            <!-- NUMBER MIN / MAX -->
-            <div class="numeric-limits-block" *ngIf="input.dataType === MetadataDataType.Number">
-                <div class="numeric-limits-grid">
-                    <div class="rate-cell">
-                        <label>Minimum Value</label>
-                        <input type="number" [(ngModel)]="input.min" [ngModelOptions]="{ standalone: true }"
-                            placeholder="No minimum" />
+                <div class="compact-grid">
+                    <div class="form-group" *ngIf="pricingMode === 'Static'">
+                        <label>Base Price</label>
+                        <input type="number" formControlName="baseCost" placeholder="Enter base cost" />
                     </div>
-                    <div class="rate-cell">
-                        <label>Maximum Value</label>
-                        <input type="number" [(ngModel)]="input.max" [ngModelOptions]="{ standalone: true }"
-                            placeholder="No maximum" />
+                    <div class="form-group" *ngIf="pricingMode === 'Dynamic'">
+                        <label>Base Rate</label>
+                        <input type="number" formControlName="baseRate" placeholder="Enter base rate" />
+                    </div>
+                    <div class="form-group">
+                        <label>Material Warranty Duration</label>
+                        <input type="number" formControlName="materialWarrantyDuration" />
+                    </div>
+                    <div class="form-group">
+                        <label>Material Warranty Unit</label>
+                        <select formControlName="materialWarrantyUnit">
+                            <option value="Days">Days</option>
+                            <option value="Weeks">Weeks</option>
+                            <option value="Months">Months</option>
+                            <option value="Years">Years</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Workmanship Warranty Duration</label>
+                        <input type="number" formControlName="workmanshipWarrantyDuration" />
+                    </div>
+                    <div class="form-group">
+                        <label>Workmanship Warranty Unit</label>
+                        <select formControlName="workmanshipWarrantyUnit">
+                            <option value="Days">Days</option>
+                            <option value="Weeks">Weeks</option>
+                            <option value="Months">Months</option>
+                            <option value="Years">Years</option>
+                        </select>
                     </div>
                 </div>
-                <p class="hint"> These limits apply when the customer enters this numeric input. </p>
-            </div>
-            <!-- TEXT -->
-            <div class="single-rule-block" *ngIf="input.dataType === MetadataDataType.Text">
-                <p class="hint"> This text input is collected at request time and does not affect pricing. </p>
-                <ng-container
-                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
-            </div>
-            <!-- NUMBER + NONE -->
-            <div class="single-rule-block" *ngIf="
-        input.dataType === MetadataDataType.Number &&
-        input.pricingBehavior === PricingInputBehavior.None
-      ">
-                <p class="hint"> This number input is collected at request time and does not affect pricing. </p>
-                <ng-container
-                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
-            </div>
-            <!-- NUMBER + FIXED -->
-            <div class="single-rule-block" *ngIf="
-        input.dataType === MetadataDataType.Number &&
-        input.pricingBehavior === PricingInputBehavior.Fixed
-      ">
-                <div class="rate-cell">
-                    <label>Fixed Amount</label>
-                    <input type="number" [(ngModel)]="input.amount" [ngModelOptions]="{ standalone: true }"
-                        placeholder="Enter fixed amount" />
+                <div class="modal-launch-grid" *ngIf="pricingMode === 'Dynamic'">
+                    <label for="pricingRulesModal" class="launch-card">
+                        <strong>Dynamic Pricing Inputs</strong>
+                        <span>{{ pricingInputs.length || 0 }} input(s)</span>
+                    </label>
+                    <label for="calculationRulesModal" class="launch-card">
+                        <strong>Calculated Outputs</strong>
+                        <span>{{ calculationRules.length || 0 }} rule(s)</span>
+                    </label>
+                    <label for="decisionRulesModal" class="launch-card">
+                        <strong>Decision Rules</strong>
+                        <span>{{ decisionRules.length || 0 }} rule(s)</span>
+                    </label>
                 </div>
-                <ng-container
-                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
-            </div>
-            <!-- NUMBER + RATE -->
-            <div class="single-rule-block" *ngIf="
-        input.dataType === MetadataDataType.Number &&
-        input.pricingBehavior === PricingInputBehavior.Rate
-      ">
-                <div class="rate-cell">
-                    <label>Rate</label>
-                    <input type="number" [(ngModel)]="input.amount" [ngModelOptions]="{ standalone: true }"
-                        placeholder="Enter rate" />
-                </div>
-                <ng-container
-                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
-            </div>
-            <!-- NUMBER + DIMENSIONAL -->
-            <div class="single-rule-block" *ngIf="
-        input.dataType === MetadataDataType.Number &&
-        input.pricingBehavior === PricingInputBehavior.Dimensional
-      ">
-                <p class="hint"> This numeric input contributes to dimensional calculation. Dependencies are not
-                    allowed. </p>
-            </div>
-            <!-- BOOLEAN + NONE -->
-            <div class="single-rule-block" *ngIf="
-        input.dataType === MetadataDataType.Boolean &&
-        input.pricingBehavior === PricingInputBehavior.None
-      ">
-                <p class="hint"> This boolean input is collected at request time and does not affect pricing. </p>
-                <ng-container
-                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
-            </div>
-            <!-- BOOLEAN + FIXED -->
-            <div class="single-rule-block" *ngIf="
-        input.dataType === MetadataDataType.Boolean &&
-        input.pricingBehavior === PricingInputBehavior.Fixed
-      ">
-                <div class="rate-cell">
-                    <label>Amount when True</label>
-                    <input type="number" [(ngModel)]="input.amount" [ngModelOptions]="{ standalone: true }"
-                        placeholder="Enter amount" />
-                </div>
-                <ng-container
-                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
-            </div>
-            <!-- BOOLEAN + RATE -->
-            <div class="single-rule-block" *ngIf="
-        input.dataType === MetadataDataType.Boolean &&
-        input.pricingBehavior === PricingInputBehavior.Rate
-      ">
-                <div class="rate-cell">
-                    <label>Rate when True</label>
-                    <input type="number" [(ngModel)]="input.amount" [ngModelOptions]="{ standalone: true }"
-                        placeholder="Enter rate" />
-                </div>
-                <ng-container
-                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
-            </div>
-            <!-- SELECT -->
-            <!-- SELECT -->
-            <div *ngIf="input.dataType === MetadataDataType.Select" class="values-block">
-                <div class="value-card" *ngFor="let v of inputValuesMap[input.inputDefinitionId]">
-                    <div class="value-header">
-                        <strong>{{ v.displayName || v.value }}</strong>
+            </section>
+            <!-- METADATA -->
+            <section class="panel-card full-card metadata-card">
+                <div class="metadata-header" (click)="toggleMetadata()">
+                    <div>
+                        <h3>Metadata Attributes</h3>
+                        <p>Assign metadata to this service target.</p>
                     </div>
-                    <!-- SELECT + NONE / FIXED / RATE -->
-                    <div class="rate-table" *ngIf="
-        input.pricingBehavior === PricingInputBehavior.None ||
-        input.pricingBehavior === PricingInputBehavior.Fixed ||
-        input.pricingBehavior === PricingInputBehavior.Rate
-      ">
-                        <div class="rate-row" *ngFor="let r of v.rates; let ri = index">
-                            <!-- NONE -->
-                            <div class="rate-cell" *ngIf="input.pricingBehavior === PricingInputBehavior.None">
-                                <label>Condition</label>
-                                <p class="hint">No pricing amount. This condition only controls when this value applies.
-                                </p>
+                    <span class="arrow" [class.open]="showMetadata">▼</span>
+                </div>
+                <div class="metadata-body" *ngIf="showMetadata">
+                    <app-attribute-assignment [targetType]="metadataTargetType" [targetId]="metadataTargetId"
+                        (metadataChange)="onMetadataChange($event)">
+                    </app-attribute-assignment>
+                </div>
+            </section>
+            <!-- FINAL SUBMIT BUTTON MUST STAY LAST -->
+            <div class="actions final-actions">
+                <button type="submit" [disabled]="isSubmitting"> {{ isSubmitting ? 'Saving…' : 'Create Service' }}
+                </button>
+            </div>
+        </div>
+        <!-- ================= PRICING INPUTS MODAL ================= -->
+        <input type="checkbox" id="pricingRulesModal" class="modal-toggle" />
+        <div class="modal-layer" *ngIf="pricingMode === 'Dynamic'">
+            <label for="pricingRulesModal" class="modal-backdrop"></label>
+            <section class="modal-panel">
+                <header class="modal-header">
+                    <div>
+                        <h3>Dynamic Pricing Inputs</h3>
+                        <p class="hint">Define pricing per input value. Add buttons are placed at the bottom.</p>
+                    </div>
+                    <label for="pricingRulesModal" class="modal-close">✕</label>
+                </header>
+                <div class="modal-body">
+                    <div class="pricing-inputs">
+                        <div class="input-card" *ngFor="let input of pricingInputs; let i = index">
+                            <div class="input-card-header">
+                                <div class="title">
+                                    <h4>{{ input.label }}</h4>
+                                    <span class="chip">{{ getPricingTypeLabel(input) }}</span>
+                                </div>
+                                <div class="input-required-toggle">
+                                    <label class="toggle-label">
+                                        <input type="checkbox" [(ngModel)]="input.isRequired"
+                                            [ngModelOptions]="{ standalone: true }" />
+                                        <span>Required</span>
+                                    </label>
+                                </div>
+                                <button class="icon-btn danger" type="button" (click)="removePricingInput(i)">✕</button>
                             </div>
-                            <!-- FIXED -->
-                            <div class="rate-cell" *ngIf="input.pricingBehavior === PricingInputBehavior.Fixed">
-                                <label>Fixed Amount</label>
-                                <input type="number" [(ngModel)]="r.amount" [ngModelOptions]="{ standalone: true }"
-                                    placeholder="Enter amount" />
+                            <div class="numeric-limits-block" *ngIf="input.dataType === MetadataDataType.Number">
+                                <div class="numeric-limits-grid">
+                                    <div class="rate-cell">
+                                        <label>Minimum Value</label>
+                                        <input type="number" [(ngModel)]="input.min"
+                                            [ngModelOptions]="{ standalone: true }" placeholder="No minimum" />
+                                    </div>
+                                    <div class="rate-cell">
+                                        <label>Maximum Value</label>
+                                        <input type="number" [(ngModel)]="input.max"
+                                            [ngModelOptions]="{ standalone: true }" placeholder="No maximum" />
+                                    </div>
+                                </div>
+                                <p class="hint">These limits apply when the customer enters this numeric input.</p>
                             </div>
-                            <!-- RATE -->
-                            <div class="rate-cell" *ngIf="input.pricingBehavior === PricingInputBehavior.Rate">
-                                <label>Rate</label>
-                                <input type="number" [(ngModel)]="r.amount" [ngModelOptions]="{ standalone: true }"
-                                    placeholder="Enter rate" />
+                            <div class="single-rule-block" *ngIf="input.dataType === MetadataDataType.Text">
+                                <p class="hint">This text input is collected at request time and does not affect
+                                    pricing.</p>
+                                <ng-container
+                                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
                             </div>
-                            <ng-container
-                                *ngTemplateOutlet="dependencyBlock; context: { input: input, model: r }"></ng-container>
-                            <div class="rate-actions">
-                                <button type="button" class="icon-btn danger" *ngIf="v.rates.length > 1"
-                                    (click)="removeRateRow(v, ri)"> ✕ </button>
+                            <div class="single-rule-block"
+                                *ngIf="input.dataType === MetadataDataType.Number && input.pricingBehavior === PricingInputBehavior.None">
+                                <p class="hint">This number input is collected at request time and does not affect
+                                    pricing.</p>
+                                <ng-container
+                                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
+                            </div>
+                            <div class="single-rule-block"
+                                *ngIf="input.dataType === MetadataDataType.Number && input.pricingBehavior === PricingInputBehavior.Fixed">
+                                <div class="rate-cell">
+                                    <label>Fixed Amount</label>
+                                    <input type="number" [(ngModel)]="input.amount"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="Enter fixed amount" />
+                                </div>
+                                <ng-container
+                                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
+                            </div>
+                            <div class="single-rule-block"
+                                *ngIf="input.dataType === MetadataDataType.Number && input.pricingBehavior === PricingInputBehavior.Rate">
+                                <div class="rate-cell">
+                                    <label>Rate</label>
+                                    <input type="number" [(ngModel)]="input.amount"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="Enter rate" />
+                                </div>
+                                <ng-container
+                                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
+                            </div>
+                            <div class="single-rule-block"
+                                *ngIf="input.dataType === MetadataDataType.Number && input.pricingBehavior === PricingInputBehavior.Dimensional">
+                                <p class="hint">This numeric input contributes to dimensional calculation. Dependencies
+                                    are not allowed.</p>
+                            </div>
+                            <div class="single-rule-block"
+                                *ngIf="input.dataType === MetadataDataType.Boolean && input.pricingBehavior === PricingInputBehavior.None">
+                                <p class="hint">This boolean input is collected at request time and does not affect
+                                    pricing.</p>
+                                <ng-container
+                                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
+                            </div>
+                            <div class="single-rule-block"
+                                *ngIf="input.dataType === MetadataDataType.Boolean && input.pricingBehavior === PricingInputBehavior.Fixed">
+                                <div class="rate-cell">
+                                    <label>Amount when True</label>
+                                    <input type="number" [(ngModel)]="input.amount"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="Enter amount" />
+                                </div>
+                                <ng-container
+                                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
+                            </div>
+                            <div class="single-rule-block"
+                                *ngIf="input.dataType === MetadataDataType.Boolean && input.pricingBehavior === PricingInputBehavior.Rate">
+                                <div class="rate-cell">
+                                    <label>Rate when True</label>
+                                    <input type="number" [(ngModel)]="input.amount"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="Enter rate" />
+                                </div>
+                                <ng-container
+                                    *ngTemplateOutlet="dependencyBlock; context: { input: input, model: input }"></ng-container>
+                            </div>
+                            <div *ngIf="input.dataType === MetadataDataType.Select" class="values-block">
+                                <div class="numeric-limits-grid">
+                                    <div class="rate-cell">
+                                        <label>Add Value</label>
+                                        <select [(ngModel)]="input.selectedInputValueId"
+                                            [ngModelOptions]="{ standalone: true }">
+                                            <option [ngValue]="null">Select value to add</option>
+                                            <option *ngFor="let value of getAvailableValuesToAdd(input)"
+                                                [ngValue]="value.id"> {{ value.displayName || value.value }} </option>
+                                        </select>
+                                    </div>
+                                    <div class="rate-actions">
+                                        <button type="button" class="btn-primary"
+                                            [disabled]="!input.selectedInputValueId"
+                                            (click)="addSelectedValueToInput(input)"> + Add Value </button>
+                                    </div>
+                                </div>
+                                <p class="hint" *ngIf="!getSelectedValuesForInput(input).length"> No values added yet.
+                                    Select a value from the dropdown above. </p>
+                                <div class="value-card"
+                                    *ngFor="let v of getSelectedValuesForInput(input); let vi = index">
+                                    <div class="value-header">
+                                        <strong>{{ v.displayName || v.value }}</strong>
+                                        <button type="button" class="icon-btn danger"
+                                            (click)="removeSelectedInputValue(input, vi)">✕</button>
+                                    </div>
+                                    <div class="rate-table"
+                                        *ngIf="input.pricingBehavior === PricingInputBehavior.None || input.pricingBehavior === PricingInputBehavior.Fixed || input.pricingBehavior === PricingInputBehavior.Rate">
+                                        <div class="rate-row" *ngFor="let r of v.rates; let ri = index">
+                                            <div class="rate-cell"
+                                                *ngIf="input.pricingBehavior === PricingInputBehavior.None">
+                                                <label>Condition</label>
+                                                <p class="hint">No pricing amount. This condition only controls when
+                                                    this value applies.</p>
+                                            </div>
+                                            <div class="rate-cell"
+                                                *ngIf="input.pricingBehavior === PricingInputBehavior.Fixed">
+                                                <label>Fixed Amount</label>
+                                                <input type="number" [(ngModel)]="r.amount"
+                                                    [ngModelOptions]="{ standalone: true }"
+                                                    placeholder="Enter amount" />
+                                            </div>
+                                            <div class="rate-cell"
+                                                *ngIf="input.pricingBehavior === PricingInputBehavior.Rate">
+                                                <label>Rate</label>
+                                                <input type="number" [(ngModel)]="r.amount"
+                                                    [ngModelOptions]="{ standalone: true }" placeholder="Enter rate" />
+                                            </div>
+                                            <ng-container
+                                                *ngTemplateOutlet="dependencyBlock; context: { input: input, model: r }"></ng-container>
+                                            <div class="rate-actions">
+                                                <button type="button" class="icon-btn danger" *ngIf="v.rates.length > 1"
+                                                    (click)="removeRateRow(v, ri)"> ✕ </button>
+                                            </div>
+                                        </div>
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-link" (click)="addRateRow(v)">+ Add
+                                                condition</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <button type="button" class="btn-link" (click)="addRateRow(v)"> + Add condition </button>
+                        <div class="empty-state" *ngIf="!pricingInputs.length"> No pricing inputs added yet. </div>
                     </div>
                 </div>
+                <footer class="modal-footer">
+                    <div class="add-input-wrapper">
+                        <select #inputSelect class="input-select">
+                            <option value="">Select input</option>
+                            <option *ngFor="let def of inputDefinitions" [value]="def.id"> {{ def.label }} ({{
+                                getPricingTypeLabel(def) }}) </option>
+                        </select>
+                        <button type="button" class="btn-primary" (click)="addInputFromSelect(inputSelect.value)"> + Add
+                            Input </button>
+                    </div>
+                    <label for="pricingRulesModal" class="btn btn-success save-close-btn"> Save & Close </label>
+                </footer>
+            </section>
+        </div>
+        <!-- ================= CALCULATION RULES MODAL ================= -->
+        <input type="checkbox" id="calculationRulesModal" class="modal-toggle" />
+        <div class="modal-layer" *ngIf="pricingMode === 'Dynamic'">
+            <label for="calculationRulesModal" class="modal-backdrop"></label>
+            <section class="modal-panel wide-modal">
+                <header class="modal-header">
+                    <div>
+                        <h3>Calculated Outputs</h3>
+                        <p class="hint">Define calculated outputs using two numeric inputs and factor rows.</p>
+                    </div>
+                    <label for="calculationRulesModal" class="modal-close">✕</label>
+                </header>
+                <div class="modal-body">
+                    <div class="pricing-inputs" *ngIf="calculationRules.length">
+                        <div class="input-card" *ngFor="let rule of calculationRules; let ri = index">
+                            <div class="input-card-header">
+                                <div class="title">
+                                    <h4>{{ rule.ruleName || 'Calculation Rule' }}</h4>
+                                    <span class="chip">Calculated Output</span>
+                                </div>
+                                <button type="button" class="icon-btn danger"
+                                    (click)="removeCalculationRule(ri)">✕</button>
+                            </div>
+                            <div class="numeric-limits-grid">
+                                <div class="rate-cell">
+                                    <label>Rule Name</label>
+                                    <input type="text" [(ngModel)]="rule.ruleName"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="Estimated Weight" />
+                                </div>
+                                <div class="rate-cell">
+                                    <label>Output Code</label>
+                                    <input type="text" [(ngModel)]="rule.outputCode"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="estimated_weight_kg" />
+                                </div>
+                                <div class="rate-cell">
+                                    <label>Output Label</label>
+                                    <input type="text" [(ngModel)]="rule.outputLabel"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="Estimated Weight" />
+                                </div>
+                                <div class="rate-cell">
+                                    <label>Unit</label>
+                                    <input type="text" [(ngModel)]="rule.unitLabel"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="kg" />
+                                </div>
+                            </div>
+                            <div class="numeric-limits-block">
+                                <h4>Formula Inputs</h4>
+                                <p class="hint">Formula: First Number × Second Number × matching factor.</p>
+                                <div class="numeric-limits-grid">
+                                    <div class="rate-cell">
+                                        <label>First Number Input</label>
+                                        <select [(ngModel)]="rule.firstNumberInputDefinitionId"
+                                            [ngModelOptions]="{ standalone: true }">
+                                            <option [ngValue]="null">Select input</option>
+                                            <option *ngFor="let input of getNumberPricingInputs()"
+                                                [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                                        </select>
+                                    </div>
+                                    <div class="rate-cell">
+                                        <label>Second Number Input</label>
+                                        <select [(ngModel)]="rule.secondNumberInputDefinitionId"
+                                            [ngModelOptions]="{ standalone: true }">
+                                            <option [ngValue]="null">Select input</option>
+                                            <option *ngFor="let input of getNumberPricingInputs()"
+                                                [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="values-block">
+                                <div class="sub-section-title">
+                                    <div>
+                                        <h4>Factor Rows</h4>
+                                        <p class="hint">Add one row for each combination.</p>
+                                    </div>
+                                </div>
+                                <div class="value-card" *ngFor="let factor of rule.factors; let fi = index">
+                                    <div class="input-card-header">
+                                        <div class="title">
+                                            <h4>Factor Row {{ fi + 1 }}</h4>
+                                            <span class="chip">Sort {{ factor.sortOrder }}</span>
+                                        </div>
+                                        <button type="button" class="icon-btn danger"
+                                            (click)="removeCalculationFactorRow(rule, fi)"> ✕ </button>
+                                    </div>
+                                    <div class="numeric-limits-grid">
+                                        <div class="rate-cell">
+                                            <label>Factor</label>
+                                            <input type="number" step="0.00001" [(ngModel)]="factor.factor"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="0.00968" />
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>Sort Order</label>
+                                            <input type="number" [(ngModel)]="factor.sortOrder"
+                                                [ngModelOptions]="{ standalone: true }" />
+                                        </div>
+                                        <div class="rate-cell" *ngIf="canShowFactorDependency(factor)">
+                                            <label>Apply when</label>
+                                            <select [(ngModel)]="factor.dependsOnInputValueId"
+                                                [ngModelOptions]="{ standalone: true }"
+                                                (ngModelChange)="onFactorDependencyChange(factor, $event)">
+                                                <option [ngValue]="null">Always</option>
+                                                <option *ngFor="let option of getFactorDependencyOptions(factor)"
+                                                    [ngValue]="option.value.id"> {{ option.parent.label }} = {{
+                                                    option.value.displayName || option.value.value }} </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="numeric-limits-block">
+                                        <div class="sub-section-title">
+                                            <div>
+                                                <h4>Conditions</h4>
+                                                <p class="hint">This factor applies only when all selected conditions
+                                                    match.</p>
+                                            </div>
+                                        </div>
+                                        <div class="numeric-limits-grid"
+                                            *ngFor="let condition of factor.conditions; let ci = index">
+                                            <div class="rate-cell">
+                                                <label>Input</label>
+                                                <select [(ngModel)]="condition.inputDefinitionId"
+                                                    [ngModelOptions]="{ standalone: true }"
+                                                    (ngModelChange)="onFactorConditionInputChange(factor, condition)">
+                                                    <option [ngValue]="null">Select input</option>
+                                                    <option
+                                                        *ngFor="let input of getAvailableFactorConditionInputs(factor, condition)"
+                                                        [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                                                </select>
+                                            </div>
+                                            <div class="rate-cell">
+                                                <label>Value</label>
+                                                <select [(ngModel)]="condition.inputValueId"
+                                                    [ngModelOptions]="{ standalone: true }"
+                                                    (ngModelChange)="onFactorConditionValueChange(factor, condition, $event)">
+                                                    <option [ngValue]="null">Select value</option>
+                                                    <option
+                                                        *ngFor="let value of getAvailableFactorConditionValues(factor, condition)"
+                                                        [ngValue]="value.id"> {{ value.displayName || value.value }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            <div class="rate-actions">
+                                                <button type="button" class="icon-btn danger"
+                                                    *ngIf="factor.conditions.length > 1"
+                                                    (click)="removeFactorCondition(factor, ci)"> ✕ </button>
+                                            </div>
+                                        </div>
+                                        <div class="section-actions">
+                                            <button type="button" class="btn-link" (click)="addFactorCondition(factor)">
+                                                + Add Condition </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section-actions">
+                                    <button type="button" class="btn-primary" (click)="addCalculationFactorRow(rule)"> +
+                                        Add Factor Row </button>
+                                </div>
+                            </div>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-card">
+                                    <input type="checkbox" [(ngModel)]="rule.displayToUser"
+                                        [ngModelOptions]="{ standalone: true }" />
+                                    <span>Display to User</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" [(ngModel)]="rule.displayToAdmin"
+                                        [ngModelOptions]="{ standalone: true }" />
+                                    <span>Display to Admin</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="empty-state" *ngIf="!calculationRules.length"> No calculation rules added yet. </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" class="btn-primary" (click)="addCalculationRule()"> + Add Calculation Rule
+                    </button>
+                    <label for="calculationRulesModal" class="btn btn-success save-close-btn"> Save & Close </label>
+                </footer>
+            </section>
+        </div>
+        <!-- ================= DECISION RULES MODAL ================= -->
+        <input type="checkbox" id="decisionRulesModal" class="modal-toggle" />
+        <div class="modal-layer" *ngIf="pricingMode === 'Dynamic'">
+            <label for="decisionRulesModal" class="modal-backdrop"></label>
+            <section class="modal-panel wide-modal">
+                <header class="modal-header">
+                    <div>
+                        <h3>Decision Rules</h3>
+                        <p class="hint">Decide operational outputs such as labor count.</p>
+                    </div>
+                    <label for="decisionRulesModal" class="modal-close">✕</label>
+                </header>
+                <div class="modal-body">
+                    <div class="pricing-inputs" *ngIf="decisionRules.length">
+                        <div class="input-card" *ngFor="let rule of decisionRules; let di = index">
+                            <div class="input-card-header">
+                                <div class="title">
+                                    <h4>{{ rule.ruleName || 'Decision Rule' }}</h4>
+                                    <span class="chip">Decision Output</span>
+                                </div>
+                                <button type="button" class="icon-btn danger"
+                                    (click)="removeDecisionRule(di)">✕</button>
+                            </div>
+                            <div class="numeric-limits-grid">
+                                <div class="rate-cell">
+                                    <label>Rule Name</label>
+                                    <input type="text" [(ngModel)]="rule.ruleName"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="Labour Decision" />
+                                </div>
+                                <div class="rate-cell">
+                                    <label>Output Code</label>
+                                    <input type="text" [(ngModel)]="rule.outputCode"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="labour_count" />
+                                </div>
+                                <div class="rate-cell">
+                                    <label>Output Label</label>
+                                    <input type="text" [(ngModel)]="rule.outputLabel"
+                                        [ngModelOptions]="{ standalone: true }" placeholder="Labour Count" />
+                                </div>
+                                <div class="rate-cell">
+                                    <label>Source Calculated Output</label>
+                                    <select [(ngModel)]="rule.sourceOutputCode" [ngModelOptions]="{ standalone: true }">
+                                        <option [ngValue]="null">Select output</option>
+                                        <option *ngFor="let calc of calculationRules" [ngValue]="calc.outputCode"> {{
+                                            calc.outputLabel }} ({{ calc.outputCode }}) </option>
+                                    </select>
+                                </div>
+                                <div class="rate-cell">
+                                    <label>Decision Type</label>
+                                    <select [(ngModel)]="rule.ruleType" [ngModelOptions]="{ standalone: true }"
+                                        (ngModelChange)="onDecisionRuleTypeChange(rule)">
+                                        <option [ngValue]="ServiceDecisionRuleType.CalculatedValueAndTwoNumberLimits">
+                                            Success / Failure</option>
+                                        <option [ngValue]="ServiceDecisionRuleType.CalculatedValueRange">Ranges</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <ng-container
+                                *ngIf="rule.ruleType === ServiceDecisionRuleType.CalculatedValueAndTwoNumberLimits">
+                                <div class="numeric-limits-block">
+                                    <h4>Decision Condition</h4>
+                                    <p class="hint">If calculated value and both input limits pass, use success value.
+                                        Otherwise use failure value.</p>
+                                    <div class="numeric-limits-grid">
+                                        <div class="rate-cell">
+                                            <label>Max Calculated Value</label>
+                                            <input type="number" [(ngModel)]="rule.maxCalculatedValue"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="15" />
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>First Input</label>
+                                            <select [(ngModel)]="rule.firstNumberInputDefinitionId"
+                                                [ngModelOptions]="{ standalone: true }">
+                                                <option [ngValue]="null">Select input</option>
+                                                <option *ngFor="let input of getNumberPricingInputs()"
+                                                    [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                                            </select>
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>Max First Input Value</label>
+                                            <input type="number" [(ngModel)]="rule.maxFirstNumberValue"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="36" />
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>Second Input</label>
+                                            <select [(ngModel)]="rule.secondNumberInputDefinitionId"
+                                                [ngModelOptions]="{ standalone: true }">
+                                                <option [ngValue]="null">Select input</option>
+                                                <option *ngFor="let input of getNumberPricingInputs()"
+                                                    [ngValue]="input.inputDefinitionId"> {{ input.label }} </option>
+                                            </select>
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>Max Second Input Value</label>
+                                            <input type="number" [(ngModel)]="rule.maxSecondNumberValue"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="36" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="numeric-limits-block">
+                                    <h4>Decision Result</h4>
+                                    <div class="numeric-limits-grid">
+                                        <div class="rate-cell">
+                                            <label>Success Value</label>
+                                            <input type="number" [(ngModel)]="rule.successValue"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="1" />
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>Failure Value</label>
+                                            <input type="number" [(ngModel)]="rule.failureValue"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="2" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </ng-container>
+                            <div class="numeric-limits-block"
+                                *ngIf="rule.ruleType === ServiceDecisionRuleType.CalculatedValueRange">
+                                <div class="sub-section-title">
+                                    <div>
+                                        <h4>Decision Ranges</h4>
+                                        <p class="hint">Match the calculated output against ranges.</p>
+                                    </div>
+                                </div>
+                                <div class="value-card" *ngFor="let range of rule.ranges; let ri = index">
+                                    <div class="input-card-header">
+                                        <div class="title">
+                                            <h4>Range {{ ri + 1 }}</h4>
+                                            <span class="chip">Sort {{ range.sortOrder }}</span>
+                                        </div>
+                                        <button type="button" class="icon-btn danger" *ngIf="rule.ranges.length > 1"
+                                            (click)="removeDecisionRange(rule, ri)"> ✕ </button>
+                                    </div>
+                                    <div class="numeric-limits-grid">
+                                        <div class="rate-cell">
+                                            <label>From</label>
+                                            <input type="number" [(ngModel)]="range.minValue"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="0" />
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>To</label>
+                                            <input type="number" [(ngModel)]="range.maxValue"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="10" />
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>Result Value</label>
+                                            <input type="number" [(ngModel)]="range.resultValue"
+                                                [ngModelOptions]="{ standalone: true }" placeholder="1" />
+                                        </div>
+                                        <div class="rate-cell">
+                                            <label>Sort Order</label>
+                                            <input type="number" [(ngModel)]="range.sortOrder"
+                                                [ngModelOptions]="{ standalone: true }" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section-actions">
+                                    <button type="button" class="btn-link" (click)="addDecisionRange(rule)"> + Add Range
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-card">
+                                    <input type="checkbox" [(ngModel)]="rule.displayToUser"
+                                        [ngModelOptions]="{ standalone: true }" />
+                                    <span>Display to User</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" [(ngModel)]="rule.displayToAdmin"
+                                        [ngModelOptions]="{ standalone: true }" />
+                                    <span>Display to Admin</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="empty-state" *ngIf="!decisionRules.length"> No decision rules added yet. </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" class="btn-primary" (click)="addDecisionRule()"> + Add Decision Rule </button>
+                    <label for="decisionRulesModal" class="btn btn-success save-close-btn"> Save & Close </label>
+                </footer>
+            </section>
+        </div>
+        <!-- REUSABLE DEPENDENCY DROPDOWN -->
+        <ng-template #dependencyBlock let-input="input" let-model="model">
+            <div class="rate-cell" *ngIf="canShowInputDependency(input)">
+                <label>Apply when</label>
+                <select [(ngModel)]="model.dependsOnInputValueId" [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="onInputDependencyChange(model, $event)">
+                    <option [ngValue]="undefined">Always</option>
+                    <option *ngFor="let option of getDependencyOptions(input)" [ngValue]="option.value.id"> {{
+                        option.parent.label }} = {{ option.value.displayName || option.value.value }} </option>
+                </select>
             </div>
-        </div>
-    </div>
-    <!-- REUSABLE DEPENDENCY DROPDOWN -->
-    <ng-template #dependencyBlock let-input="input" let-model="model">
-        <div class="rate-cell" *ngIf="canShowInputDependency(input)">
-            <label>Apply when</label>
-            <select [(ngModel)]="model.dependsOnInputValueId" [ngModelOptions]="{ standalone: true }">
-                <option [ngValue]="undefined">Always</option>
-                <option *ngFor="let option of getDependencyOptions(input)" [ngValue]="option.value.id"> {{
-                    option.parent.label }} = {{ option.value.displayName || option.value.value }} </option>
-            </select>
-        </div>
-    </ng-template>
+        </ng-template>
+    </form>
 </div>

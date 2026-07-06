@@ -205,6 +205,9 @@ export interface ServiceCalculationResult {
   serviceSpecificFees: FeeBreakdownItem[];
   subTotal: number;
   total: number;
+
+  calculatedOutputs?: ServiceCalculatedOutput[];
+  calculatedLabors?: number | null;
 }
 
 // ========================================================
@@ -293,4 +296,148 @@ export interface ExplorerService {
   itemType: number;
   inputs?: ServiceInputDefinition[];
   metadata?: any[];
+}
+export enum ServiceCalculationRuleType {
+  MultiplyTwoNumbersBySelectedFactor = 1,
+}
+
+export enum ServiceDecisionRuleType {
+  CalculatedValueAndTwoNumberLimits = 1,
+  CalculatedValueRange = 2,
+}
+
+export interface ServiceCalculationRuleFactorConditionRequest {
+  inputDefinitionId: number;
+  inputValueId: number;
+}
+
+export interface ServiceCalculationRuleFactorRequest {
+  factor: number;
+  sortOrder: number;
+
+  dependsOnInputDefinitionId?: number | null;
+  dependsOnInputValueId?: number | null;
+
+  conditions: ServiceCalculationRuleFactorConditionRequest[];
+}
+
+export interface ServiceCalculationRuleRequest {
+  ruleName: string;
+  outputCode: string;
+  outputLabel: string;
+  unitLabel?: string | null;
+
+  ruleType: ServiceCalculationRuleType;
+
+  firstNumberInputDefinitionId: number;
+  secondNumberInputDefinitionId: number;
+
+  displayToUser: boolean;
+  displayToAdmin: boolean;
+
+  factors: ServiceCalculationRuleFactorRequest[];
+}
+export interface ServiceDecisionRuleRequest {
+  ruleName: string;
+  outputCode: string;
+  outputLabel: string;
+
+  ruleType: ServiceDecisionRuleType;
+
+  sourceOutputCode: string;
+
+  maxCalculatedValue: number;
+
+  firstNumberInputDefinitionId: number;
+  maxFirstNumberValue: number;
+
+  secondNumberInputDefinitionId: number;
+  maxSecondNumberValue: number;
+
+  successValue: number;
+  failureValue: number;
+
+  displayToUser: boolean;
+  displayToAdmin: boolean;
+
+  ranges?: ServiceDecisionRuleRangeRequest[];
+}
+
+export interface CalculationRuleFactorConditionUI {
+  inputDefinitionId: number | null;
+  inputValueId: number | null;
+}
+
+export interface CalculationRuleFactorUI {
+  factor: number | null;
+  sortOrder: number;
+
+  dependsOnInputDefinitionId?: number | null;
+  dependsOnInputValueId?: number | null;
+
+  conditions: CalculationRuleFactorConditionUI[];
+}
+
+export interface CalculationRuleUI {
+  ruleName: string;
+  outputCode: string;
+  outputLabel: string;
+  unitLabel: string | null;
+
+  ruleType: ServiceCalculationRuleType;
+
+  firstNumberInputDefinitionId: number | null;
+  secondNumberInputDefinitionId: number | null;
+
+  displayToUser: boolean;
+  displayToAdmin: boolean;
+
+  factors: CalculationRuleFactorUI[];
+}
+
+export interface DecisionRuleUI {
+  ruleName: string;
+  outputCode: string;
+  outputLabel: string;
+
+  ruleType: ServiceDecisionRuleType;
+
+  sourceOutputCode: string | null;
+
+  maxCalculatedValue: number | null;
+
+  firstNumberInputDefinitionId: number | null;
+  maxFirstNumberValue: number | null;
+
+  secondNumberInputDefinitionId: number | null;
+  maxSecondNumberValue: number | null;
+
+  successValue: number | null;
+  failureValue: number | null;
+
+  displayToUser: boolean;
+  displayToAdmin: boolean;
+
+  ranges: DecisionRuleRangeUI[];
+}
+
+export interface ServiceCalculatedOutput {
+  code: string;
+  label: string;
+  value: number;
+  unitLabel?: string | null;
+  displayToUser?: boolean;
+  displayToAdmin?: boolean;
+}
+export interface DecisionRuleRangeUI {
+  minValue: number | null;
+  maxValue: number | null;
+  resultValue: number | null;
+  sortOrder: number;
+}
+export interface ServiceDecisionRuleRangeRequest {
+  minValue: number;
+  maxValue: number;
+  resultValue: number;
+  sortOrder: number;
 }

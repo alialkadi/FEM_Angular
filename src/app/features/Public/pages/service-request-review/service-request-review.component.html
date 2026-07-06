@@ -97,6 +97,23 @@
                     </ng-container>
                 </div>
             </section>
+            <!-- calculated outputs -->
+            <section class="mini-section"
+                *ngIf="item.calculation?.calculatedOutputs?.length || item.calculation?.calculatedLabors">
+                <h4>Calculated Service Details</h4>
+                <div class="mini-pricing">
+                    <div class="price-row" *ngFor="let output of item.calculation?.calculatedOutputs">
+                        <span>{{ output.label }}</span>
+                        <strong> {{ output.value | number:'1.2-2' }} <ng-container *ngIf="output.unitLabel"> {{
+                                output.unitLabel }} </ng-container>
+                        </strong>
+                    </div>
+                    <div class="price-row" *ngIf="item.calculation?.calculatedLabors">
+                        <span>Labours Needed</span>
+                        <strong>{{ item.calculation?.calculatedLabors }}</strong>
+                    </div>
+                </div>
+            </section>
             <!-- pricing -->
             <section class="mini-section" *ngIf="item.calculation && item.calculation.total > 0">
                 <h4>Pricing</h4>
