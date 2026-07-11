@@ -114,6 +114,7 @@ export class CreateServiceComponent implements OnInit {
     this.serviceForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
+      notes: [''],
       series: [''],
       lockingPoint: [''],
       pointNumber: [''],
@@ -295,6 +296,7 @@ export class CreateServiceComponent implements OnInit {
     // =========================
     formData.append('Name', formValue.name ?? '');
     formData.append('Description', formValue.description ?? '');
+    formData.append('Notes', formValue.notes ?? '');
     formData.append('Series', formValue.series ?? '');
     formData.append('LockingPoint', formValue.lockingPoint ?? '');
     formData.append('PointNumber', formValue.pointNumber ?? '');

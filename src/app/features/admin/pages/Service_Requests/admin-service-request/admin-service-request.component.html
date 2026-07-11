@@ -240,8 +240,9 @@
                             <p class="muted"> {{ s.description || 'No description provided' }} </p>
                         </div>
                         <div class="price-box">
-                            <span>Total {{ s.baseCost | currency }}</span>
-                            <strong>{{ s.calculatedTotal | currency }}</strong>
+                            <span> Unit Price {{ (s.unitTotal ?? s.baseCost) | currency }} </span>
+                            <span> Quantity: {{ s.quantity ?? 1 }} </span>
+                            <strong> Total {{ s.calculatedTotal | currency }} </strong>
                         </div>
                     </div>
                     <div class="hierarchy-box" *ngIf="s.hierarchy">

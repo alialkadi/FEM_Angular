@@ -38,8 +38,9 @@
                     <strong>{{ getServiceTotal(req.requestedServices) | currency }}</strong>
                 </div>
                 <div>
-                    <span>Services</span>
-                    <strong>{{ req.requestedServices?.length || 0 }}</strong>
+                    <span>Services / Units</span>
+                    <strong> {{ req.requestedServices?.length || 0 }} service(s) / {{
+                        getTotalQuantity(req.requestedServices) }} unit(s) </strong>
                 </div>
             </div>
             <div class="request-actions">
@@ -147,23 +148,43 @@
                 <article class="service-item" *ngFor="let d of s.requestedServices; let i = index">
                     <div class="service-item__head">
                         <div>
-                            <span>Service {{ i + 1 }}</span>
+                            <span> Service {{ i + 1 }} · {{ getQuantity(d) }} unit(s) </span>
                             <h5>{{ d.serviceName }}</h5>
+                            <small> {{ getUnitTotal(d) | currency }} per unit × {{ getQuantity(d) }} </small>
                         </div>
-                        <strong>{{ d.calculatedTotal | currency }}</strong>
+                        <div class="service-line-total">
+                            <span>Service Total</span>
+                            <strong> {{ getServiceLineTotal(d) | currency }} </strong>
+                        </div>
                     </div>
                     <div class="price-breakdown">
                         <div>
-                            <span>Base Cost</span>
-                            <strong>{{ d.baseCost | currency }}</strong>
+                            <span>Quantity</span>
+                            <strong>{{ getQuantity(d) }}</strong>
                         </div>
                         <div>
-                            <span>Fees</span>
-                            <strong>{{ getFeesTotal(d.fees) | currency }}</strong>
+                            <span>Unit Base Cost</span>
+                            <strong> {{ getUnitBaseCost(d) | currency }} </strong>
                         </div>
                         <div>
-                            <span>Total</span>
-                            <strong>{{ d.calculatedTotal | currency }}</strong>
+                            <span> Base Cost × {{ getQuantity(d) }} </span>
+                            <strong> {{ getBaseCostForQuantity(d) | currency }} </strong>
+                        </div>
+                        <div *ngIf="d.fees?.length">
+                            <span> Visible Fees × {{ getQuantity(d) }} </span>
+                            <strong> {{ getFeesTotalForQuantity(d) | currency }} </strong>
+                        </div>
+                        <div>
+                            <span>Unit Total</span>
+                            <strong> {{ getUnitTotal(d) | currency }} </strong>
+                        </div>
+                        <div>
+                            <span>GST for All Units</span>
+                            <strong> {{ getServiceGst(d) | currency }} </strong>
+                        </div>
+                        <div class="total-breakdown-item">
+                            <span> Total for {{ getQuantity(d) }} Unit(s) </span>
+                            <strong> {{ getServiceLineTotal(d) | currency }} </strong>
                         </div>
                     </div>
                     <div class="detail-block" *ngIf="d.steps?.length">
@@ -175,17 +196,19 @@
                     <div class="detail-block" *ngIf="d.fees?.length">
                         <h6>Applied Fees</h6>
                         <div class="fee-row" *ngFor="let f of d.fees">
-                            <span> {{ f.name }} <small *ngIf="f.isGlobal">Global</small>
+                            <span> {{ f.name }} <small *ngIf="f.isGlobal"> Global </small>
+                                <small *ngIf="getQuantity(d) > 1"> {{ f.amount | currency }} × {{ getQuantity(d) }}
+                                </small>
                             </span>
-                            <strong>{{ f.amount | currency }}</strong>
+                            <strong> {{ f.amount * getQuantity(d) | currency }} </strong>
                         </div>
                     </div>
                 </article>
             </div>
             <div class="drawer-footer">
                 <div>
-                    <span>Grand Total</span>
-                    <strong>{{ getServiceTotal(s.requestedServices) | currency }}</strong>
+                    <span> Grand Total · {{ getTotalQuantity(s.requestedServices) }} unit(s) </span>
+                    <strong> {{ getServiceTotal(s.requestedServices) | currency }} </strong>
                 </div>
                 <button type="button" class="secondary-btn" [disabled]="downloadingPdf" (click)="downloadReceipt(s)">
                     Download Receipt </button>
@@ -210,8 +233,9 @@
                 <strong>{{ getServiceTotal(requestToApprove.requestedServices) | currency }}</strong>
             </div>
             <div>
-                <span>Services</span>
-                <strong>{{ requestToApprove.requestedServices?.length || 0 }}</strong>
+                <span>Services / Units</span>
+                <strong> {{ requestToApprove.requestedServices?.length || 0 }} / {{
+                    getTotalQuantity(requestToApprove.requestedServices) }} </strong>
             </div>
         </div>
         <div class="confirm-actions">
@@ -292,32 +316,49 @@
             <thead>
                 <tr>
                     <th>Description</th>
-                    <th>Net Price</th>
-                    <th>GST</th>
-                    <th>Total</th>
+                    <th>Qty</th>
+                    <th>Unit Base Cost</th>
+                    <th>Base Cost Total</th>
+                    <th>Unit Total</th>
+                    <th>Service Total</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngFor="let d of r.requestedServices">
-                    <td>{{ d.serviceName || 'Selected Service' }}</td>
-                    <td> {{ d.baseCost > 0 ? (d.baseCost | currency) : 'To be confirmed' }} </td>
-                    <td> {{ d.baseCost > 0 ? (getServiceGst(d) | currency) : '—' }} </td>
-                    <td> {{ d.baseCost > 0 ? (getServiceTotalWithGst(d) | currency) : 'To be confirmed' }} </td>
+                    <td>
+                        <strong> {{ d.serviceName || 'Selected Service' }} </strong>
+                        <small> {{ getUnitTotal(d) | currency }} per unit × {{ getQuantity(d) }} </small>
+                    </td>
+                    <td> {{ getQuantity(d) }} </td>
+                    <td> {{ getUnitBaseCost(d) > 0 ? (getUnitBaseCost(d) | currency) : 'To be confirmed' }} </td>
+                    <td> {{ getBaseCostForQuantity(d) > 0 ? (getBaseCostForQuantity(d) | currency) : 'To be confirmed'
+                        }} </td>
+                    <td> {{ getUnitTotal(d) > 0 ? (getUnitTotal(d) | currency) : 'To be confirmed' }} </td>
+                    <td> {{ getServiceLineTotal(d) > 0 ? (getServiceLineTotal(d) | currency) : 'To be confirmed' }}
+                    </td>
                 </tr>
             </tbody>
         </table>
         <div class="receipt-summary">
             <div>
-                <span>Net Amount</span>
-                <strong>{{ getNetTotal(r.requestedServices) | currency }}</strong>
+                <span>Total Quantity</span>
+                <strong> {{ getTotalQuantity(r.requestedServices) }} unit(s) </strong>
+            </div>
+            <div>
+                <span>Base Cost × Quantities</span>
+                <strong> {{ getBaseCostTotal(r.requestedServices) | currency }} </strong>
+            </div>
+            <div>
+                <span>Quote Before GST</span>
+                <strong> {{ getNetTotal(r.requestedServices) | currency }} </strong>
             </div>
             <div>
                 <span>GST (5%)</span>
-                <strong>{{ getGstTotal(r.requestedServices) | currency }}</strong>
+                <strong> {{ getGstTotal(r.requestedServices) | currency }} </strong>
             </div>
             <div>
                 <span>Total Amount</span>
-                <strong>{{ getGrandTotalWithGst(r.requestedServices) | currency }}</strong>
+                <strong> {{ getGrandTotalWithGst(r.requestedServices) | currency }} </strong>
             </div>
         </div>
         <div class="receipt-note ">

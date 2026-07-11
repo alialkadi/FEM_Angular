@@ -75,8 +75,11 @@
             <h3>🧾 Summary</h3>
             <ul>
                 <li *ngFor="let item of requestedServices">
-                    <span>{{ item.service.name }}</span>
-                    <span>{{ item.calculation?.total | currency }}</span>
+                    <div class="summary-service">
+                        <span>{{ item.service.name }}</span>
+                        <small> {{ item.calculation?.total | currency }} × {{ item.quantity || 1 }} </small>
+                    </div>
+                    <strong>{{ getLineTotal(item) | currency }}</strong>
                 </li>
             </ul>
             <div class="summary-total"> Total: <strong> {{this.grandTotal | currency}} </strong>

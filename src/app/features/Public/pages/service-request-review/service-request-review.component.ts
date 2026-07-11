@@ -132,6 +132,7 @@ export class ServiceRequestReviewComponent {
             steps: steps,
             // inputs: s.inputs ?? [],
             answers: [],
+            quantity: 1,
           });
           completedCount++;
           console.log(results);
@@ -145,10 +146,7 @@ export class ServiceRequestReviewComponent {
             this.requestedServices = results;
 
             // Calculate grand total
-            this.overallTotal = this.requestedServices.reduce(
-              (sum, srv) => sum + (srv.calculation?.total ?? 0),
-              0,
-            );
+            this.recalculateOverall();
 
             this.loading = false;
             console.log('✅ All services loaded:', results);
@@ -251,18 +249,13 @@ export class ServiceRequestReviewComponent {
         return false;
     }
   }
-  removeFromReview(item: RequestedService) {
+  removeFromReview(item: RequestedService): void {
     this.requestedServices = this.requestedServices.filter(
-      (r) => r.service.id !== item.service.id,
+      (requested) => requested.service.id !== item.service.id,
     );
 
-    // Optional: also remove from wishlist
     this.wishlist.remove(item.service.id);
-
-    this.overallTotal = this.requestedServices.reduce(
-      (sum, r) => sum + (r.calculation?.total ?? 0),
-      0,
-    );
+    this.recalculateOverall();
   }
   getAnswer(item: RequestedService, code: string): any {
     return item.answers?.find((a: any) => a.inputCode === code) || null;
@@ -306,13 +299,39 @@ export class ServiceRequestReviewComponent {
     });
   }
 
-  recalculateOverall() {
+  recalculateOverall(): void {
     this.overallTotal = this.requestedServices.reduce(
-      (sum, r) => sum + (r.calculation?.total ?? 0),
+      (sum, item) => sum + this.getLineTotal(item),
       0,
     );
   }
+  getLineTotal(item: RequestedService): number {
+    return (
+      (item.calculation?.total ?? 0) * this.normalizeQuantity(item.quantity)
+    );
+  }
 
+  onQuantityChange(item: RequestedService, value: number | string): void {
+    const parsedValue = Number(value);
+
+    if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+      item.quantity = 1;
+    } else if (parsedValue > 100) {
+      item.quantity = 100;
+    } else {
+      item.quantity = parsedValue;
+    }
+
+    this.recalculateOverall();
+  }
+
+  private normalizeQuantity(quantity: number | null | undefined): number {
+    if (!Number.isInteger(quantity) || Number(quantity) < 1) {
+      return 1;
+    }
+
+    return Number(quantity);
+  }
   setAnswer(
     item: RequestedService,
     input: ServiceInputDefinition,

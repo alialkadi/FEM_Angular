@@ -91,26 +91,35 @@ export class ServiceUserFormComponent implements OnInit {
 
       confirmPhoneOverwrite,
 
-      services: this.requestedServices.map((r) => ({
-        serviceId: r.service.id,
-        baseCost: r.calculation?.baseCost,
-        calculatedTotal: r.calculation?.total,
-        description: r.service.description,
-        inputs: r.answers.map((a) => ({
-          inputCode: a.inputCode,
-          numericValue: a.numericValue ?? null,
-          booleanValue: a.booleanValue,
-          textValue: a.textValue,
-          selectedValueCode: a.selectedValueCode ?? null,
-        })),
-        metadata: r.service.metadata ?? [],
-      })),
+      services: this.requestedServices.map((r) => {
+        const quantity = this.normalizeQuantity(r.quantity);
+        const unitTotal = Number(r.calculation?.total ?? 0);
 
-      total: this.requestedServices.reduce(
-        (sum, r) => sum + (r.calculation?.total ?? 0),
-        0,
-      ),
+        return {
+          serviceId: r.service.id,
 
+          quantity,
+
+          // Informational frontend values only.
+          // The backend should recalculate the authoritative price.
+          baseCost: Number(r.calculation?.baseCost ?? 0),
+          unitTotal,
+          calculatedTotal: unitTotal * quantity,
+
+          description: r.service.description,
+
+          inputs: (r.answers ?? []).map((a) => ({
+            inputCode: a.inputCode,
+            numericValue: a.numericValue ?? null,
+            booleanValue: a.booleanValue ?? null,
+            textValue: a.textValue ?? null,
+            selectedValueCode: a.selectedValueCode ?? null,
+          })),
+
+          metadata: r.service.metadata ?? [],
+        };
+      }),
+      total: this.grandTotal,
       notes: 'Public user service request submission',
     };
 
@@ -165,7 +174,22 @@ export class ServiceUserFormComponent implements OnInit {
   goToLogin() {
     this.router.navigate(['/FenetrationMaintainence/Home/login']);
   }
+  getLineTotal(item: RequestedService): number {
+    const unitTotal = Number(item.calculation?.total ?? 0);
+    const quantity = this.normalizeQuantity(item.quantity);
 
+    return unitTotal * quantity;
+  }
+
+  private normalizeQuantity(quantity: number | null | undefined): number {
+    const parsedQuantity = Number(quantity);
+
+    if (!Number.isInteger(parsedQuantity) || parsedQuantity < 1) {
+      return 1;
+    }
+
+    return Math.min(parsedQuantity, 100);
+  }
   goHome() {
     this.router.navigate(['/FenetrationMaintainence/Home']);
   }
@@ -182,7 +206,7 @@ export class ServiceUserFormComponent implements OnInit {
   }
   get grandTotal(): number {
     return this.requestedServices.reduce(
-      (sum, item) => sum + Number(item.calculation?.total ?? 0),
+      (sum, item) => sum + this.getLineTotal(item),
       0,
     );
   }

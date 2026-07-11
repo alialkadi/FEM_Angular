@@ -13,14 +13,15 @@
                 <div class="service-review-card__title-wrap">
                     <h3>{{ item.service.name }}</h3>
                     <p>{{ item.service.description || 'No description provided.' }}</p>
+                    <p>{{ item.service.notes }}</p>
                 </div>
                 <div class="service-photo-wrap">
                     <img class="service-photo" [src]="item.service.fileUrl " *ngIf="item.service.fileUrl"
                         [alt]="item.service.name" />
                     <div class="service-review-card__price"
                         *ngIf="item.calculation?.total && item.calculation!.total > 0">
-                        <span>Total</span>
-                        <strong>{{ item.calculation?.total | currency }}</strong>
+                        <span>Service Total</span>
+                        <strong>{{ getLineTotal(item) | currency }}</strong>
                     </div>
                 </div>
             </div>
@@ -115,32 +116,76 @@
                 </div>
             </section>
             <!-- pricing -->
+            <!-- pricing and quantity -->
             <section class="mini-section" *ngIf="item.calculation && item.calculation.total > 0">
                 <h4>Pricing</h4>
                 <div class="mini-pricing">
+                    <!-- Quantity -->
+                    <div class="price-row quantity-row">
+                        <div class="quantity-label">
+                            <span>Quantity</span>
+                            <small>Number of units requiring this service</small>
+                        </div>
+                        <div class="quantity-control">
+                            <button type="button" class="quantity-btn" [disabled]="item.quantity <= 1"
+                                (click)="onQuantityChange(item, item.quantity - 1)" aria-label="Decrease quantity"> −
+                            </button>
+                            <input class="quantity-input" type="number" min="1" max="100" step="1"
+                                [ngModel]="item.quantity" (ngModelChange)="onQuantityChange(item, $event)"
+                                [attr.aria-label]="'Quantity for ' + item.service.name" />
+                            <button type="button" class="quantity-btn" [disabled]="item.quantity >= 100"
+                                (click)="onQuantityChange(item, item.quantity + 1)" aria-label="Increase quantity"> +
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Unit pricing -->
                     <div class="price-row">
-                        <span>Net Price</span>
+                        <span>Unit Net Price</span>
                         <strong>{{ item.calculation.baseCost | currency }}</strong>
                     </div>
-                    <div class="price-row">
-                        <span>GST</span>
-                        <strong>{{ item.calculation.baseCost * .05 | currency }}</strong>
-                    </div>
+                    <!-- Global fees -->
                     <div *ngFor="let fee of item.calculation.globalFees" class="price-row">
                         <span>{{ fee.name }}</span>
                         <strong>{{ fee.amount | currency }}</strong>
                     </div>
+                    <!-- Service-specific fees -->
                     <div *ngFor="let fee of item.calculation.serviceSpecificFees" class="price-row">
                         <span>{{ fee.name }}</span>
                         <strong>{{ fee.amount | currency }}</strong>
                     </div>
-                    <div class="price-row total-row">
-                        <span>Total</span>
+                    <!-- Unit subtotal before GST -->
+                    <div class="price-row" *ngIf="item.calculation.subTotal != null">
+                        <span>Unit Subtotal</span>
+                        <strong>{{ item.calculation.subTotal | currency }}</strong>
+                    </div>
+                    <!-- GST returned by backend -->
+                    <div class="price-row" *ngIf="item.calculation.subTotal != null">
+                        <span>GST</span>
+                        <strong> {{ ( item.calculation.total - item.calculation.subTotal ) * item.quantity | currency }}
+                        </strong>
+                    </div>
+                    <!-- Unit total -->
+                    <div class="price-row">
+                        <span>Unit Total</span>
                         <strong>{{ item.calculation.total | currency }}</strong>
+                    </div>
+                    <!-- Quantity calculation -->
+                    <div class="price-row quantity-summary-row">
+                        <span> {{ item.calculation.total | currency }} × {{ item.quantity }} </span>
+                        <strong>{{ getLineTotal(item) | currency }}</strong>
+                    </div>
+                    <!-- Final service total -->
+                    <div class="price-row total-row">
+                        <span>Service Total</span>
+                        <strong>{{ getLineTotal(item) | currency }}</strong>
                     </div>
                 </div>
             </section>
             <!-- steps -->
+            <div class="service-review-card__title-wrap">
+                <h3>Notes</h3>
+                <p>{{ item.service.notes }}</p>
+            </div>
             <section class="mini-section">
                 <h4>About The Service</h4>
                 <div class="mini-steps" *ngIf="item.steps?.length; else noSteps">
