@@ -1,17 +1,22 @@
 <!-- dashboard.html -->
 <div class="dashboard-container">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <app-user-dashboard-nav></app-user-dashboard-nav>
-    </aside>
-    <!-- Main Section -->
-    <div class="main-section">
-        <!-- Header -->
-        <app-page-header></app-page-header>
-        <!-- Main Content -->
-        <main class="content">
-            <!-- Router outlet / dashboard sections will go here -->
-            <router-outlet></router-outlet>
-        </main>
-    </div>
+  <!-- Mobile drawer overlay -->
+  <div class="nav-overlay" [class.show]="navOpen" (click)="closeNav()"></div>
+
+  <!-- Sidebar (desktop column / mobile drawer / phone bottom-bar) -->
+  <app-user-dashboard-nav
+    [open]="navOpen"
+    (linkClicked)="closeNav()"
+  ></app-user-dashboard-nav>
+
+  <!-- Main Section -->
+  <div class="main-section">
+    <!-- User Header -->
+    <app-user-header (menuToggle)="toggleNav()"></app-user-header>
+
+    <!-- Main Content -->
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>

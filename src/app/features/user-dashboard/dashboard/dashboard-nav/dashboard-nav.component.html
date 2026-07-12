@@ -1,22 +1,47 @@
-<!-- dashborad-nav.component.html -->
-<aside class="sidebar">
-    <!-- Sidebar Header -->
-    <div class="sidebar-header">
-        <h2 class="logo">Fenestration Services</h2>
-    </div>
-    <!-- Sidebar Navigation -->
-    <nav class="sidebar-nav">
-        <ul>
-            <li *ngFor="let link of sections">
-                <a [routerLink]="link.route" routerLinkActive="active" class="nav-link">
-                    <mat-icon>{{ link.icon }}</mat-icon>
-                    <span>{{ link.title }}</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <!-- Sidebar Footer -->
-    <div class="sidebar-footer">
-        <small>© 2026 Fenestration Services</small>
-    </div>
+<!-- dashboard-nav.component.html -->
+
+<!-- ===== Sidebar (desktop column / mobile off-canvas drawer) ===== -->
+<aside class="sidebar" [class.open]="open">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <h2 class="logo">Fenestration Services</h2>
+  </div>
+
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar-nav">
+    <ul>
+      <li *ngFor="let link of sections">
+        <a
+          [routerLink]="link.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-link"
+          (click)="onLinkClick()"
+        >
+          <mat-icon>{{ link.icon }}</mat-icon>
+          <span>{{ link.title }}</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <small>© 2026 Fenestration Services</small>
+  </div>
 </aside>
+
+<!-- ===== Bottom tab bar (phones only) ===== -->
+<nav class="bottom-nav">
+  <a
+    *ngFor="let link of sections"
+    [routerLink]="link.route"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="bottom-link"
+    (click)="onLinkClick()"
+  >
+    <mat-icon>{{ link.icon }}</mat-icon>
+    <span>{{ link.title }}</span>
+  </a>
+</nav>

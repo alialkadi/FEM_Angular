@@ -1,60 +1,10 @@
-/* Layout */
+/* ===== Layout shell ===== */
 .dashboard-container {
   display: flex;
   height: 100vh;
-  font-family: 'Inter', sans-serif;
-  background-color: #f9fafb; /* light gray bg */
-}
-
-/* Sidebar */
-.sidebar {
-  width: 250px;
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-header {
-  font-weight: bold;
-  font-size: 1.25rem;
-  padding: 20px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.nav-link {
-  display: block;
-  padding: 10px 14px;
-  border-radius: 6px;
-  color: #374151; /* gray-700 */
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.nav-link:hover {
-  background: #f3f4f6; /* gray-100 */
-}
-
-.nav-link.active {
-  background: #e0f2fe; /* light blue */
-  color: #0284c7; /* blue-600 */
-  font-weight: 500;
-}
-
-.sidebar-footer {
-  padding: 12px;
-  font-size: 0.85rem;
-  color: #6b7280;
-  border-top: 1px solid #e5e7eb;
-  text-align: center;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background-color: #f9fafb;
+  overflow: hidden;
 }
 
 /* Main Section */
@@ -62,43 +12,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-/* Header */
-.header {
-  height: 64px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.header h1 {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.2rem;
-}
-
-.profile-pic {
-  width: 40px;
-  height: 40px;
-  border-radius: 9999px;
-  border: 2px solid #e5e7eb;
+  min-width: 0; /* allow inner content to shrink instead of overflowing */
 }
 
 /* Content */
@@ -106,5 +20,46 @@
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   background-color: #f9fafb;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== Mobile drawer overlay ===== */
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  z-index: 1100;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* ===== Breakpoints ===== */
+
+/* Tablet & below: sidebar becomes an off-canvas drawer (handled in nav scss) */
+@media (max-width: 1023px) {
+  .content {
+    padding: 20px 16px;
+  }
+}
+
+/* Phones: leave room for the fixed bottom tab bar */
+@media (max-width: 767px) {
+  .content {
+    padding: 16px 14px calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Desktop: no overlay needed */
+@media (min-width: 1024px) {
+  .nav-overlay {
+    display: none;
+  }
 }
