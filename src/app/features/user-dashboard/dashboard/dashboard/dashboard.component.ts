@@ -6,5 +6,13 @@ import { Component } from '@angular/core';
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent {
+  navOpen = false;
 
+  toggleNav(): void {
+    this.navOpen = !this.navOpen;
+  }
+
+  closeNav(): void {
+    this.navOpen = false;
+  }
 }

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { UserDashboardRoutingModule } from './user-dashboard-routing.module';
 import { DashboardComponent } from './dashboard/dashboard/dashboard.component';
 import { DashboardNavComponent } from './dashboard/dashboard-nav/dashboard-nav.component';
+import { UserHeaderComponent } from './dashboard/user-header/user-header.component';
 import { SharedModule } from '../../shared/shared.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,6 +19,7 @@ import { UserServiceQouteRequestsComponent } from './user-service-qoute-requests
   declarations: [
     DashboardComponent,
     DashboardNavComponent,
+    UserHeaderComponent,
     UserServiceRequestsComponent,
     UserProfileComponent,
     UserServiceQouteRequestsComponent,

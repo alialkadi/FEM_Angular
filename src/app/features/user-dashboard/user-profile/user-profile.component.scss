@@ -151,12 +151,21 @@
 }
 
 @media (max-width: 640px) {
+  .profile-page {
+    padding: 20px 0;
+  }
+
   .profile-card {
     padding: 22px;
+    border-radius: 14px;
   }
 
   .profile-header {
     align-items: flex-start;
+
+    h2 {
+      font-size: 22px;
+    }
   }
 
   .form-grid {
@@ -169,5 +178,19 @@
 
   .save-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .profile-header {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
   }
 }
