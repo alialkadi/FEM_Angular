@@ -7,7 +7,7 @@ import { EditCategoryDialogComponent } from './Dialogs/edit-category-dialog/edit
 import { ConfirmDialogComponent } from './Dialogs/confirm-dialog/confirm-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,11 +19,35 @@ import { EditFeeDialogComponent } from './Dialogs/edit-fee-dialog/edit-fee-dialo
 import { MatOptionModule } from '@angular/material/core';
 
 @NgModule({
-  declarations: [SpinnerComponent, PageHeaderComponent, EditCategoryDialogComponent, ConfirmDialogComponent, EditCateogyTypeComponent, EditStructureDialogComponent, EditPartDialogComponent, EditPartOptionDialogComponent, EditFeeDialogComponent],
-  imports: [CommonModule,
-    ReactiveFormsModule, MatInputModule, MatIconModule,
-    MatDialogModule, MatOptionModule,
-    MatButtonModule, MatFormFieldModule, NgOptimizedImage],   
-  exports: [CommonModule, SpinnerComponent, PageHeaderComponent,MatButtonModule,MatDialogModule],
+  declarations: [
+    SpinnerComponent,
+    PageHeaderComponent,
+    EditCategoryDialogComponent,
+    ConfirmDialogComponent,
+    EditCateogyTypeComponent,
+    EditStructureDialogComponent,
+    EditPartDialogComponent,
+    EditPartOptionDialogComponent,
+    EditFeeDialogComponent,
+  ],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatIconModule,
+    FormsModule,
+    MatDialogModule,
+    MatOptionModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    NgOptimizedImage,
+  ],
+  exports: [
+    CommonModule,
+    SpinnerComponent,
+    PageHeaderComponent,
+    MatButtonModule,
+    MatDialogModule,
+  ],
 })
 export class SharedModule {}

@@ -49,21 +49,152 @@
                 </div>
             </div>
             <!-- Section: Linked Services -->
+            <!-- Section: Linked Services -->
             <div class="dialog-section shadow-sm p-4 mb-3 rounded-4"
                 *ngIf="!editForm.get('isGlobal')?.value && mode !== 'name'">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold text-success mb-0">Linked Services</h6>
+                    <div>
+                        <h6 class="fw-bold text-success mb-1"> Linked Services </h6>
+                        <span class="selected-count"> {{ selectedServiceCount }} service{{ selectedServiceCount === 1 ?
+                            '' : 's' }} selected </span>
+                    </div>
                     <i class="bi bi-link-45deg text-success fs-5"></i>
                 </div>
-                <p class="text-muted small mb-3"> Select the services this fee applies to. </p>
-                <div class="service-list-container p-2 border rounded-3">
-                    <div class="form-check form-check-inline w-100" *ngFor="let s of availableServices">
-                        <input class="form-check-input" type="checkbox" [value]="s.id"
-                            (change)="onServiceToggle(s.id, $event)"
-                            [checked]="editForm.get('serviceIds')?.value?.includes(s.id)" id="service-{{ s.id }}" />
-                        <label class="form-check-label ms-2" [for]="'service-' + s.id">{{ s.name }}</label>
-                    </div>
+                <p class="text-muted small mb-4"> Filter by the service hierarchy and select the services to which this
+                    fee should apply. </p>
+                <!-- Loading state -->
+                <div class="services-loading" *ngIf="loadingServices">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading services...
                 </div>
+                <ng-container *ngIf="!loadingServices">
+                    <!-- Hierarchy filters -->
+                    <div class="service-filter-grid">
+                        <!-- Category -->
+                        <div class="filter-field">
+                            <label class="form-label fw-medium"> Category </label>
+                            <select class="form-select" [(ngModel)]="selectedCategoryId"
+                                [ngModelOptions]="{ standalone: true }" (ngModelChange)="onCategoryChange()">
+                                <option [ngValue]="null"> Select Category </option>
+                                <option *ngFor="let category of categories" [ngValue]="category.id"> {{ category.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <!-- Category Type -->
+                        <div class="filter-field" *ngIf="categoryTypes.length > 0">
+                            <label class="form-label fw-medium"> Category Type </label>
+                            <select class="form-select" [(ngModel)]="selectedTypeId"
+                                [ngModelOptions]="{ standalone: true }" (ngModelChange)="onTypeChange()">
+                                <option [ngValue]="null"> All Types </option>
+                                <option *ngFor="let type of categoryTypes" [ngValue]="type.id"> {{ type.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <!-- Structure -->
+                        <div class="filter-field" *ngIf="structures.length > 0">
+                            <label class="form-label fw-medium"> Structure </label>
+                            <select class="form-select" [(ngModel)]="selectedStructureId"
+                                [ngModelOptions]="{ standalone: true }" (ngModelChange)="onStructureChange()">
+                                <option [ngValue]="null"> All Structures </option>
+                                <option *ngFor="let structure of structures" [ngValue]="structure.id"> {{ structure.name
+                                    }} </option>
+                            </select>
+                        </div>
+                        <!-- Part -->
+                        <div class="filter-field" *ngIf="parts.length > 0">
+                            <label class="form-label fw-medium"> Part </label>
+                            <select class="form-select" [(ngModel)]="selectedPartId"
+                                [ngModelOptions]="{ standalone: true }" (ngModelChange)="onPartChange()">
+                                <option [ngValue]="null"> All Parts </option>
+                                <option *ngFor="let part of parts" [ngValue]="part.id"> {{ part.name }} </option>
+                            </select>
+                        </div>
+                        <!-- Part Option -->
+                        <div class="filter-field" *ngIf="partOptions.length > 0">
+                            <label class="form-label fw-medium"> Part Option </label>
+                            <select class="form-select" [(ngModel)]="selectedPartOptionId"
+                                [ngModelOptions]="{ standalone: true }" (ngModelChange)="onPartOptionChange()">
+                                <option [ngValue]="null"> All Part Options </option>
+                                <option *ngFor="let option of partOptions" [ngValue]="option.id"> {{ option.name }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Service search -->
+                    <div class="service-search mt-3" *ngIf="selectedCategoryId !== null">
+                        <label class="form-label fw-medium"> Search within selected level </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control" placeholder="Search by service or hierarchy name..."
+                                [(ngModel)]="serviceSearch" [ngModelOptions]="{ standalone: true }"
+                                (ngModelChange)="updateVisibleServices()" />
+                        </div>
+                    </div>
+                    <!-- Services available under selected hierarchy -->
+                    <div class="services-box mt-4" *ngIf="selectedCategoryId !== null">
+                        <div class="services-box-header">
+                            <span class="fw-semibold"> Available Services </span>
+                            <span class="text-muted small"> {{ visibleServices.length }} result{{ visibleServices.length
+                                === 1 ? '' : 's' }} </span>
+                        </div>
+                        <div class="service-list-container" *ngIf="visibleServices.length > 0; else noFilteredServices">
+                            <label class="service-checkbox-item" *ngFor="
+            let service of visibleServices;
+            trackBy: trackByServiceId
+          " [for]="'edit-fee-service-' + service.id">
+                                <input class="form-check-input" type="checkbox" [id]="'edit-fee-service-' + service.id"
+                                    [checked]="isServiceSelected(service.id)"
+                                    (change)="onServiceToggle(service.id, $event)" />
+                                <div class="service-checkbox-content">
+                                    <span class="service-name"> {{ service.name }} </span>
+                                    <span class="service-path" *ngIf="getServicePath(service)"> {{
+                                        getServicePath(service) }} </span>
+                                </div>
+                            </label>
+                        </div>
+                        <ng-template #noFilteredServices>
+                            <div class="empty-services-state">
+                                <i class="bi bi-search"></i>
+                                <p class="mb-0"> No services are available for the selected filters. </p>
+                            </div>
+                        </ng-template>
+                    </div>
+                    <!-- Nothing selected yet -->
+                    <div class="select-category-message mt-4" *ngIf="selectedCategoryId === null">
+                        <i class="bi bi-diagram-3"></i>
+                        <div>
+                            <strong>Select a category</strong>
+                            <p class="mb-0"> The next hierarchy filters and available services will appear here. </p>
+                        </div>
+                    </div>
+                    <!-- Currently assigned services -->
+                    <div class="selected-services-section mt-4" *ngIf="selectedServices.length > 0">
+                        <div class="selected-services-header">
+                            <div>
+                                <h6 class="mb-1"> Currently Selected </h6>
+                                <span class="text-muted small"> Selections remain saved while you change filters.
+                                </span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                (click)="clearSelectedServices()"> Clear All </button>
+                        </div>
+                        <div class="selected-service-chips">
+                            <div class="selected-service-chip" *ngFor="
+            let service of selectedServices;
+            trackBy: trackByServiceId
+          ">
+                                <div class="selected-service-details">
+                                    <span>{{ service.name }}</span>
+                                    <small *ngIf="getServicePath(service)"> {{ getServicePath(service) }} </small>
+                                </div>
+                                <button type="button" class="remove-service-btn"
+                                    [attr.aria-label]="'Remove ' + service.name"
+                                    (click)="removeSelectedService(service.id)"> &times; </button>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
             </div>
         </form>
     </div>

@@ -91,28 +91,34 @@ export class FeeListComponent {
       }
     });
   }
-
   editFee(fee: FeeResponse, mode: 'name' | 'services' | 'full'): void {
     const dialogRef = this.dialog.open(EditFeeDialogComponent, {
-      width: '600px',
+      width: '900px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
       data: { fee, mode },
       disableClose: true,
       panelClass: 'fee-edit-dialog',
     });
 
     dialogRef.afterClosed().subscribe((updatedFee: FeeResponse | null) => {
-      if (updatedFee) {
-        const index = this.fees.findIndex((f) => f.id === updatedFee.id);
-        if (index !== -1) {
-          this.fees[index] = updatedFee;
-        }
-
-        this.toast.show('Fee updated successfully', 'success');
-        this.loadFees();
+      if (!updatedFee) {
+        return;
       }
+
+      const index = this.fees.findIndex(
+        (feeItem) => feeItem.id === updatedFee.id,
+      );
+
+      if (index !== -1) {
+        this.fees[index] = updatedFee;
+      }
+
+      this.toast.show('Fee updated successfully', 'success');
+
+      this.loadFees();
     });
   }
-
   openServicesModal(fee: FeeResponse): void {
     this.selectedFee = fee;
     this.showModal = true;
