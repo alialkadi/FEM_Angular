@@ -108,6 +108,7 @@ export interface ServiceResponse {
   id: number;
   name?: string;
   description?: string;
+  notes?: string;
   baseCost?: number;
   materialWarrantyDuration?: number;
   workmanshipWarrantyUnit?: string;
@@ -205,7 +206,8 @@ export interface ServiceCalculationResult {
   serviceSpecificFees: FeeBreakdownItem[];
   subTotal: number;
   total: number;
-
+  quantity?: number;
+  lineTotal?: number;
   calculatedOutputs?: ServiceCalculatedOutput[];
   calculatedLabors?: number | null;
 }
@@ -233,6 +235,7 @@ export interface RequestedService {
   steps: ServiceStep[];
   // inputs?: ServiceInputDefinition[];
   answers: ServiceInputAnswer[];
+  quantity: number;
 }
 
 // ========================================================

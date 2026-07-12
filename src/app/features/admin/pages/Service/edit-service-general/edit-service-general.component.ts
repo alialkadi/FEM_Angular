@@ -70,6 +70,7 @@ export class EditServiceGeneralComponent implements OnInit {
     this.serviceForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
+      notes: [''],
       baseCost: [0, [Validators.min(0)]],
       baseRate: [0, [Validators.min(0)]],
       materialWarrantyDuration: [0, [Validators.required, Validators.min(0)]],
@@ -135,6 +136,7 @@ export class EditServiceGeneralComponent implements OnInit {
         this.serviceForm.patchValue({
           name: s.name,
           description: s.description,
+          notes: s.notes,
           baseCost: s.baseCost,
           baseRate: s.baseRate,
           workmanshipWarrantyUnit: s.workmanshipWarrantyUnit,

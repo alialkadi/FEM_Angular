@@ -110,6 +110,7 @@ export class ServiceAdvertisedDetailComponent implements OnInit {
             description: x.description,
           })) as ServiceStep[],
           answers: [],
+          quantity: 1,
         };
         this.service = s;
         this.setSeo();

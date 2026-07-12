@@ -37,6 +37,8 @@ export interface ServiceRequestDetailItemDto {
   description?: string;
   baseCost: number;
   calculatedTotal: number;
+  quantity: number;
+  unitTotal: number;
   inputs: ServiceRequestInputDto[];
   fees: ServiceRequestFeeDto[];
   steps: ServiceRequestStepDto[];

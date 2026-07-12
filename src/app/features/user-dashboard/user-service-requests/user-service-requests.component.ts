@@ -32,28 +32,143 @@ export class UserServiceRequestsComponent implements OnInit {
     'http://fenestrationservices.ca/FenetrationMaintainence/Home/login';
   readonly gstRate = 0.05;
 
+  getQuantity(service: any): number {
+    const quantity = Number(service?.quantity ?? 1);
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      return 1;
+    }
+
+    return quantity;
+  }
+
+  /**
+   * Base price for one requested unit.
+   */
+  getUnitBaseCost(service: any): number {
+    return Number(service?.baseCost ?? 0);
+  }
+
+  /**
+   * Base price multiplied by quantity.
+   */
+  getBaseCostForQuantity(service: any): number {
+    return this.getUnitBaseCost(service) * this.getQuantity(service);
+  }
+
+  /**
+   * Complete total for one unit.
+   *
+   * New records should return unitTotal from the backend.
+   * The calculatedTotal / quantity fallback supports older responses.
+   */
+  getUnitTotal(service: any): number {
+    const unitTotal = Number(service?.unitTotal);
+
+    if (Number.isFinite(unitTotal) && unitTotal >= 0) {
+      return unitTotal;
+    }
+
+    const calculatedTotal = Number(service?.calculatedTotal ?? 0);
+    const quantity = this.getQuantity(service);
+
+    return calculatedTotal / quantity;
+  }
+
+  /**
+   * Final line total for all requested units.
+   *
+   * calculatedTotal should already be:
+   * UnitTotal × Quantity
+   */
+  getServiceLineTotal(service: any): number {
+    const calculatedTotal = Number(service?.calculatedTotal);
+
+    if (Number.isFinite(calculatedTotal) && calculatedTotal >= 0) {
+      return calculatedTotal;
+    }
+
+    return this.getUnitTotal(service) * this.getQuantity(service);
+  }
+
+  getFeesTotal(fees: any[] | undefined | null): number {
+    if (!fees?.length) return 0;
+
+    return fees.reduce((sum, fee) => sum + Number(fee?.amount ?? 0), 0);
+  }
+
+  getFeesTotalForQuantity(service: any): number {
+    return this.getFeesTotal(service?.fees) * this.getQuantity(service);
+  }
+
+  /**
+   * The backend total includes 5% GST.
+   * Deriving GST from the final total also includes labor,
+   * logistics and applicable fees.
+   */
+  getServiceGst(service: any): number {
+    const lineTotal = this.getServiceLineTotal(service);
+
+    if (lineTotal <= 0) {
+      return 0;
+    }
+
+    const beforeGst = lineTotal / (1 + this.gstRate);
+
+    return lineTotal - beforeGst;
+  }
+
+  getServiceNetTotal(service: any): number {
+    return this.getServiceLineTotal(service) - this.getServiceGst(service);
+  }
+
+  getServiceTotal(services: any[] | undefined | null): number {
+    if (!services?.length) return 0;
+
+    return services.reduce(
+      (sum, service) => sum + this.getServiceLineTotal(service),
+      0,
+    );
+  }
+
+  getTotalQuantity(services: any[] | undefined | null): number {
+    if (!services?.length) return 0;
+
+    return services.reduce(
+      (sum, service) => sum + this.getQuantity(service),
+      0,
+    );
+  }
+
+  getBaseCostTotal(services: any[] | undefined | null): number {
+    if (!services?.length) return 0;
+
+    return services.reduce(
+      (sum, service) => sum + this.getBaseCostForQuantity(service),
+      0,
+    );
+  }
+
   getNetTotal(services: any[] | undefined | null): number {
     if (!services?.length) return 0;
 
-    return services.reduce((sum, s) => {
-      return sum + (s.baseCost ?? 0);
-    }, 0);
+    return services.reduce(
+      (sum, service) => sum + this.getServiceNetTotal(service),
+      0,
+    );
   }
 
   getGstTotal(services: any[] | undefined | null): number {
-    return this.getNetTotal(services) * this.gstRate;
+    if (!services?.length) return 0;
+
+    return services.reduce(
+      (sum, service) => sum + this.getServiceGst(service),
+      0,
+    );
   }
 
   getGrandTotalWithGst(services: any[] | undefined | null): number {
-    return this.getNetTotal(services) + this.getGstTotal(services);
-  }
-
-  getServiceGst(service: any): number {
-    return (service?.baseCost ?? 0) * this.gstRate;
-  }
-
-  getServiceTotalWithGst(service: any): number {
-    return (service?.baseCost ?? 0) + this.getServiceGst(service);
+    return this.getServiceTotal(services);
   }
   getReceiptNumber(req: UserServiceRequestDto): string {
     return `${req.requestId}`;
@@ -200,10 +315,6 @@ export class UserServiceRequestsComponent implements OnInit {
     }
     this.updateStatus(req, statusId, statusName);
   }
-  getServiceTotal(services: any[] | undefined | null): number {
-    if (!services?.length) return 0;
-    return services.reduce((sum, s) => sum + (s.calculatedTotal ?? 0), 0);
-  }
   confirmApproveRequest(): void {
     if (!this.requestToApprove || !this.approveStatusId) return;
 
@@ -216,10 +327,6 @@ export class UserServiceRequestsComponent implements OnInit {
     this.approvePopupVisible = false;
     this.requestToApprove = null;
     this.approveStatusId = null;
-  }
-  getFeesTotal(fees: any[] | undefined | null): number {
-    if (!fees?.length) return 0;
-    return fees.reduce((sum, f) => sum + (f.amount ?? 0), 0);
   }
   qrCodeDataUrl = '';
 

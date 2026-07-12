@@ -20,7 +20,13 @@ export interface UserServiceRequestDto {
 export interface UserRequestedServiceDetailDto {
   serviceId: number;
   serviceName: string;
+  quantity: number;
+
+  // Base price for one unit
   baseCost: number;
+
+  // Complete price for one unit
+  unitTotal?: number;
   calculatedTotal: number;
   description?: string;
   steps: ServiceStepDto[];
