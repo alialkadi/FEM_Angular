@@ -1,0 +1,42 @@
+<!-- user-header.component.html -->
+<header class="user-header">
+  <div class="header-left">
+    <button
+      type="button"
+      class="menu-btn"
+      aria-label="Toggle navigation"
+      (click)="onMenuClick()"
+    >
+      <i class="bi bi-list"></i>
+    </button>
+
+    <div class="brand">
+      <i class="bi bi-grid brand-icon"></i>
+      <span class="brand-text">Fenestration Services</span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="user-menu" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        class="user-trigger"
+        [class.active]="dropdownOpen"
+        (click)="toggleDropdown($event)"
+      >
+        <span class="user-avatar"><i class="bi bi-person-fill"></i></span>
+        <span class="user-name">My Account</span>
+        <i class="bi bi-caret-down-fill caret" [class.open]="dropdownOpen"></i>
+      </button>
+
+      <ul class="dropdown" *ngIf="dropdownOpen">
+        <li (click)="goToProfile()">
+          <i class="bi bi-person"></i> Profile
+        </li>
+        <li class="logout" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>
